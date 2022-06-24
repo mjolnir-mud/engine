@@ -1,6 +1,10 @@
 package engine
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 type testPlugin struct{}
 
@@ -17,9 +21,9 @@ func (p *testPlugin) Init(state *State) error {
 }
 
 func TestLoadPlugins(t *testing.T) {
-	Init([]Plugin{&testPlugin{}})
+	Init("test", []Plugin{&testPlugin{}})
 
-	if !initCalled {
-		t.Error("Expected Init to be called")
-	}
+	assert.True(t, initCalled)
+
+	assert.NotNilf(t, state.baseCommand, "baseCommand should not be nil")
 }

@@ -1,11 +1,24 @@
 package engine
 
+import "github.com/spf13/cobra"
+
+// State represents the state of the game.
 type State struct {
-	Plugins []Plugin
+	name        string
+	plugins     []Plugin
+	baseCommand *cobra.Command
 }
 
-func newState(plugins []Plugin) *State {
-	return &State{
-		plugins,
-	}
+func Name() string {
+	return state.name
 }
+
+func setName(name string) {
+	state.name = name
+}
+
+func setPlugins(plugins []Plugin) {
+	state.plugins = plugins
+}
+
+var state = &State{}

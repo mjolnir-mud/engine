@@ -1,10 +1,14 @@
 package engine
 
-import "testing"
+import (
+	"testing"
 
-func TestNewState(t *testing.T) {
-	state := newState([]Plugin{})
-	if state == nil {
-		t.Error("Expected state to be non-nil")
-	}
+	"github.com/stretchr/testify/assert"
+)
+
+func TestName(t *testing.T) {
+	Init("test", []Plugin{&testPlugin{}})
+
+	assert.Equal(t, "test", Name())
+
 }

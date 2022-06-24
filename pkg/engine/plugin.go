@@ -10,7 +10,7 @@ type Plugin interface {
 }
 
 func loadPlugins(state *State) error {
-	for _, plugin := range state.Plugins {
+	for _, plugin := range state.plugins {
 		if err := plugin.Init(state); err != nil {
 			return err
 		}

@@ -3,11 +3,19 @@ package engine
 import (
 	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
 // Init initializes the engine, and execute the CLI.
-func Init(plugins []Plugin) {
-	state := newState(plugins)
+func Init(name string, plugins []Plugin) {
+	setName(name)
+	setPlugins(plugins)
+	setCommand(&cobra.Command{
+		Use:   name,
+		Short: "Interact with the Mjolnir MUD engine",
+		Long:  `Interact with the Mjolnir MUD engine.`,
+	})
 
 	err := loadPlugins(state)
 
