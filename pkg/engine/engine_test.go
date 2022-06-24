@@ -17,11 +17,7 @@ func (p *testPlugin) Init(state *State) error {
 }
 
 func TestLoadPlugins(t *testing.T) {
-	state := newState([]Plugin{&testPlugin{}})
-
-	if err := LoadPlugins(state); err != nil {
-		t.Error("Expected LoadPlugins to return nil error")
-	}
+	Init([]Plugin{&testPlugin{}})
 
 	if !initCalled {
 		t.Error("Expected Init to be called")

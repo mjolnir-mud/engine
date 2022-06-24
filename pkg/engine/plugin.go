@@ -9,8 +9,7 @@ type Plugin interface {
 	Init(state *State) error
 }
 
-// LoadPlugins loads all the plugins in the game state, passing the state to each plugin's `Init` function.
-func LoadPlugins(state *State) error {
+func loadPlugins(state *State) error {
 	for _, plugin := range state.Plugins {
 		if err := plugin.Init(state); err != nil {
 			return err
