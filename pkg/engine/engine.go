@@ -11,7 +11,7 @@ import (
 func Init(name string, plugins []Plugin) {
 	setName(name)
 	setPlugins(plugins)
-	setCommand(&cobra.Command{
+	setBaseCommand(&cobra.Command{
 		Use:   name,
 		Short: "Interact with the Mjolnir MUD engine",
 		Long:  `Interact with the Mjolnir MUD engine.`,

@@ -24,12 +24,7 @@ func TestAddCommand(t *testing.T) {
 	state.baseCommand.SetOut(b)
 
 	state.baseCommand.SetArgs([]string{"test"})
-	err := state.baseCommand.Execute()
-
-	if err != nil {
-		t.Errorf("error executing command: %s", err)
-		return
-	}
+	ExecCommand()
 
 	out, err := ioutil.ReadAll(b)
 
