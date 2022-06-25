@@ -17,7 +17,7 @@ func Init(name string, plugins []Plugin) {
 		Long:  `Interact with the Mjolnir MUD engine.`,
 	})
 
-	err := loadPlugins(state)
+	err := loadPlugins()
 
 	if err != nil {
 		fmt.Print(fmt.Errorf("error loading plugins: %s", err))

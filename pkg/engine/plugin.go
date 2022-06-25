@@ -9,7 +9,7 @@ type Plugin interface {
 	Init(state *State) error
 }
 
-func loadPlugins(state *State) error {
+func loadPlugins() error {
 	for _, plugin := range state.plugins {
 		if err := plugin.Init(state); err != nil {
 			return err
