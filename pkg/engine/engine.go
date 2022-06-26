@@ -17,6 +17,8 @@ func Init(name string, plugins []Plugin) {
 		Long:  `Interact with the Mjolnir MUD engine.`,
 	})
 
+	setLogger()
+
 	err := loadPlugins()
 
 	if err != nil {
