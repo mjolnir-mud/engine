@@ -15,7 +15,7 @@ func NewEventMessage(topic string, payload string) *EventMessage {
 	}
 }
 
-// Unmarshal unmarshals the payload of the event message.
-func (e EventMessage) Unmarshal(v interface{}) error {
+// Unmarshal parses the payload of the event message from JSON,
+func (e *EventMessage) Unmarshal(v interface{}) error {
 	return json.Unmarshal([]byte(e.payload), v)
 }
