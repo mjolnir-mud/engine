@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/go-redis/redis/v9"
+	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +10,8 @@ type State struct {
 	name        string
 	plugins     []Plugin
 	baseCommand *cobra.Command
-	rdb         *redis.Client
+	nats        *nats.EncodedConn
+	natsConn    *nats.Conn
 }
 
 func Name() string {
