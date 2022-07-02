@@ -19,6 +19,7 @@ func Init(name string, plugins []Plugin) {
 
 	setLogger()
 	connectToNats()
+	connectToRedis()
 
 	err := loadPlugins()
 

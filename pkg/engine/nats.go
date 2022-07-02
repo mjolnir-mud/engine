@@ -29,7 +29,7 @@ func connectToNats() {
 	log.Debug().Msg("Connected to nats")
 }
 
-// PublishEvent publishes an event to the Redis event bus after serializing the event as JSON.
+// PublishEvent publishes an event to the NATs event bus.
 func PublishEvent(topic string, event interface{}) error {
 	log.Debug().Msgf("Publishing event %s", topic)
 	err := state.nats.Publish(topic, event)
@@ -42,7 +42,7 @@ func PublishEvent(topic string, event interface{}) error {
 	return nil
 }
 
-// SubscribeToEvent subscribes to an event on the Redis event bus.
+// SubscribeToEvent subscribes to an event on the NATS event bus.
 func SubscribeToEvent(topic string, handler nats.Handler) (*nats.Subscription, error) {
 	logger := log.With().Str("topic", topic).Logger()
 	logger.Debug().Msg("Subscribing to event")
