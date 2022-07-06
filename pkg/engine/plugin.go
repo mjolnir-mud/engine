@@ -6,12 +6,12 @@ type Plugin interface {
 	Name() string
 
 	// Init initializes the plugin when the game starts.
-	Init(state *State) error
+	Init() error
 }
 
 func loadPlugins() error {
 	for _, plugin := range state.plugins {
-		if err := plugin.Init(state); err != nil {
+		if err := plugin.Init(); err != nil {
 			return err
 		}
 	}
