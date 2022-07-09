@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -41,6 +42,12 @@ func Init(name string) {
 
 	e.name = name
 
+	e.baseCommand = &cobra.Command{
+		Use:   name,
+		Short: fmt.Sprintf("manage the %s Mjolnir Game", name),
+		Long:  fmt.Sprintf("manage the %s Mjolnir Game", name),
+	}
+
 	logger.Info().Str("plugin", "engine").Msgf("initializing engine for game %s", name)
 	redis.Start()
 	nats.Start()
@@ -70,6 +77,10 @@ func PublishEvent(event string, data interface{}) error {
 
 func SubscribeToEvent(event string, handler nats2.Handler) (*nats2.Subscription, error) {
 	return nats.SubscribeToEvent(event, handler)
+}
+
+func AddCommand(command *cobra.Command) {
+	e.baseCommand.AddCommand(command)
 }
 
 var logger = log.With().Str("plugin", "engine").Logger()
