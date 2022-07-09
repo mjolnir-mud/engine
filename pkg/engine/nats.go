@@ -5,11 +5,20 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 func connectToNats() {
-	natsLogger.Info().Msg("connecting to nats")
-	n, err := nats.Connect(nats.DefaultURL)
+	err := viper.BindEnv("nats_url")
+
+	if err != nil {
+		panic(err)
+	}
+
+	viper.SetDefault("nats_url", nats.DefaultURL)
+
+	natsLogger.Info().Msgf("connecting to nats on %s", viper.GetString("nats_url"))
+	n, err := nats.Connect(viper.GetString("nats_url"))
 
 	if err != nil {
 		natsLogger.Error().Err(err).Msg("error connecting to nats")
