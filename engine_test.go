@@ -8,7 +8,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	Init()
+	Init("test")
 
 	assert.Equal(t, "development", viper.GetString("env"))
 }

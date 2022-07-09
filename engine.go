@@ -9,10 +9,18 @@ import (
 	"github.com/mjolnir-mud/engine/pkg/plugin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func Init() {
+type engine struct {
+	name        string
+	baseCommand *cobra.Command
+}
+
+var e = &engine{}
+
+func Init(name string) {
 	viper.SetEnvPrefix("MJOLNIR")
 	err := viper.BindEnv("env")
 
@@ -29,7 +37,9 @@ func Init() {
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
 	}
 
-	logger.Info().Str("plugin", "engine").Msg("initializing engine")
+	e.name = name
+
+	logger.Info().Str("plugin", "engine").Msgf("initializing engine for game %s", name)
 	redis.Start()
 	nats.Start()
 }
