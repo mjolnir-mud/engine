@@ -66,7 +66,7 @@ func Stop() {
 	}
 }
 
-func RedisSet(key string, value interface{}, expiration time.Duration) error {
+func Set(key string, value interface{}, expiration time.Duration) error {
 	redisLogger.Debug().Msgf("Setting key %s", key)
 	// marshall value to json
 	jsonValue, err := json.Marshal(value)
@@ -86,7 +86,7 @@ func RedisSet(key string, value interface{}, expiration time.Duration) error {
 	return nil
 }
 
-func RedisGet(key string, value interface{}) error {
+func Get(key string, value interface{}) error {
 	redisLogger.Debug().Msgf("Getting key %s", key)
 	jsonValue, err := redisClient.Get(context.Background(), key).Result()
 
