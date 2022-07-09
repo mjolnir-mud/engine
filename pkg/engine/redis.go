@@ -3,43 +3,83 @@ package engine
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 func connectToRedis() {
 	// connect to redis
-	log.Info().Msg("Connecting to redis")
-	state.redis = redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	redisLogger.Info().Msg("Connecting to redis")
 
-	// ping redis
-	_, err := state.redis.Ping(context.Background()).Result()
+	err := viper.BindEnv("redis_url")
+	viper.SetDefault("redis_url", "redis://localhost:6379/0")
 
 	if err != nil {
-		log.Error().Err(err).Msg("error connecting to redis")
+		panic(err)
+	}
+
+	u, err := url.Parse(viper.GetString("redis_url"))
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error parsing redis url")
+		os.Exit(1)
+	}
+
+	host := fmt.Sprintf("%s:%s", u.Hostname(), u.Port())
+
+	redisLogger.Info().Msgf("Connecting to redis at %s on %s", host, u.Path)
+
+	i, err := strconv.Atoi(u.Path[1:])
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error parsing redis url")
+		os.Exit(1)
+	}
+
+	redisClient = redis.NewClient(&redis.Options{
+		Addr: host,
+		DB:   i,
+	})
+
+	// ping redis to ensure it is connected
+	_, err = redisClient.Ping(context.Background()).Result()
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error connecting to redis")
 		os.Exit(1)
 	}
 }
 
+func disconnectFromRedis() {
+	redisLogger.Info().Msg("Disconnecting from redis")
+	err := redisClient.Close()
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error disconnecting from redis")
+	}
+}
+
 func RedisSet(key string, value interface{}, expiration time.Duration) error {
-	log.Debug().Msgf("Setting key %s", key)
+	redisLogger.Debug().Msgf("Setting key %s", key)
 	// marshall value to json
 	jsonValue, err := json.Marshal(value)
 
 	if err != nil {
-		log.Error().Err(err).Msg("error marshalling value")
+		redisLogger.Error().Err(err).Msg("error marshalling value")
 		return err
 	}
 
-	err = state.redis.Set(context.Background(), key, jsonValue, expiration).Err()
+	err = redisClient.Set(context.Background(), key, jsonValue, expiration).Err()
 
 	if err != nil {
-		log.Error().Err(err).Msg("error setting key")
+		redisLogger.Error().Err(err).Msg("error setting key")
 		return err
 	}
 
@@ -47,18 +87,18 @@ func RedisSet(key string, value interface{}, expiration time.Duration) error {
 }
 
 func RedisGet(key string, value interface{}) error {
-	log.Debug().Msgf("Getting key %s", key)
-	jsonValue, err := state.redis.Get(context.Background(), key).Result()
+	redisLogger.Debug().Msgf("Getting key %s", key)
+	jsonValue, err := redisClient.Get(context.Background(), key).Result()
 
 	if err != nil {
-		log.Error().Err(err).Msg("error getting key")
+		redisLogger.Error().Err(err).Msg("error getting key")
 		return err
 	}
 
 	err = json.Unmarshal([]byte(jsonValue), value)
 
 	if err != nil {
-		log.Error().Err(err).Msg("error unmarshalling value")
+		redisLogger.Error().Err(err).Msg("error unmarshalling value")
 		return err
 	}
 
@@ -66,11 +106,11 @@ func RedisGet(key string, value interface{}) error {
 }
 
 func RedisKeyExists(key string) bool {
-	log.Debug().Msg("Checking if key exists")
-	exists, err := state.redis.Exists(context.Background(), key).Result()
+	redisLogger.Debug().Msg("Checking if key exists")
+	exists, err := redisClient.Exists(context.Background(), key).Result()
 
 	if err != nil {
-		log.Error().Err(err).Msg("error checking if key exists")
+		redisLogger.Error().Err(err).Msg("error checking if key exists")
 		os.Exit(1)
 	}
 
@@ -80,3 +120,10 @@ func RedisKeyExists(key string) bool {
 		return false
 	}
 }
+
+var redisClient *redis.Client
+var redisLogger = log.
+	With().
+	Str("plugin", "engine").
+	Str("service", "redis").
+	Logger()

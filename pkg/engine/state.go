@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"github.com/go-redis/redis/v9"
 	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 )
@@ -13,7 +12,6 @@ type State struct {
 	baseCommand *cobra.Command
 	nats        *nats.EncodedConn
 	natsConn    *nats.Conn
-	redis       *redis.Client
 }
 
 func Name() string {
