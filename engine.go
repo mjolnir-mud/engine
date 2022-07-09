@@ -71,6 +71,10 @@ func RedisGet(key string, value interface{}) error {
 	return redis.Get(key, value)
 }
 
+func RedisKeyExists(key string) bool {
+	return redis.KeyExists(key)
+}
+
 func PublishEvent(event string, data interface{}) error {
 	return nats.PublishEvent(event, data)
 }

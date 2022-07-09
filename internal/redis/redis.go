@@ -105,7 +105,7 @@ func Get(key string, value interface{}) error {
 	return nil
 }
 
-func RedisKeyExists(key string) bool {
+func KeyExists(key string) bool {
 	redisLogger.Debug().Msg("Checking if key exists")
 	exists, err := redisClient.Exists(context.Background(), key).Result()
 
