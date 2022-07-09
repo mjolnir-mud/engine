@@ -1,16 +1,12 @@
 package engine
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 )
 
 // Init initializes the engine, and execute the CLI.
-func Init(name string, plugins []Plugin) {
+func Init(name string, plugs []Plugin) {
 	setName(name)
-	setPlugins(plugins)
 	setBaseCommand(&cobra.Command{
 		Use:   name,
 		Short: "Interact with the Mjolnir MUD engine",
@@ -21,10 +17,8 @@ func Init(name string, plugins []Plugin) {
 	connectToNats()
 	connectToRedis()
 
-	err := loadPlugins()
+}
 
-	if err != nil {
-		fmt.Print(fmt.Errorf("error loading plugins: %s", err))
-		os.Exit(1)
-	}
+func RegisterPlugin(plugin Plugin) {
+	plugins.Register(plugin)
 }

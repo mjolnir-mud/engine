@@ -1,19 +1,25 @@
 package engine
 
-//type testPlugin struct{}
-//
-//var initCalled = false
-//
-//func (p *testPlugin) Name() string {
-//	return "test"
-//}
-//
-//func (p *testPlugin) Init(state *State) error {
-//	initCalled = true
-//
-//	return nil
-//}
-//
+type testPlugin struct {
+	pluginInitialized chan bool
+}
+
+func (p *testPlugin) Name() string {
+	return "test"
+}
+
+func (p *testPlugin) Init() error {
+	p.pluginInitialized <- true
+
+	return nil
+}
+
+func createTestPlugin() Plugin {
+	return &testPlugin{
+		pluginInitialized: make(chan bool),
+	}
+}
+
 //func TestLoadPlugins(t *testing.T) {
 //	Init("test", []Plugin{&testPlugin{}})
 //

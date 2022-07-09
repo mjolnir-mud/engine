@@ -7,7 +7,6 @@ import (
 // State represents the state of the game.
 type State struct {
 	name        string
-	plugins     []Plugin
 	baseCommand *cobra.Command
 }
 
@@ -17,10 +16,6 @@ func Name() string {
 
 func setName(name string) {
 	state.name = name
-}
-
-func setPlugins(plugins []Plugin) {
-	state.plugins = plugins
 }
 
 var state = &State{}

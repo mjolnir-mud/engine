@@ -8,12 +8,3 @@ type Plugin interface {
 	// Init initializes the plugin when the game starts.
 	Init() error
 }
-
-func loadPlugins() error {
-	for _, plugin := range state.plugins {
-		if err := plugin.Init(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
