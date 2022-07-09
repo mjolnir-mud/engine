@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 )
 
@@ -10,8 +9,6 @@ type State struct {
 	name        string
 	plugins     []Plugin
 	baseCommand *cobra.Command
-	nats        *nats.EncodedConn
-	natsConn    *nats.Conn
 }
 
 func Name() string {

@@ -8,34 +8,38 @@ import (
 )
 
 func connectToNats() {
-	log.Info().Msg("Connecting to nats")
+	natsLogger.Info().Msg("connecting to nats")
 	n, err := nats.Connect(nats.DefaultURL)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Error connecting to nats")
+		natsLogger.Error().Err(err).Msg("error connecting to nats")
 		os.Exit(1)
 	}
 
 	c, err := nats.NewEncodedConn(n, nats.JSON_ENCODER)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Error connecting to nats")
+		natsLogger.Error().Err(err).Msg("error connecting to nats")
 		os.Exit(1)
 	}
 
-	state.natsConn = n
-	state.nats = c
+	natsConn = c
 
-	log.Debug().Msg("Connected to nats")
+	natsLogger.Debug().Msg("connected to nats")
+}
+
+func disconnectFromNats() {
+	natsLogger.Debug().Msg("disconnecting from nats")
+	natsConn.Close()
 }
 
 // PublishEvent publishes an event to the NATs event bus.
 func PublishEvent(topic string, event interface{}) error {
-	log.Debug().Msgf("Publishing event %s", topic)
-	err := state.nats.Publish(topic, event)
+	natsLogger.Debug().Msgf("publishing event %s", topic)
+	err := natsConn.Publish(topic, event)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Error publishing event")
+		natsLogger.Error().Err(err).Msg("error publishing event")
 		return err
 	}
 
@@ -44,17 +48,24 @@ func PublishEvent(topic string, event interface{}) error {
 
 // SubscribeToEvent subscribes to an event on the NATS event bus.
 func SubscribeToEvent(topic string, handler nats.Handler) (*nats.Subscription, error) {
-	logger := log.With().Str("topic", topic).Logger()
-	logger.Debug().Msg("Subscribing to event")
+	logger := natsLogger.With().Str("topic", topic).Logger()
+	logger.Debug().Msg("subscribing to event")
 
-	sub, err := state.nats.Subscribe(topic, handler)
+	sub, err := natsConn.Subscribe(topic, handler)
 
 	if err != nil {
-		logger.Error().Err(err).Msg("Error subscribing to event")
+		logger.Error().Err(err).Msg("error subscribing to event")
 		return nil, err
 	}
 
-	logger.Trace().Msg("Subscribed to event")
+	logger.Trace().Msg("subscribed to event")
 
 	return sub, nil
 }
+
+var natsConn *nats.EncodedConn
+var natsLogger = log.
+	With().
+	Str("plugin", "engine").
+	Str("service", "engine").
+	Logger()
