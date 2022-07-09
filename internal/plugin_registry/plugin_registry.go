@@ -10,7 +10,7 @@ type pluginRegistry struct {
 }
 
 func (r *pluginRegistry) Register(p plugin.Plugin) {
-	pluginRegistryLogger.Info().Str("plugin", p.Name()).Msg("Registering plugin")
+	logger.Info().Str("plugin", p.Name()).Msg("registering plugin")
 
 	r.plugins = append(r.plugins, p)
 }
@@ -19,11 +19,24 @@ func (r *pluginRegistry) Count() int {
 	return len(r.plugins)
 }
 
+func (r *pluginRegistry) InitPlugins() {
+	logger.Info().Msg("initializing plugins")
+
+	for _, p := range r.plugins {
+		logger.Info().Msgf("initializing plugin %s", p.Name())
+		err := p.Init()
+
+		if err != nil {
+			logger.Fatal().Err(err).Msg("error initializing plugin")
+		}
+	}
+}
+
 var plugins = &pluginRegistry{
 	plugins: []plugin.Plugin{},
 }
 
-var pluginRegistryLogger = log.
+var logger = log.
 	With().
 	Str("plugin", "engine").
 	Str("service", "plugin_registry").
@@ -31,4 +44,8 @@ var pluginRegistryLogger = log.
 
 func Register(p plugin.Plugin) {
 	plugins.Register(p)
+}
+
+func InitPlugins() {
+	plugins.InitPlugins()
 }

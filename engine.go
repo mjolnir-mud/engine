@@ -23,7 +23,7 @@ type engine struct {
 
 var e = &engine{}
 
-func Init(name string) {
+func Start(name string) {
 	viper.SetEnvPrefix("MJOLNIR")
 	err := viper.BindEnv("env")
 
@@ -49,11 +49,18 @@ func Init(name string) {
 	}
 
 	logger.Info().Str("plugin", "engine").Msgf("initializing engine for game %s", name)
-	redis.Start()
 	nats.Start()
+	redis.Start()
+	plugin_registry.InitPlugins()
+
+	err = e.baseCommand.Execute()
+
+	if err != nil {
+		panic(err)
+	}
 }
 
-func Shutdown() {
+func Stop() {
 	logger.Info().Str("plugin", "engine").Msg("shutting down engine")
 	redis.Stop()
 	nats.Stop()
