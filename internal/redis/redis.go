@@ -1,4 +1,4 @@
-package engine
+package redis
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func connectToRedis() {
+func Start() {
 	// connect to redis
 	redisLogger.Info().Msg("Connecting to redis")
 
@@ -57,7 +57,7 @@ func connectToRedis() {
 	}
 }
 
-func disconnectFromRedis() {
+func Stop() {
 	redisLogger.Info().Msg("Disconnecting from redis")
 	err := redisClient.Close()
 

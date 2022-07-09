@@ -1,4 +1,4 @@
-package engine
+package redis
 
 import (
 	"context"
@@ -7,17 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupTest() {
-	connectToRedis()
-}
-
-func teardownTest() {
-	disconnectFromRedis()
-}
-
 func TestRedisSet(t *testing.T) {
-	setupTest()
-	defer teardownTest()
+	Start()
+	defer Stop()
 	err := RedisSet("test:get", "test", 0)
 	assert.Nil(t, err)
 
@@ -27,8 +19,8 @@ func TestRedisSet(t *testing.T) {
 }
 
 func TestRedisGet(t *testing.T) {
-	setupTest()
-	defer teardownTest()
+	Start()
+	defer Stop()
 	err := RedisSet("test:set", "test", 0)
 	assert.Nil(t, err)
 

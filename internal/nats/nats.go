@@ -1,4 +1,4 @@
-package engine
+package nats
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func connectToNats() {
+func Start() {
 	err := viper.BindEnv("nats_url")
 
 	if err != nil {
@@ -37,7 +37,7 @@ func connectToNats() {
 	natsLogger.Debug().Msg("connected to nats")
 }
 
-func disconnectFromNats() {
+func Stop() {
 	natsLogger.Debug().Msg("disconnecting from nats")
 	natsConn.Close()
 }

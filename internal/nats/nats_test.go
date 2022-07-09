@@ -1,4 +1,4 @@
-package engine
+package nats
 
 import (
 	"testing"
@@ -11,8 +11,8 @@ type testMessage struct {
 }
 
 func TestPublishAndSubscribeToEvent(t *testing.T) {
-	connectToNats()
-	defer disconnectFromNats()
+	Start()
+	defer Stop()
 
 	cont := make(chan bool)
 

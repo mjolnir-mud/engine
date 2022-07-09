@@ -1,4 +1,4 @@
-package engine
+package plugin
 
 // Plugin is the interface that must be implemented by a Mjolnir plugin.
 type Plugin interface {
