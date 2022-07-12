@@ -78,8 +78,20 @@ func RedisGet(key string, value interface{}) error {
 	return redis.Get(key, value)
 }
 
-func RedisKeyExists(key string) bool {
+func RedisKeyExists(key string) (bool, error) {
 	return redis.KeyExists(key)
+}
+
+func RedisDelete(key string) error {
+	return redis.Delete(key)
+}
+
+func RedisCount(key string) (int64, error) {
+	return redis.Count(key)
+}
+
+func RedisDeleteAll(key string) error {
+	return redis.DeleteAll(key)
 }
 
 func PublishEvent(event string, data interface{}) error {

@@ -105,20 +105,56 @@ func Get(key string, value interface{}) error {
 	return nil
 }
 
-func KeyExists(key string) bool {
+func Delete(key string) error {
+	redisLogger.Debug().Msgf("Deleting key %s", key)
+	err := redisClient.Del(context.Background(), key).Err()
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error deleting key")
+		return err
+	}
+
+	return nil
+}
+
+func KeyExists(key string) (bool, error) {
 	redisLogger.Debug().Msg("Checking if key exists")
 	exists, err := redisClient.Exists(context.Background(), key).Result()
 
 	if err != nil {
 		redisLogger.Error().Err(err).Msg("error checking if key exists")
-		os.Exit(1)
+		return false, err
 	}
 
 	if exists > 0 {
-		return true
+		return true, nil
 	} else {
-		return false
+		return false, nil
 	}
+}
+
+func Count(key string) (int64, error) {
+	redisLogger.Trace().Msgf("Counting key: %s", key)
+	count, err := redisClient.LLen(context.Background(), key).Result()
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error counting key")
+		os.Exit(1)
+	}
+
+	return count, nil
+}
+
+func DeleteAll(key string) error {
+	redisLogger.Trace().Msgf("Deleting all keys for %s", key)
+	err := redisClient.Del(context.Background(), key).Err()
+
+	if err != nil {
+		redisLogger.Error().Err(err).Msg("error deleting all keys")
+		return err
+	}
+
+	return nil
 }
 
 var redisClient *redis.Client
