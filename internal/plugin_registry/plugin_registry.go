@@ -19,12 +19,12 @@ func (r *pluginRegistry) Count() int {
 	return len(r.plugins)
 }
 
-func (r *pluginRegistry) InitPlugins() {
+func (r *pluginRegistry) StartPlugins() {
 	logger.Info().Msg("initializing plugins")
 
 	for _, p := range r.plugins {
 		logger.Info().Msgf("initializing plugin %s", p.Name())
-		err := p.Init()
+		err := p.Start()
 
 		if err != nil {
 			logger.Fatal().Err(err).Msg("error initializing plugin")
@@ -46,6 +46,6 @@ func Register(p plugin.Plugin) {
 	plugins.Register(p)
 }
 
-func InitPlugins() {
-	plugins.InitPlugins()
+func StartPlugins() {
+	plugins.StartPlugins()
 }

@@ -54,7 +54,7 @@ func Start(name string) {
 	Redis = redis.GetClient()
 
 	nats.Start()
-	plugin_registry.InitPlugins()
+	plugin_registry.StartPlugins()
 
 	err = e.baseCommand.Execute()
 
@@ -69,6 +69,7 @@ func Stop() {
 	redis.Stop()
 }
 
+// RegisterPlugin registers a plugin with the engine.
 func RegisterPlugin(plugin plugin.Plugin) {
 	plugin_registry.Register(plugin)
 }
@@ -81,7 +82,7 @@ func SubscribeToEvent(event string, handler nats2.Handler) (*nats2.Subscription,
 	return nats.SubscribeToEvent(event, handler)
 }
 
-func AddCommand(command *cobra.Command) {
+func AddCLICommand(command *cobra.Command) {
 	e.baseCommand.AddCommand(command)
 }
 
