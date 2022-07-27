@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Start() {
+func Start() *redis.Client {
 	// connect to redis
 	redisLogger.Info().Msg("Connecting to redis")
 
 	err := viper.BindEnv("redis_url")
 
-	if viper.GetString("mjolnir_env") == "test" {
+	if viper.GetString("env") == "test" {
 		viper.SetDefault("redis_url", "redis://localhost:6379/1")
 	} else {
 		viper.SetDefault("redis_url", "redis://localhost:6379/0")
@@ -46,7 +46,7 @@ func Start() {
 		os.Exit(1)
 	}
 
-	Client = redis.NewClient(&redis.Options{
+	client = redis.NewClient(&redis.Options{
 		Addr:        host,
 		DB:          i,
 		PoolSize:    10,
@@ -54,24 +54,30 @@ func Start() {
 	})
 
 	// ping redis to ensure it is connected
-	_, err = Client.Ping(context.Background()).Result()
+	_, err = client.Ping(context.Background()).Result()
 
 	if err != nil {
 		redisLogger.Error().Err(err).Msg("error connecting to redis")
 		os.Exit(1)
 	}
+
+	return client
 }
 
 func Stop() {
 	redisLogger.Info().Msg("Disconnecting from redis")
-	err := Client.Close()
+	err := client.Close()
 
 	if err != nil {
 		redisLogger.Error().Err(err).Msg("error disconnecting from redis")
 	}
 }
 
-var Client *redis.Client
+func GetClient() *redis.Client {
+	return client
+}
+
+var client *redis.Client
 
 var redisLogger = log.
 	With().

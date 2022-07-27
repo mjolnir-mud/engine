@@ -10,7 +10,7 @@ import (
 func TestStart(t *testing.T) {
 	Start()
 
-	err := Client.Ping(context.Background()).Err()
+	err := client.Ping(context.Background()).Err()
 	assert.Nil(t, err)
 }
 
@@ -18,7 +18,7 @@ func TestStop(t *testing.T) {
 	Start()
 	Stop()
 
-	err := Client.Ping(context.Background()).Err()
+	err := client.Ping(context.Background()).Err()
 
 	assert.NotNil(t, err)
 }
