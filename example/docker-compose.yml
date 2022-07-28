@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"
+  mongo:
+    image: bitnami/mongodb:latest
+    ports:
+      - "27017:27017"
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    command: "redis-server --save 20 1 --loglevel verbose --notify-keyspace-events 'AKE'"
