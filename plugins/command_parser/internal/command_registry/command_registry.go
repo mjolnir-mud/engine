@@ -4,9 +4,12 @@ import (
 	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/command_set"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
+	"github.com/mjolnir-mud/engine/plugins/command_parser/pkg/command_set"
 )
+
+type Session interface {
+	WriteToConnection(string)
+}
 
 type commandRegistry struct {
 	commandSets map[string]*kong.Kong
@@ -26,7 +29,7 @@ func RegisterCommandSet(set command_set.CommandSet) {
 	registry.commandSets[set.Name()] = k
 }
 
-func ParseCommand(sets []string, sess session.Session, input string) {
+func ParseCommand(sets []string, sess Session, input string) {
 	for _, set := range sets {
 		// get the command set if mil write  an error to the connection
 		k, ok := registry.commandSets[set]

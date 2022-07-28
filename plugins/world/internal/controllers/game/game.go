@@ -1,7 +1,7 @@
 package game
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/world/internal/command_registry"
+	"github.com/mjolnir-mud/engine/plugins/command_parser"
 	session2 "github.com/mjolnir-mud/engine/plugins/world/internal/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
 )
@@ -29,7 +29,7 @@ func (C controller) Stop(session session.Session) error {
 func (C controller) HandleInput(session session.Session, input string) error {
 	// get the command sets from the store
 	sets := session2.GetCommandSets(session)
-	command_registry.ParseCommand(sets, session, input)
+	command_parser.ParseCommand(sets, session, input)
 
 	return nil
 }

@@ -2,8 +2,9 @@ package world
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/command_parser"
+	"github.com/mjolnir-mud/engine/plugins/command_parser/pkg/command_set"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/command_registry"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/command_sets"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/create_character"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/game"
@@ -23,7 +24,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/persisted"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/room"
 	templates2 "github.com/mjolnir-mud/engine/plugins/world/internal/templates"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/command_set"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/db"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/entity_type"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
@@ -70,8 +70,8 @@ func (w world) Start() error {
 			RegisterEntityType(zone.Type)
 			RegisterEntityType(area.Type)
 
-			command_registry.RegisterCommandSet(command_sets.Base)
-			command_registry.RegisterCommandSet(command_sets.Movement)
+			command_parser.RegisterCommandSet(command_sets.Base)
+			command_parser.RegisterCommandSet(command_sets.Movement)
 
 			entity_registry.Start()
 			system_registry.Start()
@@ -179,10 +179,6 @@ func AddEntity(name string, id string, args map[string]interface{}) error {
 
 func RemoveEntity(id string) {
 	entity_registry.Remove(id)
-}
-
-func ParseCommand(sets []string, session session.Session, input string) {
-	command_registry.ParseCommand(sets, session, input)
 }
 
 func WriteToConnection(id string, data string) {

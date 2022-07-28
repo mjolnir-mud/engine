@@ -3,7 +3,6 @@ module github.com/mjolnir-mud/engine/plugins/world
 go 1.17
 
 require (
-	github.com/alecthomas/kong v0.6.1
 	github.com/go-redis/redis/v9 v9.0.0-beta.1
 	github.com/mjolnir-mud/engine v0.1.1
 	github.com/nats-io/nats.go v1.16.0
@@ -17,6 +16,7 @@ require (
 )
 
 require (
+	github.com/alecthomas/kong v0.6.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/charmbracelet/lipgloss v0.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -34,6 +34,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mjolnir-mud/engine/plugins/command_parser v0.0.0-00010101000000-000000000000 // indirect
 	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000 // indirect
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
@@ -63,5 +64,6 @@ require (
 
 replace (
 	github.com/mjolnir-mud/engine => ../../
+	github.com/mjolnir-mud/engine/plugins/command_parser => ../command_parser
 	github.com/mjolnir-mud/engine/plugins/templates => ../templates
 )
