@@ -30,6 +30,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/system"
 	_default "github.com/mjolnir-mud/engine/plugins/world/pkg/themes/default"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type world struct {
@@ -49,6 +50,13 @@ func (w world) Start() error {
 			log.Info().Msg("starting server")
 			db.Start()
 			session.ControllerRegistry.Start()
+
+			viper.SetDefault("character_starting_location", "limbo_prime")
+			err := viper.BindEnv("character_starting_location")
+
+			if err != nil {
+				panic(err)
+			}
 
 			// Register systems
 			RegisterSystem(location.System)
