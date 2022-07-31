@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +19,7 @@ func (t *testEntityType) Create(_ string, args map[string]interface{}) map[strin
 }
 
 func setup() {
-	redis.Start()
+	engine.Start("test")
 	engine.Redis.FlushDB(context.Background())
 	Register(&testEntityType{})
 	Start()
@@ -29,7 +28,7 @@ func setup() {
 func teardown() {
 	Stop()
 	engine.Redis.FlushDB(context.Background())
-	redis.Stop()
+	engine.Stop()
 }
 
 func TestAllComponents(t *testing.T) {
@@ -94,7 +93,7 @@ func TestSetBoolComponent(t *testing.T) {
 func TestSetInt64Component(t *testing.T) {
 	setup()
 
-	SetInt64Component("test", "testInt64Component", 1)
+	AddInt64ComponentToEntity("test", "testInt64Component", 1)
 
 	i, err := engine.Redis.Get(context.Background(), "test:testInt64Component").Int64()
 
@@ -108,7 +107,7 @@ func TestSetInt64Component(t *testing.T) {
 func TestSetStringComponent(t *testing.T) {
 	setup()
 
-	SetStringComponent("test", "testStringComponent", "test")
+	AddStringComponentToEntity("test", "testStringComponent", "test")
 
 	s := engine.Redis.Get(context.Background(), "test:testStringComponent").Val()
 
@@ -319,7 +318,7 @@ func TestEntityExists(t *testing.T) {
 func TestAdd(t *testing.T) {
 	setup()
 
-	err := Add("test", "testEntity", map[string]interface{}{
+	err := AddWithID("test", "testEntity", map[string]interface{}{
 		"testString": "string",
 		"testInt":    1,
 		"testInt64":  int64(1),
@@ -367,8 +366,8 @@ func TestSetStringInSetComponent(t *testing.T) {
 func TestAllEntitiesByType(t *testing.T) {
 	setup()
 
-	_ = Add("test", "testEntityA", map[string]interface{}{})
-	_ = Add("test", "testEntityB", map[string]interface{}{})
+	_ = AddWithID("test", "testEntityA", map[string]interface{}{})
+	_ = AddWithID("test", "testEntityB", map[string]interface{}{})
 
 	entities := AllEntitiesByType("test")
 	assert.Equal(t, 2, len(entities))
@@ -379,10 +378,10 @@ func TestAllEntitiesByType(t *testing.T) {
 func TestAllEntitiesByTypeWithComponent(t *testing.T) {
 	setup()
 
-	_ = Add("test", "testEntityA", map[string]interface{}{
+	_ = AddWithID("test", "testEntityA", map[string]interface{}{
 		"testEntityA": "test",
 	})
-	_ = Add("test", "testEntityB", map[string]interface{}{})
+	_ = AddWithID("test", "testEntityB", map[string]interface{}{})
 
 	entities := AllEntitiesByTypeWithComponent("test", "testEntityA")
 	assert.Equal(t, 1, len(entities))
@@ -393,10 +392,10 @@ func TestAllEntitiesByTypeWithComponent(t *testing.T) {
 func TestAllEntitiesByTypeWithComponentValue(t *testing.T) {
 	setup()
 
-	_ = Add("test", "testEntityA", map[string]interface{}{
+	_ = AddWithID("test", "testEntityA", map[string]interface{}{
 		"testEntityA": "test",
 	})
-	_ = Add("test", "testEntityB", map[string]interface{}{})
+	_ = AddWithID("test", "testEntityB", map[string]interface{}{})
 
 	entities := AllEntitiesByTypeWithComponentValue("test", "testEntityA", "test")
 	assert.Equal(t, 1, len(entities))

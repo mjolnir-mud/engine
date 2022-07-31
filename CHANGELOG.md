@@ -21,6 +21,7 @@
 
 #### Breaking Changes
 * `world.ParseCommand()` has been removed and moved to the `command_parser` plugin
+* ECS components have been broken out into their own plugin
 
 ### Templates
 
