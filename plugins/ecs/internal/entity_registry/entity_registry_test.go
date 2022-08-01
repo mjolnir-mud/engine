@@ -93,7 +93,7 @@ func TestSetBoolComponent(t *testing.T) {
 func TestSetInt64Component(t *testing.T) {
 	setup()
 
-	AddInt64ComponentToEntity("test", "testInt64Component", 1)
+	AddInt64Component("test", "testInt64Component", 1)
 
 	i, err := engine.Redis.Get(context.Background(), "test:testInt64Component").Int64()
 
@@ -107,7 +107,7 @@ func TestSetInt64Component(t *testing.T) {
 func TestSetStringComponent(t *testing.T) {
 	setup()
 
-	AddStringComponentToEntity("test", "testStringComponent", "test")
+	AddStringComponent("test", "testStringComponent", "test")
 
 	s := engine.Redis.Get(context.Background(), "test:testStringComponent").Val()
 
@@ -217,7 +217,7 @@ func TestGetIntFromHashComponent(t *testing.T) {
 
 	engine.Redis.HSet(context.Background(), "test:testHashComponent", "test", 1)
 
-	i, err := GetIntFromHashComponent("test", "testHashComponent", "test")
+	i, err := GetIntFromMapComponent("test", "testHashComponent", "test")
 
 	assert.Nil(t, err)
 
@@ -231,7 +231,7 @@ func TestGetStringFromHashComponent(t *testing.T) {
 
 	engine.Redis.HSet(context.Background(), "test:testHashComponent", "test", "test")
 
-	s, err := GetStringFromHashComponent("test", "testHashComponent", "test")
+	s, err := GetStringFromMapComponent("test", "testHashComponent", "test")
 
 	assert.Nil(t, err)
 
@@ -308,7 +308,7 @@ func TestEntityExists(t *testing.T) {
 
 	engine.Redis.Set(context.Background(), "__type:test:testBoolComponent", true, 0)
 
-	b := EntityExists("test")
+	b := Exists("test")
 
 	assert.Equal(t, true, b)
 
@@ -344,7 +344,7 @@ func TestAdd(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, true, b)
 
-	h, err := GetHashComponent("testEntity", "testHash")
+	h, err := GetMapComponent("testEntity", "testHash")
 	assert.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{"test": "1"}, h)
 
