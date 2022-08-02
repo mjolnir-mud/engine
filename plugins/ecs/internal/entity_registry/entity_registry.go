@@ -344,8 +344,14 @@ func Add(entityType string, args map[string]interface{}) (string, error) {
 // and a map of components to be added. If an entity with the same id already exists, an error will be thrown. If the
 // type is not registered, an error will be thrown.
 func AddWithID(entityType string, id string, args map[string]interface{}) error {
-	if Exists(id) {
-		return fmt.Errorf("entity with id %s already exists", id)
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return EntityExistsError{ID: id}
 	}
 
 	if !IsEntityTypeRegistered(entityType) {
@@ -356,7 +362,7 @@ func AddWithID(entityType string, id string, args map[string]interface{}) error 
 	setEntityType(id, entityType)
 
 	// add the entities components to the world
-	err := setComponentsFromMap(id, args)
+	err = setComponentsFromMap(id, args)
 
 	if err != nil {
 		return err
@@ -380,7 +386,7 @@ func AddBoolComponent(id string, name string, value bool) error {
 // to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-// the type of a key will result in an error in later updated.
+// the type of key will result in an error in later updated.
 func AddBoolToMapComponent(id string, name string, key string, value bool) error {
 	if value {
 		return addToMapComponent(id, name, key, 1)
@@ -425,11 +431,17 @@ func AddInt64ToMapComponent(id string, name string, key string, value int64) err
 // the component. If an entity with the same id already exists an error will be thrown. If a component with the same name
 // already exists, an error will be thrown.
 func AddMapComponent(id string, name string, value map[string]interface{}) error {
-	if Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
 		return EntityExistsError{ID: id}
 	}
 
-	err := setComponentType(id, name, "map")
+	err = setComponentType(id, name, "map")
 
 	if err != nil {
 		return err
@@ -450,13 +462,19 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 // AddSetComponent adds a set component to an entity. It takes the entity ID, component name, and the value of
 // the component. If an entity with the same id already exists error will be thrown. If a component with the same name
 // already exists, an error will be thrown. Once a value is added to the set, the type of that value is enforced for
-// all members of the set. Attempting to change the type of a value will result in an error in later updates.
+// all members of the set. Attempting to change the type of value will result in an error in later updates.
 func AddSetComponent(id string, name string, value []interface{}) error {
-	if Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
 		return EntityExistsError{ID: id}
 	}
 
-	err := setComponentType(id, name, "set")
+	err = setComponentType(id, name, "set")
 
 	if err != nil {
 		return err
@@ -567,17 +585,31 @@ func CreateAndAdd(entityType string, components map[string]interface{}) (string,
 }
 
 // Exists checks if an entity with the given id exists. It takes the entity id and returns a boolean.
-func Exists(id string) bool {
-	l := len(engine.Redis.Keys(context.Background(), fmt.Sprintf("__type:%s:*", id)).Val())
+func Exists(id string) (bool, error) {
+	_, err := getEntityType(id)
 
-	return l > 0
+	if err != nil {
+		if err.Error() == "redis: nil" {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
 }
 
 // GetBoolComponent returns a boolean component from an entity. It takes the entity ID and component name. If the
 // entity does not exist or the component does not exist, an error will be thrown. If the component is not a boolean,
 // an error will be thrown.
 func GetBoolComponent(id string, name string) (bool, error) {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
 		return false, EntityNotFoundError{ID: id}
 	}
 
@@ -592,7 +624,13 @@ func GetBoolComponent(id string, name string) (bool, error) {
 // entity does not exist or the component does not exist, an error will be thrown. If the component is not an integer64,
 // an error will be thrown.
 func GetInt64Component(id string, name string) (int64, error) {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if !exists {
 		return 0, EntityNotFoundError{ID: id}
 	}
 
@@ -607,7 +645,13 @@ func GetInt64Component(id string, name string) (int64, error) {
 // entity does not exist or the component does not exist, an error will be thrown. If the component is not an integer,
 // an error will be thrown.
 func GetIntComponent(id string, name string) (int, error) {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if !exists {
 		return 0, EntityNotFoundError{ID: id}
 	}
 
@@ -675,7 +719,13 @@ func GetInt64FromMapComponent(id string, name string, mapKey string) (int64, err
 // an error will be thrown.
 func GetMapComponent(id string, name string) (map[string]interface{}, error) {
 
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
 		return nil, EntityNotFoundError{ID: id}
 	}
 
@@ -707,7 +757,13 @@ func GetMapComponent(id string, name string) (map[string]interface{}, error) {
 // an error will be thrown.
 func GetStringComponent(id string, name string) (string, error) {
 
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return "", err
+	}
+
+	if !exists {
 		return "", EntityNotFoundError{ID: id}
 	}
 
@@ -769,7 +825,13 @@ func Register(e entity_type.EntityType) {
 // components. It will remove the entity with the provided id and then add the provided components to the entity. If an
 // entity with the same id does not exist.
 func Replace(id string, components map[string]interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityNotFoundError{ID: id}
 	}
 
@@ -800,7 +862,11 @@ func Replace(id string, components map[string]interface{}) error {
 // Remove removes an entity from the entity registry. It takes the entity type and id. If an entity with the same
 // id does not exist an error will be thrown.
 func Remove(id string) error {
-	exists := Exists(id)
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
 
 	if !exists {
 		return fmt.Errorf("entity %s does not exist", id)
@@ -824,7 +890,13 @@ func Remove(id string) error {
 // RemoveComponent removes the component from the entity. If an entity with the same id does not exist an error will be
 // thrown. If a component with the same name does not exist, an error will be thrown.
 func RemoveComponent(id string, name string) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityNotFoundError{ID: id}
 	}
 
@@ -866,7 +938,11 @@ func RemoveFromInt64SetComponent(id string, name string, value int64) error {
 // apply the provided components to the entity. If an entity with the same id does not exist, or the entity type does
 // not match an error will be thrown. Any components that are not provided will be removed from the entity.
 func Update(id string, components map[string]interface{}) error {
-	exists := Exists(id)
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
 
 	if !exists {
 		return EntityNotFoundError{ID: id}
@@ -952,7 +1028,13 @@ func UpdateInt64InMapComponent(id string, name string, key string, value int64) 
 // entity with the provided id and components. If the entity type does not match the existing an error will be thrown.
 // Any components that are not provided will be removed from the entity.
 func UpdateOrAdd(entityType string, id string, components map[string]interface{}) error {
-	if Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
 		return Update(id, components)
 	}
 
@@ -1110,7 +1192,13 @@ func getFromHashComponent(id string, name string, mapKey string) (interface{}, e
 //}
 
 func addComponent(id string, name string, value interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return fmt.Errorf("entity %s does not exist", id)
 	}
 
@@ -1122,7 +1210,7 @@ func addComponent(id string, name string, value interface{}) error {
 
 	valueType := reflect.TypeOf(value).Kind().String()
 
-	err := engine.
+	err = engine.
 		Redis.
 		Set(context.Background(), fmt.Sprintf("__type:%s", componentId(id, name)), valueType, 0).
 		Err()
@@ -1142,7 +1230,13 @@ func addComponent(id string, name string, value interface{}) error {
 }
 
 func addToMapComponent(id string, name string, mapKey string, value interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
@@ -1178,7 +1272,13 @@ func addToMapComponent(id string, name string, mapKey string, value interface{})
 }
 
 func addToSetComponent(id string, name string, value interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
@@ -1196,7 +1296,7 @@ func addToSetComponent(id string, name string, value interface{}) error {
 
 	log.Debug().Str("id", id).Str("name", name).Msg("adding to set component")
 
-	err := engine.Redis.SAdd(context.Background(), componentId(id, name), value).Err()
+	err = engine.Redis.SAdd(context.Background(), componentId(id, name), value).Err()
 
 	if err != nil {
 		return err
@@ -1220,7 +1320,13 @@ func getSetValueType(id string, name string) string {
 }
 
 func getValueFromMapComponent(id string, name string, mapKey string) (interface{}, error) {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
 		return nil, EntityExistsError{ID: id}
 	}
 
@@ -1262,7 +1368,13 @@ func removeComponentMetadata(id string, name string) {
 }
 
 func removeFromSetComponent(id string, name string, value interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
@@ -1280,7 +1392,7 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 
 	log.Debug().Str("id", id).Str("name", name).Msg("removing from set component")
 
-	err := engine.Redis.SRem(context.Background(), componentId(id, name), value).Err()
+	err = engine.Redis.SRem(context.Background(), componentId(id, name), value).Err()
 
 	if err != nil {
 		return err
@@ -1304,7 +1416,13 @@ func setEntityType(id string, entityType string) {
 }
 
 func updateComponent(id string, name string, value interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
@@ -1323,7 +1441,7 @@ func updateComponent(id string, name string, value interface{}) error {
 
 	log.Debug().Str("id", id).Str("name", name).Msg("updating component")
 
-	err := engine.Redis.Set(context.Background(), componentId(id, name), value, 0).Err()
+	err = engine.Redis.Set(context.Background(), componentId(id, name), value, 0).Err()
 
 	if err != nil {
 		return err
@@ -1334,7 +1452,13 @@ func updateComponent(id string, name string, value interface{}) error {
 
 func updateInMapComponent(id string, name string, mapKey string, value interface{}) error {
 	// check if the entity exists
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
@@ -1381,7 +1505,13 @@ func updateInMapComponent(id string, name string, mapKey string, value interface
 }
 
 func setMapValueType(id string, name string, mapKey string, value interface{}) error {
-	if !Exists(id) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
