@@ -12,10 +12,28 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
 )
 
-const TypeComponentName = "type"
+const EntityTypePrefix = "__entityType"
 const ComponentTypePrefix = "__type"
 const MapTypePrefix = "__map"
 const SetTypePrefix = "__set"
+
+// AddComponentErrors is a collection of errors that occurred while adding components to an entity.
+type AddComponentErrors struct {
+	Errors []error
+}
+
+func (e AddComponentErrors) Error() string {
+	errorStrings := make([]string, len(e.Errors))
+
+	for i, err := range e.Errors {
+		errorStrings[i] = err.Error()
+	}
+
+	return fmt.Sprintf(
+		"%d errors occurred while adding components to an entity: %s", len(e.Errors),
+		strings.Join(errorStrings, ", "),
+	)
+}
 
 // ComponentNotFoundError is returned when a component is not found.
 type ComponentNotFoundError struct {
@@ -63,13 +81,13 @@ func (e EntityNotFoundError) Error() string {
 	return fmt.Sprintf("entity with id %s does not exist", e.ID)
 }
 
-// EntityTypeRequired is an error type that is returned when the entity type is not specified.
-type EntityTypeRequired struct {
-	ID string
+// EntityTypeNotRegisteredError is called when an entity type is not registered.
+type EntityTypeNotRegisteredError struct {
+	Type string
 }
 
-func (e EntityTypeRequired) Error() string {
-	return fmt.Sprintf("component type required for component %s", e.ID)
+func (e EntityTypeNotRegisteredError) Error() string {
+	return fmt.Sprintf("entity type %s is not registered", e.Type)
 }
 
 // HasComponentError is an error type that is returned when the entity already has the given component.
@@ -218,61 +236,62 @@ func AllComponents(id string) map[string]interface{} {
 	return components
 }
 
-// AllEntitiesByType returns all entities of the given type.
-func AllEntitiesByType(entityType string) []string {
-	keys, err := engine.Redis.Keys(context.Background(), fmt.Sprintf("*:%s", TypeComponentName)).Result()
-
-	if err != nil {
-		panic(err)
-	}
-
-	// create a new slice which holds only entities whose type matches the given type
-	entities := make([]string, 0)
-	for _, key := range keys {
-		if strings.Contains(key, entityType) {
-			entities = append(entities, strings.Replace(key, fmt.Sprintf(":%s", TypeComponentName), "", 1))
-		}
-	}
-
-	return entities
-}
-
-func AllEntitiesByTypeWithComponent(entityType string, component string) []string {
-	ents := AllEntitiesByType(entityType)
-
-	entities := make([]string, 0)
-	for _, ent := range ents {
-		if ComponentExists(ent, component) {
-			entities = append(entities, ent)
-		}
-	}
-
-	return entities
-}
-
-func AllEntitiesByTypeWithComponentValue(entityType string, component string, value interface{}) []string {
-	ents := AllEntitiesByType(entityType)
-
-	entities := make([]string, 0)
-	for _, ent := range ents {
-		if HasComponentValue(ent, component, value) {
-			entities = append(entities, ent)
-		}
-	}
-
-	return entities
-}
-
-// HasComponentValue returns true if the component exists and has the given value.
-func HasComponentValue(id string, name string, value interface{}) bool {
-	exists := engine.Redis.Exists(context.Background(), componentId(id, name)).Val()
-
-	if exists == int64(0) {
-		return false
-	}
-
-	return compareValues(componentId(id, name), value)
-}
+//
+//// AllEntitiesByType returns all entities of the given type.
+//func AllEntitiesByType(entityType string) []string {
+//	keys, err := engine.Redis.Keys(context.Background(), fmt.Sprintf("*:%s", TypeComponentName)).Result()
+//
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	// create a new slice which holds only entities whose type matches the given type
+//	entities := make([]string, 0)
+//	for _, key := range keys {
+//		if strings.Contains(key, entityType) {
+//			entities = append(entities, strings.Replace(key, fmt.Sprintf(":%s", TypeComponentName), "", 1))
+//		}
+//	}
+//
+//	return entities
+//}
+//
+//func AllEntitiesByTypeWithComponent(entityType string, component string) []string {
+//	ents := AllEntitiesByType(entityType)
+//
+//	entities := make([]string, 0)
+//	for _, ent := range ents {
+//		if ComponentExists(ent, component) {
+//			entities = append(entities, ent)
+//		}
+//	}
+//
+//	return entities
+//}
+//
+//func AllEntitiesByTypeWithComponentValue(entityType string, component string, value interface{}) []string {
+//	ents := AllEntitiesByType(entityType)
+//
+//	entities := make([]string, 0)
+//	for _, ent := range ents {
+//		if HasComponentValue(ent, component, value) {
+//			entities = append(entities, ent)
+//		}
+//	}
+//
+//	return entities
+//}
+//
+//// HasComponentValue returns true if the component exists and has the given value.
+//func HasComponentValue(id string, name string, value interface{}) bool {
+//	exists := engine.Redis.Exists(context.Background(), componentId(id, name)).Val()
+//
+//	if exists == int64(0) {
+//		return false
+//	}
+//
+//	return compareValues(componentId(id, name), value)
+//}
 
 //// LoadDirectory loads entities from a directory.
 //func LoadDirectory(dir string) {
@@ -308,12 +327,11 @@ func HasComponentValue(id string, name string, value interface{}) bool {
 //	registry.loadableDirectories = append(registry.loadableDirectories, dir)
 //}
 
-// Add adds an entity to the entity registry. it takes a map of components to be added. it
-// will automatically generate a unique id for the entity. If the entity args does not contain the type component
-// an error will be thrown.
-func Add(args map[string]interface{}) (string, error) {
+// Add adds an entity to the entity registry. It takes a type, a map of components to be added to the entity. If the
+// entity already exists, an error will be returned. If the type is not registered, an error will be returned.
+func Add(entityType string, args map[string]interface{}) (string, error) {
 	id := generateID()
-	err := AddWithID(id, args)
+	err := AddWithID(entityType, id, args)
 
 	if err != nil {
 		return "", err
@@ -324,20 +342,25 @@ func Add(args map[string]interface{}) (string, error) {
 
 // AddWithID adds an entity with the provided id to the entity registry. It takes the entity id,
 // and a map of components to be added. If an entity with the same id already exists, an error will be thrown. If the
-// args map does not contain the type component, an error will be thrown.
-func AddWithID(id string, args map[string]interface{}) error {
-	if _, ok := args[TypeComponentName]; !ok {
-		return fmt.Errorf("entity type not specified")
-	}
-
+// type is not registered, an error will be thrown.
+func AddWithID(entityType string, id string, args map[string]interface{}) error {
 	if Exists(id) {
 		return fmt.Errorf("entity with id %s already exists", id)
 	}
 
+	if !IsEntityTypeRegistered(entityType) {
+		return EntityTypeNotRegisteredError{Type: entityType}
+	}
+
 	log.Debug().Str("id", id).Msg("adding entity")
+	setEntityType(id, entityType)
 
 	// add the entities components to the world
-	setComponentsFromMap(id, args)
+	err := setComponentsFromMap(id, args)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -406,7 +429,7 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 		return EntityExistsError{ID: id}
 	}
 
-	err := setType(id, name, "map")
+	err := setComponentType(id, name, "map")
 
 	if err != nil {
 		return err
@@ -433,7 +456,7 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 		return EntityExistsError{ID: id}
 	}
 
-	err := setType(id, name, "set")
+	err := setComponentType(id, name, "set")
 
 	if err != nil {
 		return err
@@ -515,7 +538,7 @@ func ComponentExists(id string, name string) bool {
 // entity type and a map of components. It will pass the component arguments to the entity type's `Create` method,
 // and return the result.
 func Create(entityType string, components map[string]interface{}) (map[string]interface{}, error) {
-	t := getEntityType(entityType)
+	t := getEntityTypeByName(entityType)
 
 	if t == nil {
 		return nil, fmt.Errorf("entity type %s not found", entityType)
@@ -534,7 +557,7 @@ func CreateAndAdd(entityType string, components map[string]interface{}) (string,
 		return "", err
 	}
 
-	id, err := Add(m)
+	id, err := Add(entityType, m)
 
 	if err != nil {
 		return "", err
@@ -730,36 +753,32 @@ func GetStringsFromSetComponent(id string, name string) ([]string, error) {
 	return engine.Redis.SMembers(context.Background(), componentId(id, name)).Result()
 }
 
+func IsEntityTypeRegistered(name string) bool {
+	_, ok := registry.types[name]
+
+	return ok
+}
+
 // Register registers an entity type. Entity Types must implmeent the `EntityType` interface. It is expected that
 // developers can override default EntityType implementations with their own implementations.
 func Register(e entity_type.EntityType) {
 	registry.types[e.Name()] = e
 }
 
-// Replace removes and then replaces an entity in the entity registry. It takes the entity type, id, and a map of
+// Replace removes and then replaces an entity in the entity registry. It takes the entity id, and a map of
 // components. It will remove the entity with the provided id and then add the provided components to the entity. If an
-// entity with the same id does not exist, or the entity type does not match an error will be thrown.
+// entity with the same id does not exist.
 func Replace(id string, components map[string]interface{}) error {
-	// if the components map does not have a type component, throw an error
-	if _, ok := components[TypeComponentName]; !ok {
-		return fmt.Errorf("'type' component is required")
+	if !Exists(id) {
+		return EntityNotFoundError{ID: id}
 	}
 
-	t, err := GetStringComponent(id, TypeComponentName)
+	log.Debug().Str("id", id).Msg("replacing entity")
+	t, err := getEntityType(id)
 
 	if err != nil {
 		return err
 	}
-
-	if t != components[TypeComponentName].(string) {
-		return fmt.Errorf(
-			"entity type for the replace ment (%s) does not match %s",
-			components[TypeComponentName].(string),
-			t,
-		)
-	}
-
-	log.Debug().Str("id", id).Msg("replacing entity")
 
 	// remove the entity
 	err = Remove(id)
@@ -769,7 +788,7 @@ func Replace(id string, components map[string]interface{}) error {
 	}
 
 	// add the entity
-	err = AddWithID(id, components)
+	err = AddWithID(t, id, components)
 
 	if err != nil {
 		return err
@@ -843,33 +862,14 @@ func RemoveFromInt64SetComponent(id string, name string, value int64) error {
 	return removeFromSetComponent(id, name, value)
 }
 
-// Update updates an entity in the entity registry. It takes the entity type, id, and a map of components. It will
+// Update updates an entity in the entity registry. It takes the id, and a map of components. It will
 // apply the provided components to the entity. If an entity with the same id does not exist, or the entity type does
 // not match an error will be thrown. Any components that are not provided will be removed from the entity.
 func Update(id string, components map[string]interface{}) error {
-	// if the components map does not have a type component, throw an error
-	if _, ok := components[TypeComponentName]; !ok {
-		return EntityTypeRequired{ID: id}
-	}
-
 	exists := Exists(id)
 
 	if !exists {
 		return EntityNotFoundError{ID: id}
-	}
-
-	t, err := GetStringComponent(id, TypeComponentName)
-
-	if err != nil {
-		return err
-	}
-
-	if t != components[TypeComponentName].(string) {
-		return fmt.Errorf(
-			"entity type for the update (%s) does not match %s",
-			components[TypeComponentName].(string),
-			t,
-		)
 	}
 
 	log.Debug().Str("id", id).Msg("updating entity")
@@ -887,7 +887,7 @@ func Update(id string, components map[string]interface{}) error {
 	// set the components that are provided
 	for name, value := range components {
 		if _, ok := components[name]; ok {
-			err = updateComponent(id, name, value)
+			err := updateComponent(id, name, value)
 
 			if err != nil {
 				return err
@@ -951,12 +951,12 @@ func UpdateInt64InMapComponent(id string, name string, key string, value int64) 
 // It will apply the provided components to the entity. If an entity with the same id does not exist, it will add the
 // entity with the provided id and components. If the entity type does not match the existing an error will be thrown.
 // Any components that are not provided will be removed from the entity.
-func UpdateOrAdd(id string, components map[string]interface{}) error {
+func UpdateOrAdd(entityType string, id string, components map[string]interface{}) error {
 	if Exists(id) {
 		return Update(id, components)
 	}
 
-	return AddWithID(id, components)
+	return AddWithID(entityType, id, components)
 }
 
 // UpdateStringComponent updates a string component in the entity registry. It takes the entity ID, component name, and
@@ -1058,7 +1058,7 @@ func getMapValueType(id string, name string, key string) string {
 	).String()
 }
 
-func getEntityType(name string) entity_type.EntityType {
+func getEntityTypeByName(name string) entity_type.EntityType {
 	return registry.types[name]
 }
 
@@ -1209,6 +1209,10 @@ func componentTypeMatch(id string, name string, value interface{}) bool {
 	return reflect.TypeOf(value).Kind().String() == getComponentType(id, name)
 }
 
+func getEntityType(id string) (string, error) {
+	return engine.Redis.Get(context.Background(), entityTypeID(id)).Result()
+}
+
 func getSetValueType(id string, name string) string {
 	return engine.Redis.
 		Type(context.Background(), fmt.Sprintf("%s:%s", SetTypePrefix, componentId(id, name))).
@@ -1283,6 +1287,20 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 	}
 
 	return nil
+}
+
+func componentTypeID(id string, name string) string {
+	return fmt.Sprintf("%s:%s", ComponentTypePrefix, componentId(id, name))
+}
+
+func entityTypeID(id string) string {
+	return fmt.Sprintf("%s:%s", EntityTypePrefix, id)
+}
+
+func setEntityType(id string, entityType string) {
+	etid := entityTypeID(id)
+	log.Trace().Str("id", id).Str("entityType", entityType).Str("etid", etid).Msg("setting entity type")
+	engine.Redis.Set(context.Background(), etid, entityType, 0)
 }
 
 func updateComponent(id string, name string, value interface{}) error {
@@ -1397,7 +1415,7 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 	return nil
 }
 
-func setType(id string, name string, value interface{}) error {
+func setComponentType(id string, name string, value interface{}) error {
 	err := engine.
 		Redis.
 		Set(
@@ -1414,24 +1432,48 @@ func setType(id string, name string, value interface{}) error {
 	return nil
 }
 
-func setComponentsFromMap(id string, components map[string]interface{}) {
+func setComponentsFromMap(id string, components map[string]interface{}) error {
+	errors := make([]error, 0)
+
 	for name, value := range components {
 		kind := reflect.TypeOf(value).Kind().String()
 		switch kind {
 		case "string":
-			AddStringComponent(id, name, value.(string))
+			err := AddStringComponent(id, name, value.(string))
+			if err != nil {
+				errors = append(errors, err)
+			}
 		case "bool":
-			AddBoolComponent(id, name, value.(bool))
+			err := AddBoolComponent(id, name, value.(bool))
+			if err != nil {
+				errors = append(errors, err)
+			}
 		case "int":
-			AddIntComponent(id, name, value.(int))
+			err := AddIntComponent(id, name, value.(int))
+			if err != nil {
+				errors = append(errors, err)
+			}
 		case "int64":
-			_ = AddInt64Component(id, name, value.(int64))
+			err := AddInt64Component(id, name, value.(int64))
+			if err != nil {
+				errors = append(errors, err)
+			}
 		case "map":
-			AddHas
-		case "slice":
-			for _, v := range value.([]interface{}) {
-				SetInSetComponent(id, name, v)
+			err := AddMapComponent(id, name, value.(map[string]interface{}))
+			if err != nil {
+				errors = append(errors, err)
+			}
+		case "set":
+			err := AddSetComponent(id, name, value.([]interface{}))
+			if err != nil {
+				errors = append(errors, err)
 			}
 		}
 	}
+
+	if len(errors) > 0 {
+		return AddComponentErrors{Errors: errors}
+	}
+
+	return nil
 }

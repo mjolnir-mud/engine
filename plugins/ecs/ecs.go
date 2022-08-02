@@ -19,17 +19,17 @@ func (p plugin) Stop() error {
 	return nil
 }
 
-// AddEntity adds an entity to the entity registry. it takes a map of components to be added. it
-// will automatically generate a unique id for the entity. If the entity args does not contain the type component
-// an error will be thrown.
-func AddEntity(args map[string]interface{}) (string, error) {
-	return entity_registry.Add(args)
+// AddEntity adds an entity to the entity registry. It takes a type, a map of components to be added to the entity. If the
+// entity already exists, an error will be returned. If the type is not registered, an error will be returned.
+func AddEntity(entityType string, args map[string]interface{}) (string, error) {
+	return entity_registry.Add(entityType, args)
 }
 
 // AddEntityWithID adds an entity with the provided id to the entity registry. It takes the entity id,
-// and a map of components to be added. If an entity with the same id already exists, an error will be thrown.
-func AddEntityWithID(id string, args map[string]interface{}) error {
-	return entity_registry.AddWithID(id, args)
+// and a map of components to be added. If an entity with the same id already exists, an error will be thrown. If the
+// type is not registered, an error will be thrown.
+func AddEntityWithID(entityType string, id string, args map[string]interface{}) error {
+	return entity_registry.AddWithID(entityType, id, args)
 }
 
 // AddBoolComponentToEntity adds a boolean component to an entity. It takes the entity ID, component name, and the
