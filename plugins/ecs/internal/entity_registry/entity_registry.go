@@ -437,8 +437,8 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 		return err
 	}
 
-	if exists {
-		return EntityExistsError{ID: id}
+	if !exists {
+		return EntityNotFoundError{ID: id}
 	}
 
 	err = setComponentType(id, name, "map")
@@ -449,7 +449,7 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 
 	log.Debug().Str("id", id).Str("name", name).Msg("adding map component")
 
-	err = engine.Redis.MSet(context.Background(), componentId(id, name), value).Err()
+	engine.Redis.HSet(context.Background(), componentId(id, name), value)
 
 	if err != nil {
 		removeComponentMetadata(id, name)
@@ -543,7 +543,7 @@ func AddToInt64SetComponent(id string, name string, value int64) error {
 
 // ComponentExists checks if a component exists. It takes the entity ID and the component name.
 func ComponentExists(id string, name string) bool {
-	i := engine.Redis.Exists(context.Background(), componentId(id, name)).Val()
+	i := engine.Redis.Exists(context.Background(), componentTypeID(id, name)).Val()
 
 	if i == 1 {
 		return true
@@ -1525,7 +1525,7 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 		return err
 	}
 
-	if !hasKey {
+	if hasKey {
 		return MapHasKeyError{ID: id, Name: name, Key: mapKey}
 	}
 

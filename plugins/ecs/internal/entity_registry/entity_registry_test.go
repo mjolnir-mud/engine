@@ -23,11 +23,12 @@ func (t testEntityType) Create(args map[string]interface{}) map[string]interface
 func setup() {
 	Register(testEntityType{})
 	engine.Start("test")
+	engine.Redis.FlushAll(context.Background())
 	Start()
 }
 
 func teardown() {
-	engine.Redis.FlushDB(context.Background())
+	engine.Redis.FlushAll(context.Background())
 	engine.Stop()
 	Stop()
 }
@@ -112,6 +113,37 @@ func TestAddBoolComponent(t *testing.T) {
 
 	// test that an error is thrown if the component already exists
 	err = AddBoolComponent("test", "testComponent", true)
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestAddBoolToMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddBoolToMapComponent("testEntity", "testComponent", "testKey", true)
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Bool()
+
+	assert.Nil(t, err)
+	assert.Equal(t, true, componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddBoolToMapComponent("notRegistered", "testComponent", "testKey", true)
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddBoolToMapComponent("test", "testComponent", "testKey", true)
 
 	assert.NotNil(t, err)
 	teardown()
