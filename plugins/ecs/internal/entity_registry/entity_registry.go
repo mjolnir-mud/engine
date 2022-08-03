@@ -193,11 +193,6 @@ func Stop() {
 	log.Info().Msg("stopping entity registry")
 }
 
-// AddStringToSetComponent  adds a string to a set.
-func AddStringToSetComponent(id string, name string, value string) {
-	engine.Redis.SAdd(context.Background(), componentId(id, name), value)
-}
-
 // AllComponents returns all the components for the entity.
 func AllComponents(id string) map[string]interface{} {
 	keys, err := engine.Redis.Keys(context.Background(), fmt.Sprintf("%s:*", id)).Result()
@@ -496,11 +491,12 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 
 	firstElement := value[0]
 
-	setType := reflect.TypeOf(firstElement).String()
+	setType := reflect.TypeOf(firstElement).Kind().String()
 
 	for _, element := range value {
-		if reflect.TypeOf(element).String() != setType {
-			return SetValueTypeError{ID: id, Name: name, Expected: setType, Actual: reflect.TypeOf(element).String()}
+		elementType := reflect.TypeOf(element).Kind().String()
+		if elementType != setType {
+			return SetValueTypeError{ID: id, Name: name, Expected: setType, Actual: elementType}
 		}
 	}
 
@@ -705,7 +701,7 @@ func GetIntFromMapComponent(id string, name string, mapKey string) (int, error) 
 			Name:     name,
 			Key:      mapKey,
 			Expected: "int",
-			Actual:   reflect.TypeOf(v).String(),
+			Actual:   reflect.TypeOf(v).Kind().String(),
 		}
 	}
 
@@ -731,7 +727,7 @@ func GetInt64FromMapComponent(id string, name string, mapKey string) (int64, err
 			Name:     name,
 			Key:      mapKey,
 			Expected: "int64",
-			Actual:   reflect.TypeOf(v).String(),
+			Actual:   reflect.TypeOf(v).Kind().String(),
 		}
 	}
 
@@ -821,7 +817,7 @@ func GetStringFromMapComponent(id string, name string, mapKey string) (string, e
 			Name:     name,
 			Key:      mapKey,
 			Expected: "string",
-			Actual:   reflect.TypeOf(v).String(),
+			Actual:   reflect.TypeOf(v).Kind().String(),
 		}
 	}
 
@@ -1338,9 +1334,8 @@ func getEntityType(id string) (string, error) {
 }
 
 func getSetValueType(id string, name string) string {
-	return engine.Redis.
-		Type(context.Background(), fmt.Sprintf("%s:%s", SetTypePrefix, componentId(id, name))).
-		String()
+	return engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", SetTypePrefix, componentId(id, name))).
+		Val()
 }
 
 func getValueFromMapComponent(id string, name string, mapKey string) (interface{}, error) {
@@ -1617,7 +1612,7 @@ func setComponentsFromMap(id string, components map[string]interface{}) error {
 			if err != nil {
 				errors = append(errors, err)
 			}
-		case "set":
+		case "slice":
 			err := AddSetComponent(id, name, value.([]interface{}))
 			if err != nil {
 				errors = append(errors, err)

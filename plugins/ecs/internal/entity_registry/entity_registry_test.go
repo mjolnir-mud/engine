@@ -345,3 +345,68 @@ func TestAddSetComponent(t *testing.T) {
 	assert.NotNil(t, err)
 	teardown()
 }
+
+func TestAddStringComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddStringComponent("testEntity", "testComponent", "testValue")
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Result()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "testValue", componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddStringComponent("notRegistered", "testComponent", "testValue")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddStringComponent("test", "testComponent", "testValue")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+// AddToStringSetComponent adds a string value to a set component. It takes the entity ID, component name, and the
+// value to add to the set. If an entity with the same id does not exist an error will be thrown. If a component with
+// the same name does not exist, an error will be thrown. If the value type is not a string, an error will be thrown.
+func TestAddToStringSetComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": []interface{}{
+			"testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddToStringSetComponent("testEntity", "testComponent", "otherTestValue")
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.SMembers(context.Background(), "testEntity:testComponent").Result()
+
+	assert.Nil(t, err)
+	assert.Subset(t, []string{"testValue", "otherTestValue"}, componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddToStringSetComponent("notRegistered", "testComponent", "testValue")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddToStringSetComponent("test", "testComponent", "testValue")
+
+	assert.NotNil(t, err)
+	teardown()
+}
