@@ -512,3 +512,44 @@ func TestAddToInt64SetComponent(t *testing.T) {
 	assert.NotNil(t, err)
 	teardown()
 }
+
+func TestCreate(t *testing.T) {
+	setup()
+
+	// test happy path
+	entity, err := Create("test", map[string]interface{}{})
+
+	assert.Nil(t, err)
+	assert.Equal(t, "test", entity["testComponent"])
+
+	// test that an error is thrown if the entity type does not exist
+	_, err = Create("notRegistered", map[string]interface{}{
+		"testComponent": "testValue",
+	})
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+// CreateAndAdd creates an entity of the given entity type, adds it to the entity registry, and returns the
+// id of the entity. It takes the entity type and a map of components. It will merge the provided components with the
+// default components for the entity type returning the merged components as a map.
+func TestCreateAndAdd(t *testing.T) {
+	setup()
+
+	// test happy path
+	id, err := CreateAndAdd("test", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	v := engine.Redis.Get(context.Background(), componentId(id, "testComponent")).Val()
+	assert.Equal(t, "test", v)
+
+	// test that an error is thrown if the entity type does not exist
+	_, err = CreateAndAdd("notRegistered", map[string]interface{}{
+		"testComponent": "testValue",
+	})
+
+	assert.NotNil(t, err)
+	teardown()
+}
