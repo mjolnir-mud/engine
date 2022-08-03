@@ -615,6 +615,29 @@ func CreateAndAdd(entityType string, components map[string]interface{}) (string,
 	return id, nil
 }
 
+// ElementInSetComponentExists checks if a value is in a set component. It takes the entity ID, component name, and
+// the value to check for. If the component does not exist an error is thrown.
+func ElementInSetComponentExists(id string, name string, element interface{}) (bool, error) {
+	exists, err := Exists(id)
+
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
+		return false, EntityNotFoundError{ID: id}
+	}
+
+	isMember, err := engine.Redis.SIsMember(context.Background(), componentId(id, name), element).Result()
+
+	if err != nil {
+		return false, err
+	}
+
+	return isMember, nil
+
+}
+
 // Exists checks if an entity with the given id exists. It takes the entity id and returns a boolean.
 func Exists(id string) (bool, error) {
 	_, err := getEntityType(id)
@@ -1418,7 +1441,7 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 		return MissingComponentError{ID: id, Name: name}
 	}
 
-	// check the value type aginst the set value type
+	// check the value type against the set value type
 	valueType := reflect.TypeOf(value).Kind().String()
 	setValueType := getSetValueType(id, name)
 

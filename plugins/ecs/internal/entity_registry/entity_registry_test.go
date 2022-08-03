@@ -846,3 +846,150 @@ func TestRemove(t *testing.T) {
 	assert.NotNil(t, err)
 	teardown()
 }
+
+func TestRemoveComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = RemoveComponent("testEntity", "testComponent")
+
+	assert.Nil(t, err)
+
+	exists := ComponentExists("testEntity", "testComponent")
+	assert.False(t, exists)
+
+	// test that an error is thrown if the entity does not exist
+	err = RemoveComponent("notRegistered", "testComponent")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	err = RemoveComponent("testEntity", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestRemoveFromStringSetComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": []interface{}{"testValue"},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = RemoveFromStringSetComponent("testEntity", "testComponent", "testValue")
+
+	assert.Nil(t, err)
+
+	exists, err := ElementInSetComponentExists("testEntity", "testComponent", "testValue")
+	assert.Nil(t, err)
+	assert.False(t, exists)
+
+	// test that an error is thrown if the entity does not exist
+	err = RemoveFromStringSetComponent("notRegistered", "testComponent", "testValue")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	err = RemoveFromStringSetComponent("testEntity", "notRegistered", "testValue")
+
+	assert.NotNil(t, err)
+
+	teardown()
+}
+
+func TestRemoveFromInt64SetComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": []interface{}{int64(1)},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = RemoveFromInt64SetComponent("testEntity", "testComponent", int64(1))
+
+	assert.Nil(t, err)
+
+	exists, err := ElementInSetComponentExists("testEntity", "testComponent", int64(1))
+	assert.Nil(t, err)
+	assert.False(t, exists)
+
+	// test that an error is thrown if the entity does not exist
+	err = RemoveFromInt64SetComponent("notRegistered", "testComponent", int64(1))
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	err = RemoveFromInt64SetComponent("testEntity", "notRegistered", int64(1))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestRemoveFromIntSetComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": []interface{}{int(1)},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = RemoveFromIntSetComponent("testEntity", "testComponent", int(1))
+
+	assert.Nil(t, err)
+
+	exists, err := ElementInSetComponentExists("testEntity", "testComponent", int(1))
+	assert.Nil(t, err)
+	assert.False(t, exists)
+
+	// test that an error is thrown if the entity does not exist
+	err = RemoveFromIntSetComponent("notRegistered", "testComponent", int(1))
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	err = RemoveFromIntSetComponent("testEntity", "notRegistered", int(1))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdate(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": "testValue",
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = Update("testEntity", map[string]interface{}{
+		"testComponent": "testValue2",
+	})
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = Update("notRegistered", map[string]interface{}{
+		"testComponent": "testValue2",
+	})
+
+	assert.NotNil(t, err)
+	teardown()
+}
