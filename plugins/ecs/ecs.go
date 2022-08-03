@@ -32,10 +32,10 @@ func AddEntityWithID(entityType string, id string, args map[string]interface{}) 
 	return entity_registry.AddWithID(entityType, id, args)
 }
 
-// AddBoolComponentToEntity adds a boolean component to an entity. It takes the entity ID, component name, and the
+// AddBoolComponent adds a boolean component to an entity. It takes the entity ID, component name, and the
 // value of the component. If an entity with the same id does not exist an error will be thrown. If a component with the
 // same name already exists, an error will be thrown.
-func AddBoolComponentToEntity(id string, component string, value bool) error {
+func AddBoolComponent(id string, component string, value bool) error {
 	return entity_registry.AddBoolComponent(id, component, value)
 }
 
@@ -48,10 +48,10 @@ func AddBoolToMapComponent(id string, component string, key string, value bool) 
 	return entity_registry.AddBoolToMapComponent(id, component, key, value)
 }
 
-// AddIntComponentToEntity adds an integer component to an entity. It takes the entity ID, component name, and the
+// AddIntComponent adds an integer component to an entity. It takes the entity ID, component name, and the
 // value of the component. If an entity with the same id does not exist an error will be thrown. If a component with the
 // same name already exists, an error will be thrown.
-func AddIntComponentToEntity(id string, component string, value int) error {
+func AddIntComponent(id string, component string, value int) error {
 	return entity_registry.AddIntComponent(id, component, value)
 }
 
@@ -59,7 +59,7 @@ func AddIntComponentToEntity(id string, component string, value int) error {
 // to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-//// the type of a key will result in an error in later updated.
+// the type of a key will result in an error in later updated.
 func AddIntToMapComponent(id string, component string, key string, value int) error {
 	return entity_registry.AddIntToMapComponent(id, component, key, value)
 }
@@ -153,7 +153,7 @@ func CreateAndAddEntity(entityType string, args map[string]interface{}) (string,
 }
 
 // EntityExists checks if an entity with the given id exists. It takes the entity id and returns a boolean.
-func EntityExists(id string) bool {
+func EntityExists(id string) (bool, error) {
 	return entity_registry.Exists(id)
 }
 
@@ -323,8 +323,8 @@ func UpdateInt64InMapComponent(id string, component string, key string, value in
 // It will apply the provided components to the entity. If an entity with the same id does not exist, it will add the
 // entity with the provided id and components. If the entity type does not match the existing an error will be thrown.
 // Any components that are not provided will be removed from the entity.
-func UpdateOrAddEntity(id string, args map[string]interface{}) error {
-	return entity_registry.UpdateOrAdd(id, args)
+func UpdateOrAddEntity(entityType string, id string, args map[string]interface{}) error {
+	return entity_registry.UpdateOrAdd(entityType, id, args)
 }
 
 // UpdateStringComponent updates a string component in the entity registry. It takes the entity ID, component name, and

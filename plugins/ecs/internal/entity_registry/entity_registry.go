@@ -63,6 +63,15 @@ func (e ComponentTypeMismatchError) Error() string {
 	)
 }
 
+// EmptySetError is an error type that is returned when an empty set is attempted to be added to a entity .
+type EmptySetError struct {
+	ID string
+}
+
+func (e EmptySetError) Error() string {
+	return fmt.Sprintf("empty set cannot be added %s", e.ID)
+}
+
 // EntityExistsError is an error type that is returned when an entity with the given id already exists.
 type EntityExistsError struct {
 	ID string
@@ -406,7 +415,7 @@ func AddIntComponent(id string, name string, value int) error {
 // to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-//// the type of key will result in an error in later updated.
+// the type of key will result in an error in later updated.
 func AddIntToMapComponent(id string, name string, key string, value int) error {
 	return addToMapComponent(id, name, key, value)
 }
@@ -462,7 +471,8 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 // AddSetComponent adds a set component to an entity. It takes the entity ID, component name, and the value of
 // the component. If an entity with the same id already exists error will be thrown. If a component with the same name
 // already exists, an error will be thrown. Once a value is added to the set, the type of that value is enforced for
-// all members of the set. Attempting to change the type of value will result in an error in later updates.
+// all members of the set. Attempting to change the type of value will result in an error in later updates. One cannot
+// add empty sets, so if the value is empty, an error will be thrown.
 func AddSetComponent(id string, name string, value []interface{}) error {
 	exists, err := Exists(id)
 
@@ -470,7 +480,7 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 		return err
 	}
 
-	if exists {
+	if !exists {
 		return EntityExistsError{ID: id}
 	}
 
@@ -480,12 +490,26 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 		return err
 	}
 
+	if len(value) == 0 {
+		return EmptySetError{ID: id}
+	}
+
+	firstElement := value[0]
+
+	setType := reflect.TypeOf(firstElement).String()
+
+	for _, element := range value {
+		if reflect.TypeOf(element).String() != setType {
+			return SetValueTypeError{ID: id, Name: name, Expected: setType, Actual: reflect.TypeOf(element).String()}
+		}
+	}
+
 	log.Debug().Str("id", id).Str("name", name).Msg("adding set component")
 
 	err = engine.Redis.Set(
 		context.Background(),
 		fmt.Sprintf("%s:%s", SetTypePrefix, componentId(id, name)),
-		value,
+		setType,
 		0,
 	).Err()
 

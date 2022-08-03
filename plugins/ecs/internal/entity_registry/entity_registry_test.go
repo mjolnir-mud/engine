@@ -148,3 +148,200 @@ func TestAddBoolToMapComponent(t *testing.T) {
 	assert.NotNil(t, err)
 	teardown()
 }
+
+// Test AddIntComponent adds an integer component to an entity. It takes the entity ID, component name, and the
+// value of the component. If an entity with the same id does not exist an error will be thrown. If a component with the
+// same name already exists, an error will be thrown.
+func TestAddIntComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddIntComponent("testEntity", "testComponent", 1)
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Int()
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddIntComponent("notRegistered", "testComponent", 1)
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddIntComponent("test", "testComponent", 1)
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestAddIntToMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddIntToMapComponent("testEntity", "testComponent", "testKey", 1)
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Int()
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddIntToMapComponent("notRegistered", "testComponent", "testKey", 1)
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	err = AddIntToMapComponent("test", "notRegistered", "testKey", 1)
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the key already exists
+	err = AddIntToMapComponent("test", "testComponent", "testKey", 1)
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestAddInt64Component(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddInt64Component("testEntity", "testComponent", int64(1))
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Int64()
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddInt64Component("notRegistered", "testComponent", int64(1))
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddInt64Component("test", "testComponent", int64(1))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestAddInt64ToMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddInt64ToMapComponent("testEntity", "testComponent", "testKey", int64(1))
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Int64()
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddInt64ToMapComponent("notRegistered", "testComponent", "testKey", int64(1))
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	err = AddInt64ToMapComponent("test", "notRegistered", "testKey", int64(1))
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the key already exists
+	err = AddInt64ToMapComponent("test", "testComponent", "testKey", int64(1))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestAddMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddMapComponent("testEntity", "testComponent", map[string]interface{}{
+		"testKey": "testValue",
+	})
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Result()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "testValue", componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddMapComponent("notRegistered", "testComponent", map[string]interface{}{
+		"testKey": "testValue",
+	})
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddMapComponent("test", "testComponent", map[string]interface{}{
+		"testKey": "testValue",
+	})
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestAddSetComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddSetComponent("testEntity", "testComponent", []interface{}{"testValue"})
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.Redis.SMembers(context.Background(), "testEntity:testComponent").Result()
+
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"testValue"}, componentValue)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddSetComponent("notRegistered", "testComponent", []interface{}{"testValue"})
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component already exists
+	err = AddSetComponent("test", "testComponent", []interface{}{"testValue"})
+
+	assert.NotNil(t, err)
+	teardown()
+}
