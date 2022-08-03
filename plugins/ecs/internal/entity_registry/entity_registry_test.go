@@ -993,3 +993,179 @@ func TestUpdate(t *testing.T) {
 	assert.NotNil(t, err)
 	teardown()
 }
+
+func TestUpdateBoolComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": true,
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateBoolComponent("testEntity", "testComponent", false)
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateBoolComponent("notRegistered", "testComponent", false)
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateInt64Component(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": int64(1),
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateInt64Component("testEntity", "testComponent", int64(2))
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateInt64Component("notRegistered", "testComponent", int64(2))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateIntComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": int(1),
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateIntComponent("testEntity", "testComponent", int(2))
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateIntComponent("notRegistered", "testComponent", int(2))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateBoolInMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": true,
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateBoolInMapComponent("testEntity", "testComponent", "testKey", false)
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateBoolInMapComponent("notRegistered", "testComponent", "testKey", false)
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateInt64InMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": int64(1),
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateInt64InMapComponent("testEntity", "testComponent", "testKey", int64(2))
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateInt64InMapComponent("notRegistered", "testComponent", "testKey", int64(2))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateIntInMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": int(1),
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateIntInMapComponent("testEntity", "testComponent", "testKey", int(2))
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateIntInMapComponent("notRegistered", "testComponent", "testKey", int(2))
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateStringInMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue2")
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateStringInMapComponent("notRegistered", "testComponent", "testKey", "testValue2")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestUpdateStringComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": "testValue",
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = UpdateStringComponent("testEntity", "testComponent", "testValue2")
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = UpdateStringComponent("notRegistered", "testComponent", "testValue2")
+
+	assert.NotNil(t, err)
+	teardown()
+}

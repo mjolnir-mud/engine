@@ -391,9 +391,9 @@ func AddWithID(entityType string, id string, args map[string]interface{}) error 
 // same name already exists, an error will be thrown.
 func AddBoolComponent(id string, name string, value bool) error {
 	if value {
-		return addComponent(id, name, 1)
+		return addComponent(id, name, true)
 	} else {
-		return addComponent(id, name, 0)
+		return addComponent(id, name, false)
 	}
 }
 
