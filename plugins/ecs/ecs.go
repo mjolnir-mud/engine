@@ -216,6 +216,11 @@ func GetStringFromMapComponent(id string, component string, element string) (str
 	return entity_registry.GetStringFromMapComponent(id, component, element)
 }
 
+// IsEntityTypeRegistered checks if an entity type is registered. It takes the entity type name.
+func IsEntityTypeRegistered(entityType string) bool {
+	return entity_registry.IsEntityTypeRegistered(entityType)
+}
+
 // RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` interface. It is
 // expected that developers can override default EntityType implementations with their own implementations.Q
 func RegisterEntityType(entityType entity_type.EntityType) {

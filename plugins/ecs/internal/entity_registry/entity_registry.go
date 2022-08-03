@@ -835,11 +835,7 @@ func GetStringFromMapComponent(id string, name string, mapKey string) (string, e
 	return s, nil
 }
 
-// GetStringsFromSetComponent GetStringSetComponent returns the value of the string set component.
-func GetStringsFromSetComponent(id string, name string) ([]string, error) {
-	return engine.Redis.SMembers(context.Background(), componentId(id, name)).Result()
-}
-
+// IsEntityTypeRegistered checks if an entity type is registered. It takes the entity type name.
 func IsEntityTypeRegistered(name string) bool {
 	_, ok := registry.types[name]
 
@@ -914,6 +910,8 @@ func Remove(id string) error {
 			return err
 		}
 	}
+
+	removeMetadata(id)
 
 	return nil
 }
@@ -1391,6 +1389,14 @@ func mapValueMatch(id string, name string, mapKey string, value interface{}) boo
 
 func removeComponentMetadata(id string, name string) {
 	keys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s", componentId(id, name))).Val()
+
+	for _, key := range keys {
+		engine.Redis.Del(context.Background(), key)
+	}
+}
+
+func removeMetadata(id string) {
+	keys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s*", id)).Val()
 
 	for _, key := range keys {
 		engine.Redis.Del(context.Background(), key)

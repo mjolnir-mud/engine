@@ -708,3 +708,141 @@ func TestGetMapComponent(t *testing.T) {
 	assert.NotNil(t, err)
 	teardown()
 }
+
+func TestGetStringComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": "testValue",
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetStringComponent("testEntity", "testComponent")
+
+	assert.Nil(t, err)
+	assert.Equal(t, "testValue", value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetStringComponent("notRegistered", "testComponent")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetStringComponent("test", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestGetStringFromMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetStringFromMapComponent("testEntity", "testComponent", "testKey")
+
+	assert.Nil(t, err)
+	assert.Equal(t, "testValue", value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetStringFromMapComponent("notRegistered", "testComponent", "testKey")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetStringFromMapComponent("test", "notRegistered", "testKey")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the key does not exist
+	_, err = GetStringFromMapComponent("test", "testComponent", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestIsEntityTypeRegistered(t *testing.T) {
+	setup()
+
+	// test happy path
+	value := IsEntityTypeRegistered("test")
+
+	assert.True(t, value)
+
+	// test that an error is thrown if the entity does not exist
+	value = IsEntityTypeRegistered("notRegistered")
+
+	assert.False(t, value)
+	teardown()
+}
+
+// Replace removes and then replaces an entity in the entity registry. It takes the entity id, and a map of
+// components. It will remove the entity with the provided id and then add the provided components to the entity. If an
+// entity with the same id does not exist, it with throw an error.
+func TestReplace(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = Replace("testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue2",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = Replace("notRegistered", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue2",
+		},
+	})
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestRemove(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = Remove("testEntity")
+
+	assert.Nil(t, err)
+
+	exists, err := Exists("testEntity")
+
+	assert.Nil(t, err)
+	assert.False(t, exists)
+
+	// test that an error is thrown if the entity does not exist
+	err = Remove("notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
