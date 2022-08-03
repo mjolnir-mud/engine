@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -118,6 +119,16 @@ type MapHasKeyError struct {
 
 func (e MapHasKeyError) Error() string {
 	return fmt.Sprintf("map %s for entity %s already has key %s", e.Name, e.ID, e.Key)
+}
+
+type MapKeyNotFoundError struct {
+	ID   string
+	Name string
+	Key  string
+}
+
+func (e MapKeyNotFoundError) Error() string {
+	return fmt.Sprintf("map %s for entity %s does not have key %s", e.Name, e.ID, e.Key)
 }
 
 // MapValueTypeMismatchError is an error type that is returned when the map key does not match the entity type.
@@ -693,19 +704,19 @@ func GetIntFromMapComponent(id string, name string, mapKey string) (int, error) 
 		return 0, err
 	}
 
-	i, ok := v.(int)
+	i, err := strconv.ParseInt(v.(string), 10, 64)
 
-	if !ok {
+	if err != nil {
 		return 0, MapValueTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Key:      mapKey,
 			Expected: "int",
-			Actual:   reflect.TypeOf(v).Kind().String(),
+			Actual:   "unable to parse int",
 		}
 	}
 
-	return i, nil
+	return int(i), nil
 }
 
 // GetInt64FromMapComponent returns the int64 value of an element in a map component. It takes the entity ID,
@@ -719,15 +730,15 @@ func GetInt64FromMapComponent(id string, name string, mapKey string) (int64, err
 		return 0, err
 	}
 
-	i, ok := v.(int64)
+	i, err := strconv.ParseInt(v.(string), 10, 64)
 
-	if !ok {
+	if err != nil {
 		return 0, MapValueTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Key:      mapKey,
 			Expected: "int64",
-			Actual:   reflect.TypeOf(v).Kind().String(),
+			Actual:   "unable to parse int64",
 		}
 	}
 
@@ -1149,7 +1160,7 @@ func generateID() string {
 }
 
 func getComponentType(id string, key string) string {
-	return engine.Redis.Get(context.Background(), fmt.Sprintf("__type:%s", componentId(id, key))).String()
+	return engine.Redis.Get(context.Background(), fmt.Sprintf("__type:%s", componentId(id, key))).Val()
 }
 
 func getMapValueType(id string, name string, key string) string {
@@ -1363,8 +1374,8 @@ func getValueFromMapComponent(id string, name string, mapKey string) (interface{
 		return nil, err
 	}
 
-	if mhk {
-		return nil, MapHasKeyError{ID: id, Name: name, Key: mapKey}
+	if !mhk {
+		return nil, MapKeyNotFoundError{ID: id, Name: name, Key: mapKey}
 	}
 
 	return engine.Redis.HGet(context.Background(), componentId(id, name), mapKey).Result()

@@ -15,7 +15,9 @@ func (t testEntityType) Name() string {
 }
 
 func (t testEntityType) Create(args map[string]interface{}) map[string]interface{} {
-	args["testComponent"] = "test"
+	if _, ok := args["testComponent"]; !ok {
+		args["testComponent"] = "test"
+	}
 
 	return args
 }
@@ -549,6 +551,159 @@ func TestCreateAndAdd(t *testing.T) {
 	_, err = CreateAndAdd("notRegistered", map[string]interface{}{
 		"testComponent": "testValue",
 	})
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestGetBoolComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": true,
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetBoolComponent("testEntity", "testComponent")
+
+	assert.Nil(t, err)
+	assert.Equal(t, true, value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetBoolComponent("notRegistered", "testComponent")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetBoolComponent("test", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestGetIntComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": 1,
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetIntComponent("testEntity", "testComponent")
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetIntComponent("notRegistered", "testComponent")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetIntComponent("test", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestGetInt64FromMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": int64(1),
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetInt64FromMapComponent("testEntity", "testComponent", "testKey")
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetInt64FromMapComponent("notRegistered", "testComponent", "testKey")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetInt64FromMapComponent("test", "notRegistered", "testKey")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the key does not exist
+	_, err = GetInt64FromMapComponent("test", "testComponent", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestGetIntFromMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": 1,
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetIntFromMapComponent("testEntity", "testComponent", "testKey")
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetIntFromMapComponent("notRegistered", "testComponent", "testKey")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetIntFromMapComponent("test", "notRegistered", "testKey")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the key does not exist
+	_, err = GetIntFromMapComponent("test", "testComponent", "notRegistered")
+
+	assert.NotNil(t, err)
+	teardown()
+}
+
+func TestGetMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	value, err := GetMapComponent("testEntity", "testComponent")
+
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"testKey": "testValue",
+	}, value)
+
+	// test that an error is thrown if the entity does not exist
+	_, err = GetMapComponent("notRegistered", "testComponent")
+
+	assert.NotNil(t, err)
+
+	// test that an error is thrown if the component does not exist
+	_, err = GetMapComponent("test", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
