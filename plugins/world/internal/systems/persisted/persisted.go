@@ -3,7 +3,7 @@ package persisted
 import (
 	"context"
 
-	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -58,7 +58,7 @@ func (s system) MatchingComponentUpdated(_ string, _ string, _ interface{}, _ in
 func (s system) MatchingComponentRemoved(_ string, _ string, _ interface{}) error { return nil }
 
 func Persist(entityId string) {
-	collection, err := entity_registry.GetStringComponent(entityId, "persist")
+	collection, err := ecs.GetStringComponent(entityId, "persist")
 
 	if err != nil {
 		return

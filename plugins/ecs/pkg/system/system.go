@@ -20,7 +20,7 @@ type System interface {
 
 	// ComponentRemoved is called when a component is removed from an entity, including those the system is interested
 	// in.
-	ComponentRemoved(entityId string, component string, value interface{}) error
+	ComponentRemoved(entityId string, component string) error
 
 	// MatchingComponentAdded is called when a component is added to an entity, but only if the system is interested
 	// in the component.
@@ -32,5 +32,5 @@ type System interface {
 
 	// MatchingComponentRemoved is called when a component is removed from an entity, but only if the system is
 	// interested in the component.
-	MatchingComponentRemoved(entityId string, component string, value interface{}) error
+	MatchingComponentRemoved(entityId string, component string) error
 }

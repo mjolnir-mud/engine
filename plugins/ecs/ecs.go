@@ -2,7 +2,9 @@ package ecs
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
 )
 
 type plugin struct{}
@@ -12,10 +14,14 @@ func (p plugin) Name() string {
 }
 
 func (p plugin) Start() error {
+	entity_registry.Start()
+	system_registry.Start()
 	return nil
 }
 
 func (p plugin) Stop() error {
+	entity_registry.Stop()
+	system_registry.Stop()
 	return nil
 }
 
@@ -221,6 +227,12 @@ func IsEntityTypeRegistered(entityType string) bool {
 	return entity_registry.IsEntityTypeRegistered(entityType)
 }
 
+// RegisterSystem registers a system with the registry. If a system with the same name is already registered, it will be
+// overwritten.
+func RegisterSystem(system system.System) {
+	system_registry.Register(system)
+}
+
 // RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` interface. It is
 // expected that developers can override default EntityType implementations with their own implementations.Q
 func RegisterEntityType(entityType entity_type.EntityType) {
@@ -347,3 +359,5 @@ func UpdateStringComponent(id string, component string, value string) error {
 func UpdateStringInMapComponent(id string, component string, key string, value string) error {
 	return entity_registry.UpdateStringInMapComponent(id, component, key, value)
 }
+
+var Plugin = plugin{}

@@ -8,8 +8,9 @@ import (
 
 	redis2 "github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/system"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/constants"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
 )
 
 type registry struct {
@@ -40,7 +41,8 @@ func Stop() {
 	}
 }
 
-// Register registers a system with the registry.
+// Register registers a system with the registry. If a system with the same name is already registered, it will be
+// overwritten.
 func Register(system system.System) {
 	log.Info().Msgf("registering system %s", system.Name())
 	r.systems[system.Name()] = system
@@ -100,11 +102,12 @@ func startComponentSetListener(s system.System) {
 }
 
 func callComponentAddedCallbacks(s system.System, id string, key string, value interface{}) {
-	setComponentMeta(id, key, value)
+	k := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
+	setComponentMeta(id, k, value)
 
 	for _, sys := range r.systems {
-		log.Trace().Msgf("calling component added callbacks for system %s", sys.Name())
-		err := sys.ComponentAdded(id, key, value)
+		log.Trace().Msgf("calling component %s added callbacks for system %s", k, sys.Name())
+		err := sys.ComponentAdded(id, k, value)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling component added callbacks for system %s", sys.Name())
@@ -112,8 +115,8 @@ func callComponentAddedCallbacks(s system.System, id string, key string, value i
 	}
 
 	if s.Match(key, value) {
-		log.Trace().Msgf("component %s added to system %s", key, s.Name())
-		err := s.MatchingComponentAdded(id, key, value)
+		log.Trace().Msgf("component %s added to system %s", k, s.Name())
+		err := s.MatchingComponentAdded(id, k, value)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling matching component added callbacks for system %s", s.Name())
@@ -122,9 +125,10 @@ func callComponentAddedCallbacks(s system.System, id string, key string, value i
 }
 
 func callComponentUpdatedCallbacks(s system.System, id string, key string, oldValue interface{}, newValue interface{}) {
+	k := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
 	for _, sys := range r.systems {
-		log.Trace().Msgf("calling component updated callbacks for system %s", sys.Name())
-		err := sys.ComponentUpdated(id, key, oldValue, newValue)
+		log.Trace().Msgf("calling component %s updated callbacks for system %s", k, sys.Name())
+		err := sys.ComponentUpdated(id, k, oldValue, newValue)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling component updated callbacks for system %s", sys.Name())
@@ -132,39 +136,40 @@ func callComponentUpdatedCallbacks(s system.System, id string, key string, oldVa
 	}
 
 	if s.Match(key, newValue) {
-		log.Trace().Msgf("component %s updated in system %s", key, s.Name())
-		err := s.MatchingComponentUpdated(id, key, oldValue, newValue)
+		log.Trace().Msgf("component %s updated in system %s", k, s.Name())
+		err := s.MatchingComponentUpdated(id, k, oldValue, newValue)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling matching component updated callbacks for system %s", s.Name())
 		}
 	}
-	setComponentMeta(id, key, newValue)
+	setComponentMeta(id, k, newValue)
 }
 
 func callDelCallbacks(s system.System, id string, key string) {
 	var value interface{}
+	k := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
 
 	for _, sys := range r.systems {
 		log.Trace().Msgf("calling component deleted callbacks for system %s", sys.Name())
-		valueType := engine.Redis.GetDel(context.Background(), fmt.Sprintf("__type:%s", key)).Val()
+		valueType := engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
 
 		switch valueType {
 		case "string":
-			value = engine.Redis.GetDel(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+			value = engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 		case "int":
-			value = engine.Redis.GetDel(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+			value = engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 		case "int64":
-			value = engine.Redis.GetDel(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+			value = engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 		case "map":
-			m := engine.Redis.HGetAll(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+			m := engine.Redis.HGetAll(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 			value = make(map[string]interface{})
 
-			for k, v := range m {
-				value.(map[string]interface{})[k] = v
+			for key, v := range m {
+				value.(map[string]interface{})[key] = v
 			}
 		case "set":
-			s := engine.Redis.SMembers(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+			s := engine.Redis.SMembers(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 			value = make([]interface{}, len(s))
 
 			for i, v := range s {
@@ -172,16 +177,16 @@ func callDelCallbacks(s system.System, id string, key string) {
 			}
 		}
 
-		err := sys.ComponentRemoved(id, key, value)
+		err := sys.ComponentRemoved(id, k)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling component deleted callbacks for system %s", sys.Name())
 		}
 	}
 
-	if s.Match(key, nil) {
-		log.Trace().Msgf("component %s deleted from system %s", key, s.Name())
-		err := s.MatchingComponentRemoved(id, key, value)
+	if s.Match(k, nil) {
+		log.Trace().Msgf("component %s deleted from system %s", k, s.Name())
+		err := s.MatchingComponentRemoved(id, k)
 
 		if err != nil {
 			log.Error().Err(err).
@@ -189,7 +194,7 @@ func callDelCallbacks(s system.System, id string, key string) {
 		}
 	}
 
-	metaKeys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s", key)).Val()
+	metaKeys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s", k)).Val()
 
 	for _, metaKey := range metaKeys {
 		engine.Redis.Del(context.Background(), metaKey)
@@ -197,7 +202,7 @@ func callDelCallbacks(s system.System, id string, key string) {
 }
 
 func callHSetCallbacks(s system.System, id string, key string) {
-	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 	currentStringValue := engine.Redis.HGetAll(context.Background(), key).Val()
 
 	currentValue := make(map[string]interface{})
@@ -211,7 +216,7 @@ func callHSetCallbacks(s system.System, id string, key string) {
 		return
 	}
 
-	prevValue := engine.Redis.HGetAll(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+	prevValue := engine.Redis.HGetAll(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 
 	prevValueMap := make(map[string]interface{})
 
@@ -227,7 +232,7 @@ func callHSetCallbacks(s system.System, id string, key string) {
 }
 
 func callSAddCallbacks(s system.System, id string, key string) {
-	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 	currentStringValue := engine.Redis.SMembers(context.Background(), key).Val()
 
 	currentValue := make([]interface{}, len(currentStringValue))
@@ -241,7 +246,7 @@ func callSAddCallbacks(s system.System, id string, key string) {
 		return
 	}
 
-	prevValue := engine.Redis.SMembers(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+	prevValue := engine.Redis.SMembers(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 
 	prevValueSlice := make([]interface{}, len(prevValue))
 
@@ -257,7 +262,7 @@ func callSAddCallbacks(s system.System, id string, key string) {
 }
 
 func callSetCallbacks(s system.System, id string, key string) {
-	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 	currentValue := engine.Redis.Get(context.Background(), key).Val()
 
 	if exists == 0 {
@@ -265,7 +270,7 @@ func callSetCallbacks(s system.System, id string, key string) {
 		return
 	}
 
-	prevValue := engine.Redis.Get(context.Background(), fmt.Sprintf("__prev:%s", key)).Val()
+	prevValue := engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 
 	if prevValue == currentValue {
 		return
@@ -284,14 +289,14 @@ func setComponentMeta(id string, key string, value interface{}) {
 	switch valueType {
 	case "set":
 		for _, i := range value.([]interface{}) {
-			engine.Redis.SAdd(context.Background(), fmt.Sprintf("__prev:%s:%s", id, key), i)
+			engine.Redis.SAdd(context.Background(), fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), i)
 		}
 	case "map":
 		for k, v := range value.(map[string]interface{}) {
-			engine.Redis.HSet(context.Background(), fmt.Sprintf("__prev:%s:%s", id, key), k, v)
+			engine.Redis.HSet(context.Background(), fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), k, v)
 		}
 	default:
-		engine.Redis.Set(context.Background(), fmt.Sprintf("__prev:%s:%s", id, key), value, 0)
+		engine.Redis.Set(context.Background(), fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), value, 0)
 	}
 
 }

@@ -5,25 +5,12 @@ import (
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/ecs/test"
 	"github.com/stretchr/testify/assert"
 )
 
-type testEntityType struct{}
-
-func (t testEntityType) Name() string {
-	return "test"
-}
-
-func (t testEntityType) Create(args map[string]interface{}) map[string]interface{} {
-	if _, ok := args["testComponent"]; !ok {
-		args["testComponent"] = "test"
-	}
-
-	return args
-}
-
 func setup() {
-	Register(testEntityType{})
+	Register(test.TestEntityType{})
 	engine.Start("test")
 	engine.Redis.FlushAll(context.Background())
 	Start()

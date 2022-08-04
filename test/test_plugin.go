@@ -16,7 +16,7 @@ func (p *testPlugin) Name() string {
 	return "test"
 }
 
-func (p *testPlugin) Init() error {
+func (p *testPlugin) Start() error {
 	p.pluginInitialized <- true
 
 	return nil

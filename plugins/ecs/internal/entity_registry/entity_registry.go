@@ -9,14 +9,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
+	constants "github.com/mjolnir-mud/engine/plugins/ecs/internal/constants"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
 )
-
-const EntityTypePrefix = "__entityType"
-const ComponentTypePrefix = "__type"
-const MapTypePrefix = "__map"
-const SetTypePrefix = "__set"
 
 // AddComponentErrors is a collection of errors that occurred while adding components to an entity.
 type AddComponentErrors struct {
@@ -216,7 +212,7 @@ func AllComponents(id string) map[string]interface{} {
 
 	for _, key := range keys {
 		name := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
-		t := engine.Redis.Get(context.Background(), fmt.Sprintf("__type:%s", key)).Val()
+		t := engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
 
 		switch t {
 		case "map":
@@ -466,11 +462,6 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 
 	engine.Redis.HSet(context.Background(), componentId(id, name), value)
 
-	if err != nil {
-		removeComponentMetadata(id, name)
-		return err
-	}
-
 	return nil
 }
 
@@ -515,22 +506,12 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 
 	err = engine.Redis.Set(
 		context.Background(),
-		fmt.Sprintf("%s:%s", SetTypePrefix, componentId(id, name)),
+		fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name)),
 		setType,
 		0,
 	).Err()
 
-	if err != nil {
-		removeComponentMetadata(id, name)
-		return err
-	}
-
 	err = engine.Redis.SAdd(context.Background(), componentId(id, name), value...).Err()
-
-	if err != nil {
-		removeComponentMetadata(id, name)
-		return err
-	}
 
 	return nil
 }
@@ -959,7 +940,6 @@ func RemoveComponent(id string, name string) error {
 	log.Debug().Str("id", id).Str("name", name).Msg("removing component")
 
 	engine.Redis.Del(context.Background(), componentId(id, name))
-	removeComponentMetadata(id, name)
 
 	return nil
 }
@@ -1181,13 +1161,13 @@ func generateID() string {
 }
 
 func getComponentType(id string, key string) string {
-	return engine.Redis.Get(context.Background(), fmt.Sprintf("__type:%s", componentId(id, key))).Val()
+	return engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, key))).Val()
 }
 
 func getMapValueType(id string, name string, key string) string {
 	return engine.Redis.HGet(
 		context.Background(),
-		fmt.Sprintf("%s:%s", MapTypePrefix, componentId(id, name)),
+		fmt.Sprintf("%s:%s", constants.MapTypePrefix, componentId(id, name)),
 		key,
 	).String()
 }
@@ -1262,10 +1242,7 @@ func addComponent(id string, name string, value interface{}) error {
 
 	valueType := reflect.TypeOf(value).Kind().String()
 
-	err = engine.
-		Redis.
-		Set(context.Background(), fmt.Sprintf("__type:%s", componentId(id, name)), valueType, 0).
-		Err()
+	err = setComponentType(id, name, valueType)
 
 	if err != nil {
 		return err
@@ -1274,7 +1251,7 @@ func addComponent(id string, name string, value interface{}) error {
 	err = engine.Redis.Set(context.Background(), componentId(id, name), value, 0).Err()
 
 	if err != nil {
-		engine.Redis.Del(context.Background(), fmt.Sprintf("__type:%s", componentId(id, name)))
+		engine.Redis.Del(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)))
 		return err
 	}
 
@@ -1366,7 +1343,7 @@ func getEntityType(id string) (string, error) {
 }
 
 func getSetValueType(id string, name string) string {
-	return engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", SetTypePrefix, componentId(id, name))).
+	return engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name))).
 		Val()
 }
 
@@ -1408,14 +1385,6 @@ func mapHasKey(id string, name string, mapKey string) (bool, error) {
 
 func mapValueMatch(id string, name string, mapKey string, value interface{}) bool {
 	return reflect.TypeOf(value).Kind().String() == getMapValueType(id, name, mapKey)
-}
-
-func removeComponentMetadata(id string, name string) {
-	keys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s", componentId(id, name))).Val()
-
-	for _, key := range keys {
-		engine.Redis.Del(context.Background(), key)
-	}
 }
 
 func removeMetadata(id string) {
@@ -1461,11 +1430,11 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 }
 
 func componentTypeID(id string, name string) string {
-	return fmt.Sprintf("%s:%s", ComponentTypePrefix, componentId(id, name))
+	return fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name))
 }
 
 func entityTypeID(id string) string {
-	return fmt.Sprintf("%s:%s", EntityTypePrefix, id)
+	return fmt.Sprintf("%s:%s", constants.EntityTypePrefix, id)
 }
 
 func setEntityType(id string, entityType string) {
@@ -1592,7 +1561,7 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 
 	err = engine.Redis.HSet(
 		context.Background(),
-		fmt.Sprintf("%s:%s", MapTypePrefix, componentId(id, name)),
+		fmt.Sprintf("%s:%s", constants.MapTypePrefix, componentId(id, name)),
 		mapKey,
 		reflect.TypeOf(value).Kind().String(),
 	).Err()
@@ -1609,7 +1578,24 @@ func setComponentType(id string, name string, value interface{}) error {
 		Redis.
 		Set(
 			context.Background(),
-			fmt.Sprintf("%s:%s", ComponentTypePrefix, componentId(id, name)),
+			fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)),
+			value,
+			0).
+		Err()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setPreviousComponentValue(id string, name string, value interface{}) error {
+	err := engine.
+		Redis.
+		Set(
+			context.Background(),
+			fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name)),
 			value,
 			0).
 		Err()
