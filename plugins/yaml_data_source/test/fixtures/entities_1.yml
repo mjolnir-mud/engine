@@ -1,0 +1,9 @@
+entity_1:
+  __metadata:
+    entityType: fake
+  testComponent: test
+
+entity_2:
+  __metadata:
+    entityType: fake
+  testComponent: test2
