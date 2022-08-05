@@ -38,6 +38,7 @@ func New(name string, path string) DirectorySource {
 	}
 
 	return DirectorySource{
+		name: name,
 		path: path,
 	}
 }
