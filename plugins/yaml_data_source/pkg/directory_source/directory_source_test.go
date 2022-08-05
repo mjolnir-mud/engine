@@ -53,14 +53,14 @@ func TestDirectorySource_LoadAll(t *testing.T) {
 				"entityType": "fake",
 				"file":       path.Join(p, "entities_1.yml"),
 			},
-			"testComponent": "test",
+			"testComponent": "test2",
 		},
 		"entity_3": {
 			"__metadata": map[string]interface{}{
 				"entityType": "fake",
 				"file":       path.Join(p, "entities_2.yml"),
 			},
-			"testComponent": "test2",
+			"testComponent": "test",
 		},
 		"entity_4": {
 			"__metadata": map[string]interface{}{
