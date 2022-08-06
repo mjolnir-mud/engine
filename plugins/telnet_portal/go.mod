@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/google/uuid v1.3.0
 	github.com/mjolnir-mud/engine v0.1.1
-	github.com/mjolnir-mud/engine/plugins/world v0.1.1
 	github.com/nats-io/nats.go v1.16.0
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/cobra v1.5.0
@@ -43,5 +42,3 @@ require (
 )
 
 replace github.com/mjolnir-mud/engine => ../../
-
-replace github.com/mjolnir-mud/engine/plugins/world => ../world

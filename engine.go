@@ -69,6 +69,11 @@ func Stop() {
 	redis.Stop()
 }
 
+// SetEnv sets the environment for the engine.
+func SetEnv(env string) {
+	viper.Set("env", env)
+}
+
 // RegisterPlugin registers a plugin with the engine.
 func RegisterPlugin(plugin plugin.Plugin) {
 	plugin_registry.Register(plugin)

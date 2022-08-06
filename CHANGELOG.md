@@ -1,4 +1,12 @@
 ## Next Release
+
+* Added `ecs` plugin
+* Added `data_sources` plugin
+* Added `yaml_data_source` plugin
+* Added `templates` plugin
+* Added `command_parser` plugin
+* Added `mongo_data_source` plugin
+
 ### Engine
 
 #### Breaking Changes

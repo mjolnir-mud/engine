@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/go-redis/redis/v9 v9.0.0-beta.1
-	github.com/mjolnir-mud/engine v0.1.1
 	github.com/nats-io/nats.go v1.16.0
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/cobra v1.5.0
@@ -34,6 +33,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mjolnir-mud/engine v0.1.0 // indirect
 	github.com/mjolnir-mud/engine/plugins/command_parser v0.0.0-00010101000000-000000000000 // indirect
 	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000 // indirect
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
@@ -63,7 +63,7 @@ require (
 )
 
 replace (
-	github.com/mjolnir-mud/engine => ../../
-	github.com/mjolnir-mud/engine/plugins/command_parser => ../command_parser
-	github.com/mjolnir-mud/engine/plugins/templates => ../templates
+	github.com/mjolnir-mud/engine v0.0.0-00010101000000-000000000000 => ../../
+	github.com/mjolnir-mud/engine/plugins/command_parser v0.0.0-00010101000000-000000000000 => ../command_parser
+	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000 => ../templates
 )

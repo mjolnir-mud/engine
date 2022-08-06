@@ -3,10 +3,12 @@ module github.com/mjolnir-mud/engine/plugins/data_sources
 go 1.17
 
 replace github.com/mjolnir-mud/engine => ../../
+
 replace github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
 
 require (
 	github.com/mjolnir-mud/engine v0.1.0
+	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220805131021-389d2f8111fa
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.0
 )
