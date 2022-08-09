@@ -4,11 +4,20 @@ import (
 	"testing"
 
 	"github.com/mjolnir-mud/engine/test"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPluginRegistry_Register(t *testing.T) {
-	plugins.Register(test.CreateTestPlugin())
+func setup() {
+	viper.Set("env", "test")
+}
 
-	assert.Equal(t, plugins.Count(), 1)
+func tearDown() {
+}
+
+func TestRegister(t *testing.T) {
+	setup()
+	defer tearDown()
+	Register(test.CreateTestPlugin())
+	assert.Equal(t, len(plugins), 1)
 }

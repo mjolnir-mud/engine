@@ -2,7 +2,6 @@ package session
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
-	session2 "github.com/mjolnir-mud/engine/plugins/world/pkg/session"
 )
 
 type session struct{}
@@ -35,7 +34,7 @@ func (e session) MatchingComponentUpdated(_ string, _ string, _ interface{}) err
 
 func (e session) MatchingComponentRemoved(_ string, _ string, _ interface{}) error { return nil }
 
-func GetCommandSets(sess session2.Session) []string {
+func GetCommandSets(sess reactor.Session) []string {
 	set, err := entity_registry.GetStringsFromSetComponent(sess.ID(), "commandSets")
 
 	if err != nil {
@@ -45,10 +44,10 @@ func GetCommandSets(sess session2.Session) []string {
 	return set
 }
 
-func AddCommandSet(sess session2.Session, set string) {
+func AddCommandSet(sess reactor.Session, set string) {
 }
 
-func RemoveCommandSet(sess session2.Session, set string) {
+func RemoveCommandSet(sess reactor.Session, set string) {
 }
 
 var System = session{}

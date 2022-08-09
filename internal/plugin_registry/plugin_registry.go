@@ -1,51 +1,50 @@
 package plugin_registry
 
 import (
+	"github.com/mjolnir-mud/engine/internal/logger"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
-	"github.com/rs/zerolog/log"
 )
 
-type pluginRegistry struct {
-	plugins []plugin.Plugin
+var plugins = []plugin.Plugin{}
+var log = logger.Instance.With().Str("service", "pluginRegistry").Logger()
+
+func Register(p plugin.Plugin) {
+	log.Info().Str("plugin", p.Name()).Msg("registering plugin")
+	plugins = append(plugins, p)
+
+	log.Debug().Str("plugin", p.Name()).Msg("calling registered callback")
+	err := p.Registered()
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("error calling registered callback")
+		panic(err)
+	}
 }
 
-func (r *pluginRegistry) Register(p plugin.Plugin) {
-	logger.Info().Str("plugin", p.Name()).Msg("registering plugin")
+func Start() {
+	log.Info().Msg("starting plugins")
 
-	r.plugins = append(r.plugins, p)
-}
-
-func (r *pluginRegistry) Count() int {
-	return len(r.plugins)
-}
-
-func (r *pluginRegistry) StartPlugins() {
-	logger.Info().Msg("initializing plugins")
-
-	for _, p := range r.plugins {
-		logger.Info().Msgf("initializing plugin %s", p.Name())
+	for _, p := range plugins {
+		log.Info().Msgf("initializing plugin %s", p.Name())
 		err := p.Start()
 
 		if err != nil {
-			logger.Fatal().Err(err).Msg("error initializing plugin")
+			log.Fatal().Err(err).Msg("error initializing plugin")
+			panic(err)
 		}
 	}
 }
 
-var plugins = &pluginRegistry{
-	plugins: []plugin.Plugin{},
-}
+func Stop() {
+	log.Info().Msg("stopping plugins")
 
-var logger = log.
-	With().
-	Str("plugin", "engine").
-	Str("service", "plugin_registry").
-	Logger()
+	for _, p := range plugins {
+		log.Info().Msgf("stopping plugin %s", p.Name())
+		err := p.Stop()
 
-func Register(p plugin.Plugin) {
-	plugins.Register(p)
-}
-
-func StartPlugins() {
-	plugins.StartPlugins()
+		if err != nil {
+			log.Fatal().Err(err).Msg("error stopping plugin")
+			continue
+		}
+	}
 }

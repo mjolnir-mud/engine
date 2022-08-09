@@ -1,8 +1,9 @@
-package session
+package controller_registry
 
 import (
 	"testing"
 
+	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,19 +13,19 @@ func (l testControllerForRegistry) Name() string {
 	return "login"
 }
 
-func (l testControllerForRegistry) Start(session Session) error {
+func (l testControllerForRegistry) Start(session reactor.Session) error {
 	return nil
 }
 
-func (l testControllerForRegistry) Resume(session Session) error {
+func (l testControllerForRegistry) Resume(session reactor.Session) error {
 	return nil
 }
 
-func (l testControllerForRegistry) Stop(session Session) error {
+func (l testControllerForRegistry) Stop(session reactor.Session) error {
 	return nil
 }
 
-func (l testControllerForRegistry) HandleInput(session Session, input string) error {
+func (l testControllerForRegistry) HandleInput(session reactor.Session, input string) error {
 	return nil
 }
 

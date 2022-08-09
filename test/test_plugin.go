@@ -21,3 +21,11 @@ func (p *testPlugin) Start() error {
 
 	return nil
 }
+
+func (p *testPlugin) Registered() error {
+	return nil
+}
+
+func (p *testPlugin) Stop() error {
+	return nil
+}

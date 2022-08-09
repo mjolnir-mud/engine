@@ -2,6 +2,11 @@ package world
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/internal/controller_registry"
+	"github.com/mjolnir-mud/engine/internal/session_registry"
+	"github.com/mjolnir-mud/engine/pkg/controller"
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login"
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/new_acccount"
 	"github.com/mjolnir-mud/engine/plugins/command_parser"
 	"github.com/mjolnir-mud/engine/plugins/command_parser/pkg/command_set"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
@@ -11,8 +16,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/world/internal/command_sets"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/create_character"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/game"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/login"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/new_acccount"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controllers/select_controller"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_types/area"
@@ -27,7 +30,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/room"
 	templates2 "github.com/mjolnir-mud/engine/plugins/world/internal/templates"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/db"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
 	_default "github.com/mjolnir-mud/engine/plugins/world/pkg/themes/default"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -49,7 +51,7 @@ func (w world) Start() error {
 		Run: func(cmd *cobra.Command, args []string) {
 			log.Info().Msg("starting server")
 			db.Start()
-			session.ControllerRegistry.Start()
+			controller_registry.ControllerRegistry.Start()
 
 			viper.SetDefault("character_starting_location", "limbo_prime")
 			err := viper.BindEnv("character_starting_location")
@@ -89,7 +91,7 @@ func (w world) Start() error {
 			templates.RegisterTemplate(templates2.Say)
 			templates.RegisterTemplate(templates2.Walking)
 
-			session.Registry.Start()
+			session_registry.Registry.Start()
 
 			<-w.stop
 		},
@@ -134,8 +136,8 @@ func RegisterCommandSet(set *command_set.CommandSet) {
 }
 
 // RegisterController registers a controller with the world.
-func RegisterController(controller session.Controller) {
-	session.ControllerRegistry.Register(controller)
+func RegisterController(controller controller.Controller) {
+	controller_registry.ControllerRegistry.Register(controller)
 }
 
 // RegisterEntityType registers an entity type with the world.
@@ -190,11 +192,11 @@ func RemoveEntity(id string) {
 }
 
 func WriteToConnection(id string, data string) {
-	session.Registry.WriteToConnection(id, data)
+	session_registry.Registry.WriteToConnection(id, data)
 }
 
 func WriteToConnectionF(id string, format string, args ...interface{}) {
-	session.Registry.WriteToConnectionF(id, format, args...)
+	session_registry.Registry.WriteToConnectionF(id, format, args...)
 }
 
 var Plugin = world{

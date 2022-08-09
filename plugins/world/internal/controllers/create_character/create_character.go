@@ -6,9 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
-
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,21 +19,21 @@ func (c selectCharacter) Name() string {
 	return "create_character"
 }
 
-func (c selectCharacter) Start(session session.Session) error {
+func (c selectCharacter) Start(session reactor.Session) error {
 	session.WriteToConnection("What is your character's name?")
 
 	return nil
 }
 
-func (c selectCharacter) Resume(_ session.Session) error {
+func (c selectCharacter) Resume(_ reactor.Session) error {
 	return nil
 }
 
-func (c selectCharacter) Stop(_ session.Session) error {
+func (c selectCharacter) Stop(_ reactor.Session) error {
 	return nil
 }
 
-func (c selectCharacter) HandleInput(session session.Session, input string) error {
+func (c selectCharacter) HandleInput(session reactor.Session, input string) error {
 	validation := validateCharacterName(input)
 
 	if validation != nil {

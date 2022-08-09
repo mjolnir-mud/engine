@@ -102,6 +102,14 @@ func (m MongoDataSource) Name() string {
 	return m.collectionName
 }
 
+func (m MongoDataSource) Start() error {
+	return nil
+}
+
+func (m MongoDataSource) Stop() error {
+	return nil
+}
+
 func (m MongoDataSource) Load(entityId string) (map[string]interface{}, error) {
 	m.logger.Debug().Str("entityId", entityId).Msg("loading entity")
 
@@ -124,7 +132,7 @@ func (m MongoDataSource) Load(entityId string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func (m MongoDataSource) LoadAll() ([]map[string]interface{}, error) {
+func (m MongoDataSource) LoadAll() (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Msg("loading all entities")
 
 	cursor, err := m.collection.Find(context.Background(), map[string]interface{}{})
@@ -133,7 +141,7 @@ func (m MongoDataSource) LoadAll() ([]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var results []map[string]interface{}
+	var results map[string]map[string]interface{}
 	err = cursor.All(context.Background(), &results)
 
 	if err != nil {
@@ -143,7 +151,7 @@ func (m MongoDataSource) LoadAll() ([]map[string]interface{}, error) {
 	return results, nil
 }
 
-func (m MongoDataSource) Find(search map[string]interface{}) ([]map[string]interface{}, error) {
+func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching entities")
 
 	cursor, err := m.collection.Find(context.Background(), search)
@@ -152,7 +160,7 @@ func (m MongoDataSource) Find(search map[string]interface{}) ([]map[string]inter
 		return nil, err
 	}
 
-	var results []map[string]interface{}
+	var results map[string]map[string]interface{}
 	err = cursor.All(context.Background(), &results)
 
 	if err != nil {
@@ -192,7 +200,7 @@ func (m MongoDataSource) Save(entityId string, entity map[string]interface{}) er
 	return err
 }
 
-func cleanIds(entities []map[string]interface{}) {
+func cleanIds(entities map[string]map[string]interface{}) {
 	for _, entity := range entities {
 		cleanId(entity)
 	}

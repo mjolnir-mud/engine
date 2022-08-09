@@ -1,9 +1,9 @@
 package room
 
 import (
+	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/character"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/location"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
 )
 
 type room struct{}
@@ -40,7 +40,7 @@ func Move(entityID string, _ string, toID string) {
 	location.Set(entityID, toID)
 }
 
-func MoveWithMessageForSession(session session.Session, entityID string, fromID string, toID string, entityMessage string, othersMessage string) {
+func MoveWithMessageForSession(session reactor.Session, entityID string, fromID string, toID string, entityMessage string, othersMessage string) {
 	characterEntitiesAtLocation := location.AtLocationByType(fromID, "character")
 	createCharacter := character.GetCurrentCharacter(session)
 

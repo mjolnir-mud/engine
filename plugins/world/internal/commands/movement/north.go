@@ -1,11 +1,11 @@
 package movement
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
+	"github.com/mjolnir-mud/engine/pkg/reactor"
 )
 
 type North struct{}
 
-func (n *North) Run(sess session.Session) error {
+func (n *North) Run(sess reactor.Session) error {
 	return moveSessionCharacterInDirection(sess, "north")
 }

@@ -1,16 +1,16 @@
 package engine
 
 import (
+	"context"
 	"fmt"
-	"os"
 
 	redis2 "github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine/internal/nats"
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
+	"github.com/mjolnir-mud/engine/internal/pubsub"
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
 	nats2 "github.com/nats-io/nats.go"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -19,6 +19,11 @@ import (
 type engine struct {
 	name        string
 	baseCommand *cobra.Command
+}
+
+// Subscription represents a pubsub to an event.
+type Subscription interface {
+	Stop()
 }
 
 var e = &engine{}
@@ -32,13 +37,6 @@ func Start(name string) {
 	}
 
 	viper.SetDefault("env", "development")
-
-	if viper.GetString("env") == "production" {
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	} else {
-		log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr})
-		zerolog.SetGlobalLevel(zerolog.TraceLevel)
-	}
 
 	e.name = name
 
@@ -67,6 +65,30 @@ func Stop() {
 	logger.Info().Str("plugin", "engine").Msg("shutting down engine")
 	nats.Stop()
 	redis.Stop()
+}
+
+// Subscribe subscribes to an event on the message bus. It accepts a topic, an event constructor, and a callback
+// function. The event constructor is used to create an event object that is passed to the callback function. The event
+// should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
+// received on the topic. When the pubsub is no longer needed, it should be stopped by calling the `Stop` method.
+func Subscribe(topic string, event func() interface{}, callback func(interface{})) Subscription {
+	return pubsub.Subscribe(topic, event, callback)
+}
+
+// PSubscribe subscribes to a pattern on the message bus. It accepts a topic, an event constructor, and a callback
+// function. The event constructor is used to create an event object that is passed to the callback function. The event
+// should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
+// received on the topic. When the pubsub is no longer needed, it should be stopped by calling the `Stop` method.
+// Unlike Subscribe, PSubscribe will match any topic that matches the pattern. For more information, see the Redis
+// documentation on patterns [https://redis.io/commands/psubscribe](https://redis.io/commands/psubscribe).
+func PSubscribe(topic string, event func() interface{}, callback func(interface{})) Subscription {
+	return pubsub.PSubscribe(topic, event, callback)
+}
+
+// Publish publishes a message to the message bus. It accepts a topic and a message payload. The message payload should
+// be a pointer to a struct that can be marshalled to JSON.
+func Publish(topic string, payload interface{}) error {
+	return Redis.Publish(context.Background(), topic, payload).Err()
 }
 
 // SetEnv sets the environment for the engine.

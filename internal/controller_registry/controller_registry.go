@@ -1,23 +1,24 @@
-package session
+package controller_registry
 
 import (
+	"github.com/mjolnir-mud/engine/pkg/controller"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
 )
 
-type controllerRegistry map[string]Controller
+type controllerRegistry map[string]controller.Controller
 
 // Start starts the controller registry.
 func (cr *controllerRegistry) Start() {
 }
 
 // Get returns a controller from the registry.
-func (cr *controllerRegistry) Get(name string) Controller {
+func (cr *controllerRegistry) Get(name string) controller.Controller {
 	log.Debug().Msgf("getting controller: %s", name)
 	return ControllerRegistry[name]
 }
 
 // Register registers a controller with the registry.
-func (cr *controllerRegistry) Register(controller Controller) {
+func (cr *controllerRegistry) Register(controller controller.Controller) {
 	log.Info().Msgf("registering controller: %s", controller.Name())
 	ControllerRegistry[controller.Name()] = controller
 }

@@ -1,9 +1,11 @@
 package movement
 
-import "github.com/mjolnir-mud/engine/plugins/world/pkg/session"
+import (
+	"github.com/mjolnir-mud/engine/pkg/reactor"
+)
 
 type Up struct{}
 
-func (n *Up) Run(sess session.Session) error {
+func (n *Up) Run(sess reactor.Session) error {
 	return moveSessionCharacterInDirection(sess, "up")
 }

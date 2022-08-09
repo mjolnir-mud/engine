@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/db"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -19,7 +19,7 @@ func (c selectCharacter) Name() string {
 	return "select_character"
 }
 
-func (c selectCharacter) Start(session session.Session) error {
+func (c selectCharacter) Start(session reactor.Session) error {
 	if countCharacters(session) == 0 {
 		session.SetController("create_character")
 		return nil
@@ -28,15 +28,15 @@ func (c selectCharacter) Start(session session.Session) error {
 	return promptSelectUser(session)
 }
 
-func (c selectCharacter) Resume(session session.Session) error {
+func (c selectCharacter) Resume(session reactor.Session) error {
 	return nil
 }
 
-func (c selectCharacter) Stop(session session.Session) error {
+func (c selectCharacter) Stop(session reactor.Session) error {
 	return nil
 }
 
-func (c selectCharacter) HandleInput(session session.Session, input string) error {
+func (c selectCharacter) HandleInput(session reactor.Session, input string) error {
 	switch input {
 	case "create":
 		session.SetController("create_character")
@@ -75,7 +75,7 @@ func (c selectCharacter) HandleInput(session session.Session, input string) erro
 	}
 }
 
-func promptSelectUser(session session.Session) error {
+func promptSelectUser(session reactor.Session) error {
 	characters, err := lookupCharacters(session)
 
 	if err != nil {
@@ -108,7 +108,7 @@ func promptSelectUser(session session.Session) error {
 	return nil
 }
 
-func lookupCharacters(session session.Session) ([]bson.M, error) {
+func lookupCharacters(session reactor.Session) ([]bson.M, error) {
 	query := bson.M{"components.accountID": session.GetStringFromStore("accountID")}
 
 	cursor, err := collection().Find(context.Background(), query)
@@ -128,7 +128,7 @@ func lookupCharacters(session session.Session) ([]bson.M, error) {
 	return characters, nil
 }
 
-func countCharacters(session session.Session) int64 {
+func countCharacters(session reactor.Session) int64 {
 	query := bson.M{"components.accountID": session.GetStringFromStore("accountID")}
 
 	count, err := collection().CountDocuments(context.Background(), query)

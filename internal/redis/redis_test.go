@@ -7,18 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStart(t *testing.T) {
-	Start()
+func TestCreateAndStart(t *testing.T) {
+	CreateAndStart()
 
-	err := client.Ping(context.Background()).Err()
+	assert.NotNil(t, Client)
+
+	err := Client.Ping(context.Background()).Err()
+
 	assert.Nil(t, err)
-}
-
-func TestStop(t *testing.T) {
-	Start()
-	Stop()
-
-	err := client.Ping(context.Background()).Err()
-
-	assert.NotNil(t, err)
 }

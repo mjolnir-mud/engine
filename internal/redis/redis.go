@@ -8,79 +8,68 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/rs/zerolog/log"
+	"github.com/mjolnir-mud/engine/internal/logger"
+	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 )
 
-func Start() *redis.Client {
-	// connect to redis
-	redisLogger.Info().Msg("Connecting to redis")
+var Client *redis.Client
+var log zerolog.Logger
 
-	err := viper.BindEnv("redis_url")
+type RedisLogProxy struct {
+	logger zerolog.Logger
+}
 
+func (l *RedisLogProxy) Printf(_ context.Context, format string, v ...interface{}) {
+	l.logger.Debug().Msgf(format, v...)
+}
+
+func CreateAndStart() {
 	if viper.GetString("env") == "test" {
 		viper.SetDefault("redis_url", "redis://localhost:6379/1")
 	} else {
 		viper.SetDefault("redis_url", "redis://localhost:6379/0")
 	}
 
-	if err != nil {
-		panic(err)
-	}
-
 	u, err := url.Parse(viper.GetString("redis_url"))
 
+	log = logger.Instance.
+		With().
+		Str("service", "redis").
+		Logger()
+
 	if err != nil {
-		redisLogger.Error().Err(err).Msg("error parsing redis url")
+		log.Fatal().Err(err).Msg("could not parse redis url")
 		os.Exit(1)
 	}
 
 	host := fmt.Sprintf("%s:%s", u.Hostname(), u.Port())
 
-	redisLogger.Info().Msgf("Connecting to redis at %s on %s", host, u.Path)
+	log.Info().Msgf("connecting to redis at %s on %s", host, u.Path)
 
 	i, err := strconv.Atoi(u.Path[1:])
 
 	if err != nil {
-		redisLogger.Error().Err(err).Msg("error parsing redis url")
+		log.Fatal().Err(err).Msg("could not parse redis url")
 		os.Exit(1)
 	}
 
-	client = redis.NewClient(&redis.Options{
+	log = log.With().
+		Str("host", host).
+		Int("db", i).
+		Logger()
+
+	redis.SetLogger(&RedisLogProxy{log})
+
+	Client = redis.NewClient(&redis.Options{
 		Addr:        host,
 		DB:          i,
 		PoolSize:    10,
 		ReadTimeout: -1,
 	})
 
-	// ping redis to ensure it is connected
-	_, err = client.Ping(context.Background()).Result()
-
-	if err != nil {
-		redisLogger.Error().Err(err).Msg("error connecting to redis")
-		os.Exit(1)
-	}
-
-	return client
 }
 
 func Stop() {
-	redisLogger.Info().Msg("Disconnecting from redis")
-	err := client.Close()
-
-	if err != nil {
-		redisLogger.Error().Err(err).Msg("error disconnecting from redis")
-	}
+	_ = Client.Close()
 }
-
-func GetClient() *redis.Client {
-	return client
-}
-
-var client *redis.Client
-
-var redisLogger = log.
-	With().
-	Str("plugin", "engine").
-	Str("service", "redis").
-	Logger()

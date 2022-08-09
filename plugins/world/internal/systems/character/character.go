@@ -1,8 +1,9 @@
 package character
 
 import (
+	"github.com/mjolnir-mud/engine/internal/session_registry"
+	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/session"
 )
 
 type character struct{}
@@ -39,7 +40,7 @@ func (e character) MatchingComponentRemoved(entityId string, _ string, _ interfa
 	return nil
 }
 
-func GetCurrentCharacter(session session.Session) string {
+func GetCurrentCharacter(session reactor.Session) string {
 	return session.GetStringFromStore("characterID")
 }
 
@@ -50,10 +51,10 @@ func WriteToCharacterConnection(characterId string, message string) {
 		return
 	}
 
-	session.Registry.WriteToConnection(sessId, message)
+	session_registry.Registry.WriteToConnection(sessId, message)
 }
 
-func GetCurrentCharacterLocationForSession(session session.Session) string {
+func GetCurrentCharacterLocationForSession(session reactor.Session) string {
 	characterId := GetCurrentCharacter(session)
 
 	if characterId == "" {
