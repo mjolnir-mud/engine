@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/mjolnir-mud/engine/internal/logger"
+	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 )

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/mjolnir-mud/engine/internal/logger"
 	redis2 "github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 )
 
@@ -19,11 +19,11 @@ type Subscription struct {
 }
 
 func Subscribe(topic string, event func() interface{}, callback func(payload interface{})) *Subscription {
-	return create(redis2.GetClient().Subscribe(context.Background(), topic), event, callback)
+	return create(redis2.Client.Subscribe(context.Background(), topic), event, callback)
 }
 
 func PSubscribe(topic string, event func() interface{}, callback func(payload interface{})) *Subscription {
-	return create(redis2.GetClient().PSubscribe(context.Background(), topic), event, callback)
+	return create(redis2.Client.PSubscribe(context.Background(), topic), event, callback)
 }
 
 func create(pubsub *redis.PubSub, event func() interface{}, callback func(paylaod interface{})) *Subscription {

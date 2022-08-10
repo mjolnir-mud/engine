@@ -1,9 +1,9 @@
 package session
 
 import (
-	"github.com/mjolnir-mud/engine/internal/logger"
 	"github.com/mjolnir-mud/engine/internal/pubsub"
-	"github.com/mjolnir-mud/engine/pkg/events"
+	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
 	"github.com/rs/zerolog"
 )
 

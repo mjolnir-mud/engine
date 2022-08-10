@@ -63,7 +63,7 @@ require (
 )
 
 replace (
-	github.com/mjolnir-mud/engine v0.0.0-00010101000000-000000000000 => ../../
-	github.com/mjolnir-mud/engine/plugins/command_parser v0.0.0-00010101000000-000000000000 => ../command_parser
-	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000 => ../templates
+	github.com/mjolnir-mud/engine  => ../../
+	github.com/mjolnir-mud/engine/plugins/command_parser => ../command_parser
+	github.com/mjolnir-mud/engine/plugins/templates  => ../templates
 )

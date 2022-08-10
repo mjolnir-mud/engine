@@ -15,4 +15,6 @@ func TestCreateAndStart(t *testing.T) {
 	err := Client.Ping(context.Background()).Err()
 
 	assert.Nil(t, err)
+
+	Stop()
 }

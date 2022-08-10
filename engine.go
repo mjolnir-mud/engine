@@ -2,77 +2,26 @@ package engine
 
 import (
 	"context"
-	"fmt"
 
 	redis2 "github.com/go-redis/redis/v9"
-	"github.com/mjolnir-mud/engine/internal/nats"
+	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
 	"github.com/mjolnir-mud/engine/internal/pubsub"
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
-	nats2 "github.com/nats-io/nats.go"
-	"github.com/rs/zerolog/log"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-type engine struct {
-	name        string
-	baseCommand *cobra.Command
-}
 
 // Subscription represents a pubsub to an event.
 type Subscription interface {
 	Stop()
 }
 
-var e = &engine{}
-
-func Start(name string) {
-	viper.SetEnvPrefix("MJOLNIR")
-	err := viper.BindEnv("env")
-
-	if err != nil {
-		panic(err)
-	}
-
-	viper.SetDefault("env", "development")
-
-	e.name = name
-
-	e.baseCommand = &cobra.Command{
-		Use:   name,
-		Short: fmt.Sprintf("manage the %s Mjolnir Game", name),
-		Long:  fmt.Sprintf("manage the %s Mjolnir Game", name),
-	}
-
-	logger.Info().Str("plugin", "engine").Msgf("initializing engine for game %s", name)
-	redis.Start()
-
-	Redis = redis.GetClient()
-
-	nats.Start()
-	plugin_registry.StartPlugins()
-
-	err = e.baseCommand.Execute()
-
-	if err != nil {
-		panic(err)
-	}
-}
-
-func Stop() {
-	logger.Info().Str("plugin", "engine").Msg("shutting down engine")
-	nats.Stop()
-	redis.Stop()
-}
-
-// Subscribe subscribes to an event on the message bus. It accepts a topic, an event constructor, and a callback
-// function. The event constructor is used to create an event object that is passed to the callback function. The event
-// should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
-// received on the topic. When the pubsub is no longer needed, it should be stopped by calling the `Stop` method.
-func Subscribe(topic string, event func() interface{}, callback func(interface{})) Subscription {
-	return pubsub.Subscribe(topic, event, callback)
+// EnsureRegistered ensures that the plugin is registered with the engine. If the plugin is not registered, an the
+// engine will panic. This should be used by plugins that need to ensure that another plugin is registered before
+// they can start.
+func EnsureRegistered(pluginName string) {
+	plugin_registry.EnsureRegistered(pluginName)
 }
 
 // PSubscribe subscribes to a pattern on the message bus. It accepts a topic, an event constructor, and a callback
@@ -88,31 +37,51 @@ func PSubscribe(topic string, event func() interface{}, callback func(interface{
 // Publish publishes a message to the message bus. It accepts a topic and a message payload. The message payload should
 // be a pointer to a struct that can be marshalled to JSON.
 func Publish(topic string, payload interface{}) error {
-	return Redis.Publish(context.Background(), topic, payload).Err()
+	return pubsub.Publish(topic, payload)
 }
 
-// SetEnv sets the environment for the engine.
-func SetEnv(env string) {
-	viper.Set("env", env)
+// Initialize should be called by every games `main` function as the first step in the game's initialization. Once the
+// engine is initialized, various plugins can be registered and the engine can be started.
+func Initialize(name string) {
+	instance.Initialize(name)
+	Redis = redis.Client
 }
 
-// RegisterPlugin registers a plugin with the engine.
+// RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
+// after the engine is initialized. Plugins should conform to the plugin interface.
 func RegisterPlugin(plugin plugin.Plugin) {
 	plugin_registry.Register(plugin)
 }
 
-func PublishEvent(event string, data interface{}) error {
-	return nats.PublishEvent(event, data)
+// Start starts the engine. This should be called after all plugins are registered and all other initialization is
+// complete.
+func Start() {
+	instance.Start()
 }
 
-func SubscribeToEvent(event string, handler nats2.Handler) (*nats2.Subscription, error) {
-	return nats.SubscribeToEvent(event, handler)
+// Stop	stops the engine.
+func Stop() {
+	instance.Stop()
 }
 
-func AddCLICommand(command *cobra.Command) {
-	e.baseCommand.AddCommand(command)
+// Subscribe subscribes to an event on the message bus. It accepts a topic, an event constructor, and a callback
+// function. The event constructor is used to create an event object that is passed to the callback function. The event
+// should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
+// received on the topic. When the pubsub is no longer needed, it should be stopped by calling the `Stop` method.
+func Subscribe(topic string, event func() interface{}, callback func(interface{})) Subscription {
+	return pubsub.Subscribe(topic, event, callback)
 }
 
+// SetEnv sets the environment for the engine. Mjolnir recognizes three different environments by default, development
+// test, and production. The environment is set by setting the `MJOLNIR_ENV` environment variable.
+func SetEnv(env string) {
+	viper.Set("env", env)
+}
+
+// Ping pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
+func Ping() *redis2.StatusCmd {
+	return Redis.Ping(context.Background())
+}
+
+// Redis returns a client to the Redis server. This can be used to interact with the Redis server directly.
 var Redis *redis2.Client
-
-var logger = log.With().Str("plugin", "engine").Logger()

@@ -1,8 +1,8 @@
 package controller_registry
 
 import (
-	"github.com/mjolnir-mud/engine/pkg/controller"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/controller"
 )
 
 type controllerRegistry map[string]controller.Controller

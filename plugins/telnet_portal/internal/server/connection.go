@@ -11,6 +11,7 @@ import (
 	"github.com/mjolnir-mud/engine"
 	events2 "github.com/mjolnir-mud/engine/pkg/events"
 	"github.com/mjolnir-mud/engine/plugins/telnet_portal/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 )
@@ -96,7 +97,7 @@ func (c *connection) Start() {
 		}
 	}()
 
-	sub, err := engine.SubscribeToEvent(events2.SessionManagerStartedTopic(), func(_ *events2.SessionManagerStarted) {
+	sub, err := engine.SubscribeToEvent(events.SessionManagerStartedTopic(), func(_ *events.SessionManagerStarted) {
 		c.logger.Debug().Msg("handling session manager started event")
 		c.assertSession()
 
@@ -148,7 +149,7 @@ func (c *connection) Stop() {
 func (c *connection) assertSession() {
 	c.logger.Trace().Msg("asserting session")
 
-	err := engine.PublishEvent(events2.AssertSessionTopic(), &events2.AssertSession{
+	err := engine.PublishEvent(events.AssertSessionTopic(), &events.AssertSession{
 		UUID:        c.uuid,
 		ConnectedAt: c.connectedAt,
 		LastInputAt: c.lastInputAt,
