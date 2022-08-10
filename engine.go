@@ -24,6 +24,11 @@ func EnsureRegistered(pluginName string) {
 	plugin_registry.EnsureRegistered(pluginName)
 }
 
+// Ping pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
+func Ping() *redis2.StatusCmd {
+	return Redis.Ping(context.Background())
+}
+
 // PSubscribe subscribes to a pattern on the message bus. It accepts a topic, an event constructor, and a callback
 // function. The event constructor is used to create an event object that is passed to the callback function. The event
 // should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
@@ -76,11 +81,6 @@ func Subscribe(topic string, event func() interface{}, callback func(interface{}
 // test, and production. The environment is set by setting the `MJOLNIR_ENV` environment variable.
 func SetEnv(env string) {
 	viper.Set("env", env)
-}
-
-// Ping pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
-func Ping() *redis2.StatusCmd {
-	return Redis.Ping(context.Background())
 }
 
 // Redis returns a client to the Redis server. This can be used to interact with the Redis server directly.
