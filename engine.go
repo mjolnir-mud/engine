@@ -1,13 +1,11 @@
 package engine
 
 import (
-	"context"
-
 	redis2 "github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
-	"github.com/mjolnir-mud/engine/internal/pubsub"
 	"github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
 	"github.com/spf13/viper"
 )
@@ -25,31 +23,43 @@ func EnsureRegistered(pluginName string) {
 }
 
 // Ping pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
-func Ping() *redis2.StatusCmd {
-	return Redis.Ping(context.Background())
+func Ping() error {
+	return redis.Ping()
 }
 
-// PSubscribe subscribes to a pattern on the message bus. It accepts a topic, an event constructor, and a callback
-// function. The event constructor is used to create an event object that is passed to the callback function. The event
-// should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
-// received on the topic. When the pubsub is no longer needed, it should be stopped by calling the `Stop` method.
-// Unlike Subscribe, PSubscribe will match any topic that matches the pattern. For more information, see the Redis
-// documentation on patterns [https://redis.io/commands/psubscribe](https://redis.io/commands/psubscribe).
-func PSubscribe(topic string, event func() interface{}, callback func(interface{})) Subscription {
-	return pubsub.PSubscribe(topic, event, callback)
+// PSubscribe subscribes to an event on the message bus. It accepts an event and an arbitrary number of arguments that
+// will be passed to the event's topic constructor. The last argument should be a callback function otherwise the engine
+// will panic. The callback function is called when a message is received on the topic, with a payload decoded against
+// the event's Payload constructor. PSubscribe accepts topic patterns, and will subscribe to all matching topics. See
+// the [Redis documentation](https://redis.io/topics/pubsub) for more information.
+func PSubscribe(e event.Event, args ...interface{}) Subscription {
+	return redis.PSubscribe(e, args...)
 }
 
-// Publish publishes a message to the message bus. It accepts a topic and a message payload. The message payload should
-// be a pointer to a struct that can be marshalled to JSON.
-func Publish(topic string, payload interface{}) error {
-	return pubsub.Publish(topic, payload)
+// Publish publishes an event on the message bus. It accepts an event and an arbitrary number of arguments that will be
+// passed to the event's topic and payload constructors.
+func Publish(e event.Event, args ...interface{}) error {
+	return redis.Publish(e, args...)
 }
 
-// Initialize should be called by every games `main` function as the first step in the game's initialization. Once the
-// engine is initialized, various plugins can be registered and the engine can be started.
-func Initialize(name string) {
-	instance.Initialize(name)
-	Redis = redis.Client
+// RegisterAfterStartCallback registers a callback function that is called after the engine is started.
+func RegisterAfterStartCallback(callback func()) {
+	instance.RegisterAfterStartCallback(callback)
+}
+
+// RegisterAfterStopCallback registers a callback function that is called after the engine is stopped.
+func RegisterAfterStopCallback(callback func()) {
+	instance.RegisterAfterStopCallback(callback)
+}
+
+// RegisterBeforeStartCallback registers a callback function that is called before the engine is started.
+func RegisterBeforeStartCallback(callback func()) {
+	instance.RegisterBeforeStartCallback(callback)
+}
+
+// RegisterBeforeStopCallback registers a callback function that is called before the engine is stopped.
+func RegisterBeforeStopCallback(callback func()) {
+	instance.RegisterBeforeStopCallback(callback)
 }
 
 // RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
@@ -58,10 +68,9 @@ func RegisterPlugin(plugin plugin.Plugin) {
 	plugin_registry.Register(plugin)
 }
 
-// Start starts the engine. This should be called after all plugins are registered and all other initialization is
-// complete.
-func Start() {
-	instance.Start()
+// Start starts with the provided game name.
+func Start(gameName string) {
+	instance.Start(gameName)
 }
 
 // Stop	stops the engine.
@@ -69,12 +78,13 @@ func Stop() {
 	instance.Stop()
 }
 
-// Subscribe subscribes to an event on the message bus. It accepts a topic, an event constructor, and a callback
-// function. The event constructor is used to create an event object that is passed to the callback function. The event
-// should be a pointer to a struct that can be umarshalled from JSON. The callback function is called when a message is
-// received on the topic. When the pubsub is no longer needed, it should be stopped by calling the `Stop` method.
-func Subscribe(topic string, event func() interface{}, callback func(interface{})) Subscription {
-	return pubsub.Subscribe(topic, event, callback)
+// Subscribe subscribes to an event on the message bus. It accepts an event and an arbitrary number of arguments that
+// will be passed to the event's topic constructor. The last argument should be a callback function otherwise the engine
+// will panic. The callback function is called when a message is received on the topic, with a payload decoded against
+// the event's Payload constructor. If it is wanted to subscribe against a pattern, the `PSubscribe` method should be
+// used instead. See the [Redis documentation](https://redis.io/topics/pubsub) for more information.
+func Subscribe(e event.Event, args ...interface{}) Subscription {
+	return redis.Subscribe(e, args...)
 }
 
 // SetEnv sets the environment for the engine. Mjolnir recognizes three different environments by default, development
