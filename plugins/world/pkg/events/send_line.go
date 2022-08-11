@@ -6,10 +6,16 @@ type SendLineEvent struct {
 	Line string
 }
 
-func SendLineTopic(uuid string) string {
-	return fmt.Sprintf("session.%s.send_line", uuid)
+func (e SendLineEvent) Topic(args ...interface{}) string {
+	return fmt.Sprintf("session.%s.output", args[0].(string))
 }
 
-func SendLine() interface{} {
-	return &SendLineEvent{}
+func (e SendLineEvent) Payload(args ...interface{}) interface{} {
+	if len(args) > 0 {
+		return SendLineEvent{
+			Line: args[1].(string),
+		}
+	}
+
+	return SendLineEvent{}
 }

@@ -1,7 +1,7 @@
 package session
 
 import (
-	"github.com/mjolnir-mud/engine/internal/pubsub"
+	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
 	"github.com/rs/zerolog"
@@ -11,7 +11,7 @@ import (
 type Session struct {
 	id                      string
 	logger                  zerolog.Logger
-	receiveLineSubscription pubsub.Subscription
+	receiveLineSubscription redis.Subscription
 }
 
 func New(e *events.AssertSessionEvent) *Session {
@@ -32,11 +32,11 @@ func (s Session) Start() {
 		}
 	}
 
-	pubsub.Subscribe(events.InputEventTopic(s.id), events.Input, func(payload interface{}) {
+	redis.Subscribe(events.InputEvent{}, s.id, func(payload interface{}) {
 		event, ok := payload.(*events.InputEvent)
 
 		if !ok {
-			s.logger.Error().Msg("error casting event to SendToWorldEvent")
+			s.logger.Error().Msg("error casting event to InputEvent")
 			return
 		}
 
@@ -63,9 +63,7 @@ func (s Session) Stop() {
 		}
 	}
 
-	err := pubsub.Publish(events.SessionStoppedTopic(s.id), events.SessionStoppedEvent{
-		UUID: s.id,
-	})
+	err := redis.Publish(events.SessionStoppedEvent{}, s.id)
 
 	if err != nil {
 		s.logger.Error().Err(err).Msg("error publishing session stopped event")

@@ -2,12 +2,11 @@ package session
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/mjolnir-mud/engine/internal/logger"
-	"github.com/mjolnir-mud/engine/internal/pubsub"
-	"github.com/mjolnir-mud/engine/pkg/events"
+	"github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
 	"github.com/rs/zerolog"
 )
 
@@ -16,26 +15,55 @@ var log zerolog.Logger
 var lineHandlers []func(id string, line string) error
 var sessionStartedHandlers []func(id string) error
 var sessionStoppedHandlers []func(id string) error
-var assertSessionSubscription *pubsub.Subscription
-var sessionStoppedSubscription *pubsub.Subscription
+var assertSessionSubscription *redis.Subscription
+var sessionStoppedSubscription *redis.Subscription
 
-func Start() {
-	log = logger.Instance.With().Str("service", "sessionRegistry").Logger()
-	assertSessionSubscription = pubsub.
-		Subscribe(events.AssertSessionTopic, events.AssertSession, handleAssertSession)
-	sessionStoppedSubscription = pubsub.
-		PSubscribe(events.SessionStoppedTopic("*"), events.SessionStopped, handleSessionStopped)
+func RegisterLineHandler(f func(id string, line string) error) {
+	lineHandlers = append(lineHandlers, f)
+}
 
-	err := pubsub.Publish(events.SessionManagerStartedTopic, events.SessionManagerStarted)
+func RegisterSessionStartedHandler(f func(id string) error) {
+	sessionStartedHandlers = append(sessionStartedHandlers, f)
+}
 
-	if err != nil {
-		log.Error().Err(err).Msg("error session manager started event")
-		os.Exit(1)
+func RegisterSessionStoppedHandler(f func(id string) error) {
+	sessionStoppedHandlers = append(sessionStoppedHandlers, f)
+}
+
+func SendLine(id string, data string) {
+	// break up the data by lines
+	lines := strings.Split(data, "\n")
+
+	// write each line to the connection
+	for _, line := range lines {
+		err := redis.Publish(events.SendLineEvent{}, id, line)
+
+		if err != nil {
+			log.Error().Err(err).Msg("error writing to connection")
+			break
+		}
 	}
 }
 
-// Stop stops the registry
-func Stop() {
+func SendLineF(id string, data string, args ...interface{}) {
+	SendLine(id, fmt.Sprintf(data, args...))
+}
+
+func StartRegistry() {
+	log = logger.Instance.With().Str("service", "sessionRegistry").Logger()
+	assertSessionSubscription = redis.Subscribe(events.AssertSessionEvent{}, handleAssertSession)
+	sessionStoppedSubscription = redis.PSubscribe(events.SessionStoppedEvent{}, "*", handleSessionStopped)
+
+	err := redis.Publish(events.SessionRegistryStartedEvent{})
+
+	if err != nil {
+		log.Error().Err(err).Msg("error session manager started event")
+		panic(err)
+	}
+}
+
+// StopRegistry stops the registry
+func StopRegistry() {
 	log.Info().Msg("stopping session registry")
 	for _, s := range sessions {
 		s.Stop()
@@ -44,7 +72,7 @@ func Stop() {
 	sessionStoppedSubscription.Stop()
 	assertSessionSubscription.Stop()
 
-	err := pubsub.Publish(events.SessionManagerStoppedTopic, events.SessionManagerStopped)
+	err := redis.Publish(events.SessionRegistryStoppedEvent{})
 
 	if err != nil {
 		log.Error().Err(err).Msg("error session manager stopped event")
@@ -60,25 +88,6 @@ func StopSession(uuid string) {
 
 	sess.Stop()
 	remove(sess)
-}
-
-func SendLine(id string, data string) {
-	// break up the data by lines
-	lines := strings.Split(data, "\n")
-
-	// write each line to the connection
-	for _, line := range lines {
-		err := pubsub.Publish(events.SendLineTopic(id), events.SendLineEvent{Line: fmt.Sprintf("%s\r\n", line)})
-
-		if err != nil {
-			log.Error().Err(err).Msg("error writing to connection")
-			break
-		}
-	}
-}
-
-func SendLineF(id string, data string, args ...interface{}) {
-	SendLine(id, fmt.Sprintf(data, args...))
 }
 
 func add(s *Session) {
