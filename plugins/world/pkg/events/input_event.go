@@ -12,10 +12,10 @@ func (e InputEvent) Topic(args ...interface{}) string {
 
 func (e InputEvent) Payload(args ...interface{}) interface{} {
 	if len(args) > 0 {
-		return InputEvent{
+		return &InputEvent{
 			Line: args[0].(string),
 		}
 	}
 
-	return InputEvent{}
+	return &InputEvent{}
 }
