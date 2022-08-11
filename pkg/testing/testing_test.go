@@ -8,19 +8,14 @@ import (
 )
 
 func TestSetupAndTeardown(t *testing.T) {
-	ch := make(chan bool)
-
-	go Setup(func() {
-		ch <- true
-	})
-
+	ch := Setup()
 	<-ch
 
-	err := engine.Ping().Err()
+	err := engine.Ping()
 
 	assert.Nil(t, err)
 	Teardown()
 
-	err = engine.Ping().Err()
+	err = engine.Ping()
 	assert.NotNil(t, err)
 }

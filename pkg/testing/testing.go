@@ -5,11 +5,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Setup(beforeStart func()) {
+func Setup() chan bool {
 	viper.Set("env", "test")
-	engine.Initialize("test")
-	beforeStart()
-	engine.Start()
+	ch := make(chan bool)
+	engine.RegisterAfterStartCallback(func() {
+		go func() { ch <- true }()
+	})
+	engine.Start("test")
+
+	return ch
 }
 
 func Teardown() {

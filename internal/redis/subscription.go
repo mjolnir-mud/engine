@@ -1,11 +1,11 @@
-package pubsub
+package redis
 
 import (
 	"context"
 	"encoding/json"
 
 	"github.com/go-redis/redis/v9"
-	redis2 "github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 )
@@ -15,23 +15,38 @@ type Subscription struct {
 	stop     chan bool
 	callback func(payload interface{})
 	logger   zerolog.Logger
-	event    func() interface{}
+	event    event.Event
 }
 
-func Subscribe(topic string, event func() interface{}, callback func(payload interface{})) *Subscription {
-	return create(redis2.Client.Subscribe(context.Background(), topic), event, callback)
+func Subscribe(e event.Event, args ...interface{}) *Subscription {
+	callback, ok := args[len(args)-1].(func(payload interface{}))
+	if !ok {
+		panic("callback is not a function")
+	}
+	// remove the last argument as the callback
+	args = args[:len(args)-1]
+
+	return createSubscription(client.Subscribe(context.Background(), e.Topic(args...)), e, callback)
+
 }
 
-func PSubscribe(topic string, event func() interface{}, callback func(payload interface{})) *Subscription {
-	return create(redis2.Client.PSubscribe(context.Background(), topic), event, callback)
+func PSubscribe(e event.Event, args ...interface{}) *Subscription {
+	callback, ok := args[len(args)-1].(func(payload interface{}))
+	if !ok {
+		panic("callback is not a function")
+	}
+	// remove the last argument as the callback
+	args = args[:len(args)-1]
+
+	return createSubscription(client.PSubscribe(context.Background(), e.Topic(args...)), e, callback)
 }
 
-func create(pubsub *redis.PubSub, event func() interface{}, callback func(paylaod interface{})) *Subscription {
+func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(payload interface{})) *Subscription {
 	s := &Subscription{
 		pubsub:   pubsub,
 		stop:     make(chan bool),
 		callback: callback,
-		event:    event,
+		event:    e,
 		logger: logger.Instance.
 			With().
 			Str("service", "pubsub").
@@ -51,7 +66,7 @@ func create(pubsub *redis.PubSub, event func() interface{}, callback func(paylao
 
 				s.logger.Debug().Msgf("received message: %d", length)
 
-				newEvent := s.event()
+				newEvent := e.Payload()
 
 				err := json.Unmarshal([]byte(msg.Payload), newEvent)
 
