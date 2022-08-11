@@ -135,22 +135,27 @@ func TestRegisterSessionStoppedHandler(t *testing2.T) {
 	assert.Equal(t, len(sessionStoppedHandlers), 1)
 }
 
-//func TestSendLine(t *testing2.T) {
-//	started := testing.Setup()
-//	defer testing.Teardown()
-//
-//	ch := make(chan string)
-//
-//	<-started
-//
-//	sub := engine.
-//		Subscribe(events.SendLineTopic("test"), events.SendLine, func(event interface{}) {
-//			ch <- true
-//		})
-//
-//	defer sub.Stop()
-//	defer StopRegistry()
-//
-//	SendLine("test", "test")
-//	<-ch
-//}
+func TestSendLine(t *testing2.T) {
+	started := testing.Setup()
+	defer testing.Teardown()
+
+	ch := make(chan string)
+
+	<-started
+
+	StartRegistry()
+
+	sub := engine.
+		Subscribe(events.SendLineEvent{}, "test", func(event interface{}) {
+			e := event.(*events.SendLineEvent)
+			ch <- e.Line
+		})
+
+	defer sub.Stop()
+	defer StopRegistry()
+
+	SendLine("test", "test")
+	line := <-ch
+	assert.Equal(t, "test", line)
+
+}
