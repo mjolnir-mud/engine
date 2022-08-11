@@ -9,11 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type lineReceived struct {
-	Id   string
-	Line string
-}
-
 func TestStartRegistry(t *testing2.T) {
 	started := testing.Setup()
 	defer testing.Teardown()
@@ -157,5 +152,28 @@ func TestSendLine(t *testing2.T) {
 	SendLine("test", "test")
 	line := <-ch
 	assert.Equal(t, "test", line)
+}
 
+func TestSendLineF(t *testing2.T) {
+	started := testing.Setup()
+	defer testing.Teardown()
+
+	ch := make(chan string)
+
+	<-started
+
+	StartRegistry()
+
+	sub := engine.
+		Subscribe(events.SendLineEvent{}, "test", func(event interface{}) {
+			e := event.(*events.SendLineEvent)
+			ch <- e.Line
+		})
+
+	defer sub.Stop()
+	defer StopRegistry()
+
+	SendLineF("test", "test%s", "ing")
+	line := <-ch
+	assert.Equal(t, "testing", line)
 }
