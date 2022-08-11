@@ -25,8 +25,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestSession_Start(t *testing.T) {
-	testing2.Setup()
+	started := testing2.Setup()
 	defer testing2.Teardown()
+
+	<-started
 	sessionHandlerCalled := make(chan string)
 	lineHandlerCalled := make(chan lineReceived)
 
@@ -59,4 +61,40 @@ func TestSession_Start(t *testing.T) {
 
 	assert.Equal(t, "test", lh.Id)
 	assert.Equal(t, "test", lh.Line)
+}
+
+func TestSession_Stop(t *testing.T) {
+	started := testing2.Setup()
+	defer testing2.Teardown()
+
+	<-started
+	sessionHandlerCalled := make(chan string)
+	stopEventCalled := make(chan string)
+
+	s := New(&events.AssertSessionEvent{
+		UUID: "test",
+	})
+
+	s.Start()
+
+	RegisterSessionStoppedHandler(func(id string) error {
+		go func() { sessionHandlerCalled <- id }()
+		return nil
+	})
+
+	engine.Subscribe(events.SessionStoppedEvent{}, "test", func(e interface{}) {
+		event := e.(*events.SessionStoppedEvent)
+
+		go func() { stopEventCalled <- event.UUID }()
+	})
+
+	s.Stop()
+
+	id := <-sessionHandlerCalled
+
+	assert.Equal(t, "test", id)
+
+	uuid := <-stopEventCalled
+
+	assert.Equal(t, "test", uuid)
 }
