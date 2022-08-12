@@ -2,6 +2,7 @@ package instance
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
 	redis2 "github.com/mjolnir-mud/engine/internal/redis"
@@ -10,6 +11,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+var command = &cobra.Command{
+	Use: "mjolnir",
+}
 var beforeStartCallbacks = make([]func(), 0)
 var afterStartCallbacks = make([]func(), 0)
 var beforeStopCallbacks = make([]func(), 0)
@@ -33,6 +37,10 @@ func RegisterBeforeStopCallback(f func()) {
 
 func RegisterBeforeStartCallback(f func()) {
 	beforeStartCallbacks = append(beforeStartCallbacks, f)
+}
+
+func RegisterCLICommand(c *cobra.Command) {
+	command.AddCommand(c)
 }
 
 func Start(n string) {

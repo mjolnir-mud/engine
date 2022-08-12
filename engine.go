@@ -7,6 +7,7 @@ import (
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -60,6 +61,12 @@ func RegisterBeforeStartCallback(callback func()) {
 // RegisterBeforeStopCallback registers a callback function that is called before the engine is stopped.
 func RegisterBeforeStopCallback(callback func()) {
 	instance.RegisterBeforeStopCallback(callback)
+}
+
+// RegisterCLICommand registers a CLI command with the engine. The command will be available in the CLI when calling
+// the compiled binary.
+func RegisterCLICommand(command *cobra.Command) {
+	instance.RegisterCLICommand(command)
 }
 
 // RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
