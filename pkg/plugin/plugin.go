@@ -11,12 +11,4 @@ type Plugin interface {
 	// Registered is a callback that is called when the plugin is registered with the game. Developers can utilize this
 	// callback to perform any initialization that is required before the game engine is started.
 	Registered() error
-
-	// Start initializes the plugin when the game starts. This is where any code that the plugin wishes to execute
-	// during the startup process should be defined.
-	Start() error
-
-	// Stop is called when the game is shutting down. This is where any code that the plugin wishes to execute during
-	// the shutdown process should be defined.
-	Stop() error
 }

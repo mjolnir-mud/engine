@@ -7,8 +7,10 @@ type AssertSessionEvent struct {
 	RemoteAddr  string
 }
 
-const AssertSessionTopic = "world.session.assert"
+func (e AssertSessionEvent) Topic(_ ...interface{}) string {
+	return "session_registry.assert_session"
+}
 
-func AssertSession() interface{} {
-	return &AssertSessionEvent{}
+func (e AssertSessionEvent) Payload(_ ...interface{}) interface{} {
+	return AssertSessionEvent{}
 }

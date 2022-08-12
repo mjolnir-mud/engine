@@ -2,29 +2,59 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"strconv"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 )
 
-var Client *redis.Client
 var log zerolog.Logger
 
 type RedisLogProxy struct {
 	logger zerolog.Logger
 }
 
+var client *redis.Client
+
 func (l *RedisLogProxy) Printf(_ context.Context, format string, v ...interface{}) {
 	l.logger.Debug().Msgf(format, v...)
 }
 
-func CreateAndStart() {
+func Ping() error {
+	return client.Ping(context.Background()).Err()
+}
+
+func Publish(e event.Event, args ...interface{}) error {
+	p := e.Payload(args...)
+
+	payloadBytes, err := json.Marshal(p)
+
+	topic := e.Topic(args...)
+
+	if err != nil {
+		log.Error().Err(err).Str("topic", topic).Msg("error marshalling event")
+		return err
+	}
+
+	log.Debug().Str("topic", topic).Msgf("publishing event: %d", len(payloadBytes))
+	err = client.Publish(context.Background(), topic, string(payloadBytes)).Err()
+
+	if err != nil {
+		log.Error().Err(err).Str("topic", topic).Msg("error publishing event")
+		return err
+	}
+
+	return nil
+}
+
+func Start() {
 	if viper.GetString("env") == "test" {
 		viper.SetDefault("redis_url", "redis://localhost:6379/1")
 	} else {
@@ -61,7 +91,7 @@ func CreateAndStart() {
 
 	redis.SetLogger(&RedisLogProxy{log})
 
-	Client = redis.NewClient(&redis.Options{
+	client = redis.NewClient(&redis.Options{
 		Addr:        host,
 		DB:          i,
 		PoolSize:    10,
@@ -71,5 +101,5 @@ func CreateAndStart() {
 }
 
 func Stop() {
-	_ = Client.Close()
+	_ = client.Close()
 }

@@ -32,30 +32,6 @@ func Register(p plugin.Plugin) {
 	}
 }
 
-func Start() {
-	log.Info().Msg("starting plugins")
+func Start() {}
 
-	for _, p := range plugins {
-		log.Info().Msgf("initializing plugin %s", p.Name())
-		err := p.Start()
-
-		if err != nil {
-			log.Fatal().Err(err).Msg("error initializing plugin")
-			panic(err)
-		}
-	}
-}
-
-func Stop() {
-	log.Info().Msg("stopping plugins")
-
-	for _, p := range plugins {
-		log.Info().Msgf("stopping plugin %s", p.Name())
-		err := p.Stop()
-
-		if err != nil {
-			log.Fatal().Err(err).Msg("error stopping plugin")
-			continue
-		}
-	}
-}
+func Stop() {}

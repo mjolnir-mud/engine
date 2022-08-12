@@ -1,18 +1,17 @@
 package redis
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateAndStart(t *testing.T) {
-	CreateAndStart()
+func TestStart(t *testing.T) {
+	Start()
 
-	assert.NotNil(t, Client)
+	assert.NotNil(t, client)
 
-	err := Client.Ping(context.Background()).Err()
+	err := Ping()
 
 	assert.Nil(t, err)
 
