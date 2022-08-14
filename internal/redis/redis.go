@@ -54,6 +54,70 @@ func Publish(e event.Event, args ...interface{}) error {
 	return nil
 }
 
+func FlushAll() error {
+	return client.FlushAll(context.Background()).Err()
+}
+
+func Get(key string) *redis.StringCmd {
+	return client.Get(context.Background(), key)
+}
+
+func Set(key string, value interface{}) *redis.StatusCmd {
+	return client.Set(context.Background(), key, value, 0)
+}
+
+func Exists(key string) *redis.IntCmd {
+	return client.Exists(context.Background(), key)
+}
+
+func Del(key string) *redis.IntCmd {
+	return client.Del(context.Background(), key)
+}
+
+func HGet(key string, mapKey string) *redis.StringCmd {
+	return client.HGet(context.Background(), key, mapKey)
+}
+
+func HSet(key string, mapKey string, value interface{}) *redis.IntCmd {
+	return client.HSet(context.Background(), key, mapKey, value)
+}
+
+func HGetAll(key string) *redis.MapStringStringCmd {
+	return client.HGetAll(context.Background(), key)
+}
+
+func HExists(key string, mapKey string) *redis.BoolCmd {
+	return client.HExists(context.Background(), key, mapKey)
+}
+
+func Keys(pattern string) *redis.StringSliceCmd {
+	return client.Keys(context.Background(), pattern)
+}
+
+func SAdd(key string, value interface{}) *redis.IntCmd {
+	return client.SAdd(context.Background(), key, value)
+}
+
+func SRem(key string, value interface{}) *redis.IntCmd {
+	return client.SRem(context.Background(), key, value)
+}
+
+func SMembers(key string) *redis.StringSliceCmd {
+	return client.SMembers(context.Background(), key)
+}
+
+func SIsMember(key string, value interface{}) *redis.BoolCmd {
+	return client.SIsMember(context.Background(), key, value)
+}
+
+func Subscribe(channels ...string) *redis.PubSub {
+	return client.Subscribe(context.Background(), channels...)
+}
+
+func PSubscribe(channels ...string) *redis.PubSub {
+	return client.PSubscribe(context.Background(), channels...)
+}
+
 func Start() {
 	if viper.GetString("env") == "test" {
 		viper.SetDefault("redis_url", "redis://localhost:6379/1")

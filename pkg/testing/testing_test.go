@@ -11,11 +11,11 @@ func TestSetupAndTeardown(t *testing.T) {
 	ch := Setup()
 	<-ch
 
-	err := engine.Ping()
+	err := engine.RedisPing()
 
 	assert.Nil(t, err)
 	Teardown()
 
-	err = engine.Ping()
+	err = engine.RedisPing()
 	assert.NotNil(t, err)
 }

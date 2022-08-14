@@ -1,7 +1,7 @@
 package entity_registry
 
 import (
-	"context"
+	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -11,20 +11,16 @@ import (
 
 func setup() {
 	Register(test.TestEntityType{})
-	engine.Start("test")
-	engine.Redis.FlushAll(context.Background())
+	testing2.Setup()
+	_ = engine.RedisFlushAll()
 	Start()
 }
 
 func teardown() {
-	engine.Redis.FlushAll(context.Background())
-	engine.Stop()
+	_ = engine.RedisFlushAll()
+	testing2.Teardown()
 	Stop()
 }
-
-// Test that Add adds an entity to the entity registry. it takes a map of components to be added. It
-// will automatically generate a unique id for the entity. If the passed entity type is not a valid registered type an
-// error will be thrown.
 
 func TestAdd(t *testing.T) {
 	setup()
@@ -90,7 +86,7 @@ func TestAddBoolComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Bool()
+	componentValue, err := engine.RedisGet("testEntity:testComponent").Bool()
 
 	assert.Nil(t, err)
 	assert.Equal(t, true, componentValue)
@@ -121,7 +117,7 @@ func TestAddBoolToMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Bool()
+	componentValue, err := engine.RedisHGet("testEntity:testComponent", "testKey").Bool()
 
 	assert.Nil(t, err)
 	assert.Equal(t, true, componentValue)
@@ -153,7 +149,7 @@ func TestAddIntComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Int()
+	componentValue, err := engine.RedisGet("testEntity:testComponent").Int()
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1, componentValue)
@@ -184,7 +180,7 @@ func TestAddIntToMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Int()
+	componentValue, err := engine.RedisHGet("testEntity:testComponent", "testKey").Int()
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1, componentValue)
@@ -218,7 +214,7 @@ func TestAddInt64Component(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Int64()
+	componentValue, err := engine.RedisGet("testEntity:testComponent").Int64()
 
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), componentValue)
@@ -249,7 +245,7 @@ func TestAddInt64ToMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Int64()
+	componentValue, err := engine.RedisHGet("testEntity:testComponent", "testKey").Int64()
 
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), componentValue)
@@ -285,7 +281,7 @@ func TestAddMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Result()
+	componentValue, err := engine.RedisHGet("testEntity:testComponent", "testKey").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
@@ -318,7 +314,7 @@ func TestAddSetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.SMembers(context.Background(), "testEntity:testComponent").Result()
+	componentValue, err := engine.RedisSMembers("testEntity:testComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"testValue"}, componentValue)
@@ -347,7 +343,7 @@ func TestAddStringComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.Get(context.Background(), "testEntity:testComponent").Result()
+	componentValue, err := engine.RedisGet("testEntity:testComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
@@ -383,7 +379,7 @@ func TestAddToStringSetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.SMembers(context.Background(), "testEntity:testComponent").Result()
+	componentValue, err := engine.RedisSMembers("testEntity:testComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Subset(t, []string{"testValue", "otherTestValue"}, componentValue)
@@ -414,7 +410,7 @@ func TestAddStringToMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.HGet(context.Background(), "testEntity:testComponent", "testKey").Result()
+	componentValue, err := engine.RedisHGet("testEntity:testComponent", "testKey").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
@@ -452,7 +448,7 @@ func TestAddToIntSetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.SMembers(context.Background(), "testEntity:testComponent").Result()
+	componentValue, err := engine.RedisSMembers("testEntity:testComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Subset(t, []string{"1", "2"}, componentValue)
@@ -485,7 +481,7 @@ func TestAddToInt64SetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.Redis.SMembers(context.Background(), "testEntity:testComponent").Result()
+	componentValue, err := engine.RedisSMembers("testEntity:testComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Subset(t, []string{"1", "2"}, componentValue)
@@ -531,7 +527,7 @@ func TestCreateAndAdd(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	v := engine.Redis.Get(context.Background(), componentId(id, "testComponent")).Val()
+	v := engine.RedisGet(componentId(id, "testComponent")).Val()
 	assert.Equal(t, "test", v)
 
 	// test that an error is thrown if the entity type does not exist
@@ -850,8 +846,10 @@ func TestRemoveComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	exists := ComponentExists("testEntity", "testComponent")
-	assert.False(t, exists)
+	e, err := engine.RedisExists("testEntity:testComponent").Result()
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), e)
 
 	// test that an error is thrown if the entity does not exist
 	err = RemoveComponent("notRegistered", "testComponent")
@@ -1133,6 +1131,34 @@ func TestUpdateStringInMapComponent(t *testing.T) {
 	err = UpdateStringInMapComponent("notRegistered", "testComponent", "testKey", "testValue2")
 
 	assert.NotNil(t, err)
+	teardown()
+}
+
+// AddOrUpdateStringInMapComponent adds or updates a string component to a map component. It takes the entity ID,
+// component name, the key to which to add the value, and the value to add to the map. If an entity with the same id
+// does not exist an error will be thrown. If a component with the same name does not exist, an error will be thrown.
+// If the key already exists, the value will be updated. Once a value is added to the map, the type of that key is
+// enforced. Attempting to change the type of key will result in an error in later updated.
+func TestAddOrUpdateStringInMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": "testValue",
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path for adding a new key
+	err = AddOrUpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue2")
+
+	assert.Nil(t, err)
+
+	// test happy path for updating an existing key
+	err = AddOrUpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue3")
+
+	assert.Nil(t, err)
 	teardown()
 }
 

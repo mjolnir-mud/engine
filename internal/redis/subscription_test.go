@@ -44,7 +44,7 @@ func TestSubscribe(t *testing.T) {
 	defer teardown()
 	ch := make(chan interface{})
 
-	s := Subscribe(&testEvent{}, "test", func(payload interface{}) {
+	s := NewSubscription(&testEvent{}, "test", func(payload interface{}) {
 		ch <- payload
 	})
 
@@ -66,7 +66,7 @@ func TestPSubscribe(t *testing.T) {
 	defer teardown()
 	ch := make(chan interface{})
 
-	s := PSubscribe(&testEvent{}, "*", func(payload interface{}) {
+	s := NewPatternSubscription(&testEvent{}, "*", func(payload interface{}) {
 		ch <- payload
 	})
 

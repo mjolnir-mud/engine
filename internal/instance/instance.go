@@ -12,7 +12,9 @@ import (
 )
 
 var command = &cobra.Command{
-	Use: "mjolnir",
+	Use:   "mjolnir",
+	Short: "Mjolnir MUD Engine",
+	Long:  "Mjolnir MUD Engine CLI interface",
 }
 var beforeStartCallbacks = make([]func(), 0)
 var afterStartCallbacks = make([]func(), 0)
@@ -21,6 +23,10 @@ var afterStopCallbacks = make([]func(), 0)
 
 func IsRunning() bool {
 	return redis2.Ping() == nil
+}
+
+func ExecuteCLI() {
+	_ = command.Execute()
 }
 
 func RegisterAfterStartCallback(f func()) {

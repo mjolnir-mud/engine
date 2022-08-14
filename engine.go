@@ -23,9 +23,94 @@ func EnsureRegistered(pluginName string) {
 	plugin_registry.EnsureRegistered(pluginName)
 }
 
-// Ping pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
-func Ping() error {
+// ExecuteCLI executes the CLI.
+func ExecuteCLI() {
+	instance.ExecuteCLI()
+}
+
+// RedisPing pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
+func RedisPing() error {
 	return redis.Ping()
+}
+
+// RedisFlushAll flushes all Redis databases.
+func RedisFlushAll() error {
+	return redis.FlushAll()
+}
+
+// RedisGet returns the value for the provided key from the Redis database.
+func RedisGet(key string) *redis2.StringCmd {
+	return redis.Get(key)
+}
+
+// RedisSet sets the value for the provided key in the Redis database.
+func RedisSet(key string, value interface{}) *redis2.StatusCmd {
+	return redis.Set(key, value)
+}
+
+// RedisExists returns if the provided key exists in the Redis database.
+func RedisExists(key string) *redis2.IntCmd {
+	return redis.Exists(key)
+}
+
+// RedisDel deletes the provided key from the Redis database.
+func RedisDel(key string) *redis2.IntCmd {
+	return redis.Del(key)
+}
+
+// RedisHGet returns the value for the provided map key and map key from the Redis database.
+func RedisHGet(key string, mapKey string) *redis2.StringCmd {
+	return redis.HGet(key, mapKey)
+}
+
+// RedisHGetAll returns the values for the provided map key from the Redis database.
+func RedisHGetAll(key string) *redis2.MapStringStringCmd {
+	return redis.HGetAll(key)
+}
+
+// RedisHExists returns true if the provided map key exists in the provided map key.
+func RedisHExists(key string, mapKey string) *redis2.BoolCmd {
+	return redis.HExists(key, mapKey)
+}
+
+// RedisHSet sets the value for the provided map key and map key in the Redis database.
+func RedisHSet(key string, mapKey string, value interface{}) *redis2.IntCmd {
+	return redis.HSet(key, mapKey, value)
+}
+
+// RedisKeys returns the keys for the provided pattern from the Redis database.
+func RedisKeys(pattern string) *redis2.StringSliceCmd {
+	return redis.Keys(pattern)
+}
+
+// RedisSMembers returns the members of the set for the provided key.
+func RedisSMembers(key string) *redis2.StringSliceCmd {
+	return redis.SMembers(key)
+}
+
+// RedisSIsMember returns true if the provided member is a member of the set for the provided key.
+func RedisSIsMember(key string, value interface{}) *redis2.BoolCmd {
+	return redis.SIsMember(key, value)
+}
+
+// RedisSAdd adds the provided members to the set for the provided key.
+func RedisSAdd(key string, value interface{}) *redis2.IntCmd {
+	return redis.SAdd(key, value)
+}
+
+// RedisSRem removes the provided members from the set for the provided key.
+func RedisSRem(key string, value interface{}) *redis2.IntCmd {
+	return redis.SRem(key, value)
+}
+
+// RedisSubscribe subscribes to a channel on Redis.
+func RedisSubscribe(channels ...string) *redis2.PubSub {
+	return redis.Subscribe(channels...)
+}
+
+// RedisPSubscribe subscribes to a channel on Redis
+func RedisPSubscribe(channels ...string) *redis2.PubSub {
+	return redis.PSubscribe(channels...)
 }
 
 // PSubscribe subscribes to an event on the message bus. It accepts an event and an arbitrary number of arguments that
@@ -34,7 +119,7 @@ func Ping() error {
 // the event's Payload constructor. PSubscribe accepts topic patterns, and will subscribe to all matching topics. See
 // the [Redis documentation](https://redis.io/topics/pubsub) for more information.
 func PSubscribe(e event.Event, args ...interface{}) Subscription {
-	return redis.PSubscribe(e, args...)
+	return redis.NewPatternSubscription(e, args...)
 }
 
 // Publish publishes an event on the message bus. It accepts an event and an arbitrary number of arguments that will be
@@ -91,7 +176,7 @@ func Stop() {
 // the event's Payload constructor. If it is wanted to subscribe against a pattern, the `PSubscribe` method should be
 // used instead. See the [Redis documentation](https://redis.io/topics/pubsub) for more information.
 func Subscribe(e event.Event, args ...interface{}) Subscription {
-	return redis.Subscribe(e, args...)
+	return redis.NewSubscription(e, args...)
 }
 
 // SetEnv sets the environment for the engine. Mjolnir recognizes three different environments by default, development
@@ -99,6 +184,3 @@ func Subscribe(e event.Event, args ...interface{}) Subscription {
 func SetEnv(env string) {
 	viper.Set("env", env)
 }
-
-// Redis returns a client to the Redis server. This can be used to interact with the Redis server directly.
-var Redis *redis2.Client

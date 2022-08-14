@@ -9,9 +9,6 @@ type System interface {
 	// Match is a check to see if the system should be run for the given key and value.
 	Match(key string, value interface{}) bool
 
-	// WorldStarted is called when the world is started.
-	WorldStarted()
-
 	// ComponentAdded is called when any component is added to an entity, including those the system is interested in.
 	ComponentAdded(entityId string, component string, value interface{}) error
 

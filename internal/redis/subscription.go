@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/go-redis/redis/v9"
@@ -18,7 +17,7 @@ type Subscription struct {
 	event    event.Event
 }
 
-func Subscribe(e event.Event, args ...interface{}) *Subscription {
+func NewSubscription(e event.Event, args ...interface{}) *Subscription {
 	callback, ok := args[len(args)-1].(func(payload interface{}))
 	if !ok {
 		panic("callback is not a function")
@@ -26,11 +25,11 @@ func Subscribe(e event.Event, args ...interface{}) *Subscription {
 	// remove the last argument as the callback
 	args = args[:len(args)-1]
 
-	return createSubscription(client.Subscribe(context.Background(), e.Topic(args...)), e, callback)
+	return createSubscription(Subscribe(e.Topic(args...)), e, callback)
 
 }
 
-func PSubscribe(e event.Event, args ...interface{}) *Subscription {
+func NewPatternSubscription(e event.Event, args ...interface{}) *Subscription {
 	callback, ok := args[len(args)-1].(func(payload interface{}))
 	if !ok {
 		panic("callback is not a function")
@@ -38,7 +37,7 @@ func PSubscribe(e event.Event, args ...interface{}) *Subscription {
 	// remove the last argument as the callback
 	args = args[:len(args)-1]
 
-	return createSubscription(client.PSubscribe(context.Background(), e.Topic(args...)), e, callback)
+	return createSubscription(PSubscribe(e.Topic(args...)), e, callback)
 }
 
 func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(payload interface{})) *Subscription {

@@ -1,178 +1,19 @@
 package entity_registry
 
 import (
-	"context"
 	"fmt"
+	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
+	"github.com/rs/zerolog"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
-	constants "github.com/mjolnir-mud/engine/plugins/ecs/internal/constants"
-	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/constants"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
 )
-
-// AddComponentErrors is a collection of errors that occurred while adding components to an entity.
-type AddComponentErrors struct {
-	Errors []error
-}
-
-func (e AddComponentErrors) Error() string {
-	errorStrings := make([]string, len(e.Errors))
-
-	for i, err := range e.Errors {
-		errorStrings[i] = err.Error()
-	}
-
-	return fmt.Sprintf(
-		"%d errors occurred while adding components to an entity: %s", len(e.Errors),
-		strings.Join(errorStrings, ", "),
-	)
-}
-
-// ComponentNotFoundError is returned when a component is not found.
-type ComponentNotFoundError struct {
-	ID   string
-	Name string
-}
-
-func (e ComponentNotFoundError) Error() string {
-	return fmt.Sprintf("component %s not found for entity %s", e.Name, e.ID)
-}
-
-// ComponentTypeMismatchError is an error type that is returned when the component type does not match the entity type.
-type ComponentTypeMismatchError struct {
-	ID       string
-	Name     string
-	Expected string
-	Actual   string
-}
-
-func (e ComponentTypeMismatchError) Error() string {
-	return fmt.Sprintf(
-		"component type mismatch for entity %s, component %s, expected %s, actual %s",
-		e.ID,
-		e.Name,
-		e.Expected,
-		e.Actual,
-	)
-}
-
-// EmptySetError is an error type that is returned when an empty set is attempted to be added to a entity .
-type EmptySetError struct {
-	ID string
-}
-
-func (e EmptySetError) Error() string {
-	return fmt.Sprintf("empty set cannot be added %s", e.ID)
-}
-
-// EntityExistsError is an error type that is returned when an entity with the given id already exists.
-type EntityExistsError struct {
-	ID string
-}
-
-func (e EntityExistsError) Error() string {
-	return fmt.Sprintf("entity with id %s already exists", e.ID)
-}
-
-// EntityNotFoundError is an error type that is returned when an entity with the given id does not exist.
-type EntityNotFoundError struct {
-	ID string
-}
-
-func (e EntityNotFoundError) Error() string {
-	return fmt.Sprintf("entity with id %s does not exist", e.ID)
-}
-
-// EntityTypeNotRegisteredError is called when an entity type is not registered.
-type EntityTypeNotRegisteredError struct {
-	Type string
-}
-
-func (e EntityTypeNotRegisteredError) Error() string {
-	return fmt.Sprintf("entity type %s is not registered", e.Type)
-}
-
-// HasComponentError is an error type that is returned when the entity already has the given component.
-type HasComponentError struct {
-	ID   string
-	Name string
-}
-
-func (e HasComponentError) Error() string {
-	return fmt.Sprintf("entity %s already has component %s", e.ID, e.Name)
-}
-
-// MapHasKeyError is an error type that is returned when the map already has the given key.
-type MapHasKeyError struct {
-	ID   string
-	Name string
-	Key  string
-}
-
-func (e MapHasKeyError) Error() string {
-	return fmt.Sprintf("map %s for entity %s already has key %s", e.Name, e.ID, e.Key)
-}
-
-type MapKeyNotFoundError struct {
-	ID   string
-	Name string
-	Key  string
-}
-
-func (e MapKeyNotFoundError) Error() string {
-	return fmt.Sprintf("map %s for entity %s does not have key %s", e.Name, e.ID, e.Key)
-}
-
-// MapValueTypeMismatchError is an error type that is returned when the map key does not match the entity type.
-type MapValueTypeMismatchError struct {
-	ID       string
-	Name     string
-	Key      string
-	Expected string
-	Actual   string
-}
-
-func (e MapValueTypeMismatchError) Error() string {
-	return fmt.Sprintf(
-		"map value type mismatch for entity %s, component %s, key %s, expected %s, actual %s",
-		e.ID,
-		e.Name,
-		e.Key,
-		e.Expected,
-		e.Actual,
-	)
-}
-
-// MissingComponentError is an error type that is returned when the entity does not have the given component.
-type MissingComponentError struct {
-	ID   string
-	Name string
-}
-
-func (e MissingComponentError) Error() string {
-	return fmt.Sprintf("entity %s does not have component %s", e.ID, e.Name)
-}
-
-type SetValueTypeError struct {
-	ID       string
-	Name     string
-	Expected string
-	Actual   string
-}
-
-func (e SetValueTypeError) Error() string {
-	return fmt.Sprintf(
-		"set value type mismatch for entity %s, component %s, expected %s, actual %s",
-		e.ID,
-		e.Name,
-		e.Expected,
-		e.Actual,
-	)
-}
 
 type entityRegistry struct {
 	types               map[string]entity_type.EntityType
@@ -184,15 +25,12 @@ var registry = entityRegistry{
 	loadableDirectories: make([]string, 0),
 }
 
-var log = logger.Logger.With().Str("service", "entity_registry").Logger()
+var log zerolog.Logger
 
 // Start starts the entity registry.
 func Start() {
+	log = logger.Instance.With().Str("component", "entity_registry").Logger()
 	log.Info().Msg("starting entity registry")
-	//
-	//for _, dir := range registry.loadableDirectories {
-	//	LoadDirectory(dir)
-	//}
 }
 
 // Stop stops the entity registry.
@@ -202,7 +40,7 @@ func Stop() {
 
 // AllComponents returns all the components for the entity.
 func AllComponents(id string) map[string]interface{} {
-	keys, err := engine.Redis.Keys(context.Background(), fmt.Sprintf("%s:*", id)).Result()
+	keys, err := engine.RedisKeys(fmt.Sprintf("%s:*", id)).Result()
 
 	if err != nil {
 		panic(err)
@@ -212,11 +50,11 @@ func AllComponents(id string) map[string]interface{} {
 
 	for _, key := range keys {
 		name := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
-		t := engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
+		t := engine.RedisGet(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
 
 		switch t {
 		case "map":
-			m, err := engine.Redis.HGetAll(context.Background(), key).Result()
+			m, err := engine.RedisHGetAll(key).Result()
 			if err != nil {
 				panic(err)
 			}
@@ -229,7 +67,7 @@ func AllComponents(id string) map[string]interface{} {
 
 			components[name] = final
 		case "set":
-			s := engine.Redis.SMembers(context.Background(), key).Val()
+			s := engine.RedisSMembers(key).Val()
 			set := make([]interface{}, 0)
 
 			for _, v := range s {
@@ -239,104 +77,13 @@ func AllComponents(id string) map[string]interface{} {
 			components[name] = set
 
 		default:
-			components[name] = engine.Redis.Get(context.Background(), key).Val()
+			components[name] = engine.RedisGet(key).Val()
 		}
 
 	}
 
 	return components
 }
-
-//
-//// AllEntitiesByType returns all entities of the given type.
-//func AllEntitiesByType(entityType string) []string {
-//	keys, err := engine.Redis.Keys(context.Background(), fmt.Sprintf("*:%s", TypeComponentName)).Result()
-//
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	// create a new slice which holds only entities whose type matches the given type
-//	entities := make([]string, 0)
-//	for _, key := range keys {
-//		if strings.Contains(key, entityType) {
-//			entities = append(entities, strings.Replace(key, fmt.Sprintf(":%s", TypeComponentName), "", 1))
-//		}
-//	}
-//
-//	return entities
-//}
-//
-//func AllEntitiesByTypeWithComponent(entityType string, component string) []string {
-//	ents := AllEntitiesByType(entityType)
-//
-//	entities := make([]string, 0)
-//	for _, ent := range ents {
-//		if ComponentExists(ent, component) {
-//			entities = append(entities, ent)
-//		}
-//	}
-//
-//	return entities
-//}
-//
-//func AllEntitiesByTypeWithComponentValue(entityType string, component string, value interface{}) []string {
-//	ents := AllEntitiesByType(entityType)
-//
-//	entities := make([]string, 0)
-//	for _, ent := range ents {
-//		if HasComponentValue(ent, component, value) {
-//			entities = append(entities, ent)
-//		}
-//	}
-//
-//	return entities
-//}
-//
-//// HasComponentValue returns true if the component exists and has the given value.
-//func HasComponentValue(id string, name string, value interface{}) bool {
-//	exists := engine.Redis.Exists(context.Background(), componentId(id, name)).Val()
-//
-//	if exists == int64(0) {
-//		return false
-//	}
-//
-//	return compareValues(componentId(id, name), value)
-//}
-
-//// LoadDirectory loads entities from a directory.
-//func LoadDirectory(dir string) {
-//	// load all yml files in the directory
-//	files, err := os.Open(dir)
-//
-//	if err != nil {
-//		log.Error().Err(err).Msgf("failed to open directory %s", dir)
-//		return
-//	}
-//
-//	defer func() {
-//		_ = files.Close()
-//	}()
-//
-//	names, err := files.Readdirnames(0)
-//
-//	if err != nil {
-//		log.Error().Err(err).Msgf("failed to read directory %s", dir)
-//		return
-//	}
-//
-//	for _, name := range names {
-//		if strings.HasSuffix(name, ".yml") {
-//			loadFromFile(fmt.Sprintf("%s/%s", dir, name))
-//		}
-//	}
-//}
-
-//// RegisterLoadableDirectory registers a directory to load entities from.
-//func RegisterLoadableDirectory(dir string) {
-//	log.Debug().Str("dir", dir).Msg("registering loadable directory")
-//	registry.loadableDirectories = append(registry.loadableDirectories, dir)
-//}
 
 // Add adds an entity to the entity registry. It takes a type, a map of components to be added to the entity. If the
 // entity already exists, an error will be returned. If the type is not registered, an error will be returned.
@@ -362,11 +109,11 @@ func AddWithID(entityType string, id string, args map[string]interface{}) error 
 	}
 
 	if exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
 	if !IsEntityTypeRegistered(entityType) {
-		return EntityTypeNotRegisteredError{Type: entityType}
+		return errors.EntityTypeNotRegisteredError{Type: entityType}
 	}
 
 	log.Debug().Str("id", id).Msg("adding entity")
@@ -449,7 +196,7 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 	}
 
 	if !exists {
-		return EntityNotFoundError{ID: id}
+		return errors.EntityNotFoundError{ID: id}
 	}
 
 	err = setComponentType(id, name, "map")
@@ -460,9 +207,20 @@ func AddMapComponent(id string, name string, value map[string]interface{}) error
 
 	log.Debug().Str("id", id).Str("name", name).Msg("adding map component")
 
-	engine.Redis.HSet(context.Background(), componentId(id, name), value)
+	for k, v := range value {
+		engine.RedisHSet(componentId(id, name), k, v)
+	}
 
 	return nil
+}
+
+// AddOrUpdateStringInMapComponent adds or updates a string component to a map component. It takes the entity ID,
+// component name, the key to which to add the value, and the value to add to the map. If an entity with the same id
+// does not exist an error will be thrown. If a component with the same name does not exist, an error will be thrown.
+// If the key already exists, the value will be updated. Once a value is added to the map, the type of that key is
+// enforced. Attempting to change the type of key will result in an error in later updated.
+func AddOrUpdateStringInMapComponent(id string, name string, key string, value string) error {
+	return addOrUpdateToMapComponent(id, name, key, value)
 }
 
 // AddSetComponent adds a set component to an entity. It takes the entity ID, component name, and the value of
@@ -478,7 +236,7 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
 	err = setComponentType(id, name, "set")
@@ -488,7 +246,7 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 	}
 
 	if len(value) == 0 {
-		return EmptySetError{ID: id}
+		return errors.EmptySetError{ID: id}
 	}
 
 	firstElement := value[0]
@@ -498,20 +256,18 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 	for _, element := range value {
 		elementType := reflect.TypeOf(element).Kind().String()
 		if elementType != setType {
-			return SetValueTypeError{ID: id, Name: name, Expected: setType, Actual: elementType}
+			return errors.SetValueTypeError{ID: id, Name: name, Expected: setType, Actual: elementType}
 		}
 	}
 
 	log.Debug().Str("id", id).Str("name", name).Msg("adding set component")
 
-	err = engine.Redis.Set(
-		context.Background(),
+	err = engine.RedisSet(
 		fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name)),
 		setType,
-		0,
 	).Err()
 
-	err = engine.Redis.SAdd(context.Background(), componentId(id, name), value...).Err()
+	err = engine.RedisSAdd(componentId(id, name), value).Err()
 
 	return nil
 }
@@ -554,14 +310,18 @@ func AddToInt64SetComponent(id string, name string, value int64) error {
 }
 
 // ComponentExists checks if a component exists. It takes the entity ID and the component name.
-func ComponentExists(id string, name string) bool {
-	i := engine.Redis.Exists(context.Background(), componentTypeID(id, name)).Val()
+func ComponentExists(id string, name string) (bool, error) {
+	i, err := engine.RedisExists(componentTypeID(id, name)).Result()
 
-	if i == 1 {
-		return true
+	if err != nil {
+		return false, err
 	}
 
-	return false
+	if i == 1 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // Create will create an entity of the given entity type, without adding it to the entity registry. it takes the
@@ -606,10 +366,10 @@ func ElementInSetComponentExists(id string, name string, element interface{}) (b
 	}
 
 	if !exists {
-		return false, EntityNotFoundError{ID: id}
+		return false, errors.EntityNotFoundError{ID: id}
 	}
 
-	isMember, err := engine.Redis.SIsMember(context.Background(), componentId(id, name), element).Result()
+	isMember, err := engine.RedisSIsMember(componentId(id, name), element).Result()
 
 	if err != nil {
 		return false, err
@@ -645,14 +405,20 @@ func GetBoolComponent(id string, name string) (bool, error) {
 	}
 
 	if !exists {
-		return false, EntityNotFoundError{ID: id}
+		return false, errors.EntityNotFoundError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return false, ComponentNotFoundError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return false, err
 	}
 
-	return engine.Redis.Get(context.Background(), componentId(id, name)).Bool()
+	if !componentExists {
+		return false, errors.ComponentNotFoundError{ID: id, Name: name}
+	}
+
+	return engine.RedisGet(componentId(id, name)).Bool()
 }
 
 // GetInt64Component returns an integer64 component from an entity. It takes the entity ID and component name. If the
@@ -666,14 +432,20 @@ func GetInt64Component(id string, name string) (int64, error) {
 	}
 
 	if !exists {
-		return 0, EntityNotFoundError{ID: id}
+		return 0, errors.EntityNotFoundError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return 0, ComponentNotFoundError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return 0, err
 	}
 
-	return engine.Redis.Get(context.Background(), componentId(id, name)).Int64()
+	if !componentExists {
+		return 0, errors.ComponentNotFoundError{ID: id, Name: name}
+	}
+
+	return engine.RedisGet(componentId(id, name)).Int64()
 }
 
 // GetIntComponent returns an integer component from an entity. It takes the entity ID and component name. If the
@@ -687,14 +459,20 @@ func GetIntComponent(id string, name string) (int, error) {
 	}
 
 	if !exists {
-		return 0, EntityNotFoundError{ID: id}
+		return 0, errors.EntityNotFoundError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return 0, ComponentNotFoundError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return 0, err
 	}
 
-	return engine.Redis.Get(context.Background(), componentId(id, name)).Int()
+	if !componentExists {
+		return 0, errors.ComponentNotFoundError{ID: id, Name: name}
+	}
+
+	return engine.RedisGet(componentId(id, name)).Int()
 }
 
 // GetIntFromMapComponent returns the int value of an element in a map component. It takes the entity ID, component
@@ -711,7 +489,7 @@ func GetIntFromMapComponent(id string, name string, mapKey string) (int, error) 
 	i, err := strconv.ParseInt(v.(string), 10, 64)
 
 	if err != nil {
-		return 0, MapValueTypeMismatchError{
+		return 0, errors.MapValueTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Key:      mapKey,
@@ -737,7 +515,7 @@ func GetInt64FromMapComponent(id string, name string, mapKey string) (int64, err
 	i, err := strconv.ParseInt(v.(string), 10, 64)
 
 	if err != nil {
-		return 0, MapValueTypeMismatchError{
+		return 0, errors.MapValueTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Key:      mapKey,
@@ -761,18 +539,24 @@ func GetMapComponent(id string, name string) (map[string]interface{}, error) {
 	}
 
 	if !exists {
-		return nil, EntityNotFoundError{ID: id}
+		return nil, errors.EntityNotFoundError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return nil, ComponentNotFoundError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !componentExists {
+		return nil, errors.ComponentNotFoundError{ID: id, Name: name}
 	}
 
 	if getComponentType(id, name) != "map" {
-		return nil, ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: getComponentType(id, name)}
+		return nil, errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: getComponentType(id, name)}
 	}
 
-	h, err := engine.Redis.HGetAll(context.Background(), componentId(id, name)).Result()
+	h, err := engine.RedisHGetAll(componentId(id, name)).Result()
 
 	if err != nil {
 		return nil, err
@@ -799,18 +583,24 @@ func GetStringComponent(id string, name string) (string, error) {
 	}
 
 	if !exists {
-		return "", EntityNotFoundError{ID: id}
+		return "", errors.EntityNotFoundError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return "", ComponentNotFoundError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return "", err
+	}
+
+	if !componentExists {
+		return "", errors.ComponentNotFoundError{ID: id, Name: name}
 	}
 
 	if getComponentType(id, name) != "string" {
-		return "", ComponentTypeMismatchError{ID: id, Name: name, Expected: "string", Actual: getComponentType(id, name)}
+		return "", errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "string", Actual: getComponentType(id, name)}
 	}
 
-	return engine.Redis.Get(context.Background(), componentId(id, name)).Result()
+	return engine.RedisGet(componentId(id, name)).Result()
 }
 
 // GetStringFromMapComponent returns the string value of an element in a map component. It takes the entity ID,
@@ -827,7 +617,7 @@ func GetStringFromMapComponent(id string, name string, mapKey string) (string, e
 	s, ok := v.(string)
 
 	if !ok {
-		return "", MapValueTypeMismatchError{
+		return "", errors.MapValueTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Key:      mapKey,
@@ -846,7 +636,7 @@ func IsEntityTypeRegistered(name string) bool {
 	return ok
 }
 
-// Register registers an entity type. Entity Types must implmeent the `EntityType` interface. It is expected that
+// Register registers an entity type. Entity Types must implement the `EntityType` interface. It is expected that
 // developers can override default EntityType implementations with their own implementations.
 func Register(e entity_type.EntityType) {
 	registry.types[e.Name()] = e
@@ -863,7 +653,7 @@ func Replace(id string, components map[string]interface{}) error {
 	}
 
 	if !exists {
-		return EntityNotFoundError{ID: id}
+		return errors.EntityNotFoundError{ID: id}
 	}
 
 	log.Debug().Str("id", id).Msg("replacing entity")
@@ -930,16 +720,22 @@ func RemoveComponent(id string, name string) error {
 	}
 
 	if !exists {
-		return EntityNotFoundError{ID: id}
+		return errors.EntityNotFoundError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return ComponentNotFoundError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !componentExists {
+		return errors.ComponentNotFoundError{ID: id, Name: name}
 	}
 
 	log.Debug().Str("id", id).Str("name", name).Msg("removing component")
 
-	engine.Redis.Del(context.Background(), componentId(id, name))
+	engine.RedisDel(componentId(id, name))
 
 	return nil
 }
@@ -977,7 +773,7 @@ func Update(id string, components map[string]interface{}) error {
 	}
 
 	if !exists {
-		return EntityNotFoundError{ID: id}
+		return errors.EntityNotFoundError{ID: id}
 	}
 
 	log.Debug().Str("id", id).Msg("updating entity")
@@ -1016,7 +812,7 @@ func UpdateBoolComponent(id string, name string, value bool) error {
 
 // UpdateBoolInMapComponent updates a bool component in a map component. It takes the entity ID, component name, the
 // key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
-// will be thrown. If a component with the same name does not exist, an error will be thrown. If the key soes not
+// will be thrown. If a component with the same name does not exist, an error will be thrown. If the key does not
 // already exist an error will be thrown. Once a value is added to the map, the type of that key is enforced. If
 // the value is not the correct type an error will be thrown.
 func UpdateBoolInMapComponent(id string, name string, key string, value bool) error {
@@ -1032,7 +828,7 @@ func UpdateIntComponent(id string, name string, value int) error {
 
 // UpdateIntInMapComponent updates an integer component in a map component. It takes the entity ID, component name, the
 // key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
-// will be thrown. If a component with the same name does not exist, an error will be thrown. If the key soes not
+// will be thrown. If a component with the same name does not exist, an error will be thrown. If the key does not
 // already exist an error will be thrown. Once a value is added to the map, the type of that key is enforced. If
 // the value is not the correct type an error will be thrown.
 func UpdateIntInMapComponent(id string, name string, key string, value int) error {
@@ -1048,7 +844,7 @@ func UpdateInt64Component(id string, name string, value int64) error {
 
 // UpdateInt64InMapComponent updates an integer64 component in a map component. It takes the entity ID, component name,
 // the key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an
-// error will be thrown. If a component with the same name does not exist, an error will be thrown. If the key soes not
+// error will be thrown. If a component with the same name does not exist, an error will be thrown. If the key does not
 // already exist an error will be thrown. Once a value is added to the map, the type of that key is enforced. If
 // the value is not the correct type an error will be thrown.
 func UpdateInt64InMapComponent(id string, name string, key string, value int64) error {
@@ -1082,74 +878,37 @@ func UpdateStringComponent(id string, name string, value string) error {
 
 // UpdateStringInMapComponent updates a string component in a map component. It takes the entity ID, component name,
 // the key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an
-// error will be thrown. If a component with the same name does not exist, an error will be thrown. If the key soes not
+// error will be thrown. If a component with the same name does not exist, an error will be thrown. If the key does not
 // already exist an error will be thrown. Once a value is added to the map, the type of that key is enforced. If
 // the value is not the correct type an error will be thrown.
 func UpdateStringInMapComponent(id string, name string, key string, value string) error {
 	return updateInMapComponent(id, name, key, value)
 }
 
-func compareValues(componentId string, value interface{}) bool {
-	comparisonType := reflect.TypeOf(value).Kind()
+func addOrUpdateToMapComponent(id string, name string, key string, value interface{}) error {
+	exists, err := Exists(id)
 
-	switch comparisonType {
-	case reflect.String:
-		str, err := engine.Redis.Get(context.Background(), componentId).Result()
-
-		if err != nil {
-			return false
-		}
-
-		return str == value.(string)
-	case reflect.Int:
-		intValue, err := engine.Redis.Get(context.Background(), componentId).Int()
-
-		if err != nil {
-			return false
-		}
-
-		return intValue == value.(int)
-	case reflect.Int64:
-		intValue, err := engine.Redis.Get(context.Background(), componentId).Int64()
-
-		if err != nil {
-			return false
-		}
-
-		return intValue == value.(int64)
-	case reflect.Bool:
-		boolValue, err := engine.Redis.Get(context.Background(), componentId).Bool()
-
-		if err != nil {
-			return false
-		}
-
-		return boolValue == value.(bool)
-	case reflect.Slice:
-		slice, err := engine.Redis.SMembers(context.Background(), componentId).Result()
-
-		if err != nil {
-			return false
-		}
-
-		return reflect.DeepEqual(slice, value.([]string))
-	case reflect.Map:
-		mapValue, err := engine.Redis.HGetAll(context.Background(), componentId).Result()
-
-		if err != nil {
-			return false
-		}
-
-		imap := make(map[string]interface{})
-
-		for k, v := range mapValue {
-			imap[k] = v
-		}
-
-		return reflect.DeepEqual(imap, value.(map[string]interface{}))
+	if err != nil {
+		return err
 	}
 
-	return false
+	if !exists {
+		return errors.EntityNotFoundError{
+			ID: id,
+		}
+	}
+
+	exists, err = ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return addToMapComponent(id, name, key, value)
+	}
+
+	return updateInMapComponent(id, name, key, value)
 }
 
 func componentId(id string, key string) string {
@@ -1161,12 +920,11 @@ func generateID() string {
 }
 
 func getComponentType(id string, key string) string {
-	return engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, key))).Val()
+	return engine.RedisGet(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, key))).Val()
 }
 
 func getMapValueType(id string, name string, key string) string {
-	return engine.Redis.HGet(
-		context.Background(),
+	return engine.RedisHGet(
 		fmt.Sprintf("%s:%s", constants.MapTypePrefix, componentId(id, name)),
 		key,
 	).String()
@@ -1175,53 +933,6 @@ func getMapValueType(id string, name string, key string) string {
 func getEntityTypeByName(name string) entity_type.EntityType {
 	return registry.types[name]
 }
-
-func getFromHashComponent(id string, name string, mapKey string) (interface{}, error) {
-	return engine.Redis.HGet(context.Background(), componentId(id, name), mapKey).Result()
-}
-
-//
-//func loadFromFile(file string) {
-//	// load from a yml file and process
-//	log.Debug().Str("file", file).Msg("loading entities from file")
-//	content, err := os.ReadFile(file)
-//
-//	if err != nil {
-//		log.Error().Str("file", file).Err(err).Msgf("failed to read file %s", file)
-//		return
-//	}
-//
-//	loadFromYaml(content)
-//}
-
-//func loadFromMap(id string, m map[string]interface{}) {
-//	// remove the entity, if we are loading from a map we want to load fresh every time
-//	Remove(id)
-//	// load from a map and process
-//	log.Debug().Str("id", id).Msg("loading entity from map")
-//
-//	err := AddWithID(m[TYPE_COMPONENT_NAME].(string), id, m)
-//
-//	if err != nil {
-//		panic(err)
-//	}
-//}
-//
-//func loadFromYaml(yml []byte) {
-//	// load yaml and process each entity using loadMap
-//	ymlEntries := make(map[string]interface{})
-//
-//	err := yaml.Unmarshal(yml, ymlEntries)
-//
-//	if err != nil {
-//		log.Error().Err(err).Msg("failed to parse yaml")
-//		return
-//	}
-//
-//	for id, m := range ymlEntries {
-//		loadFromMap(id, m.(map[string]interface{}))
-//	}
-//}
 
 func addComponent(id string, name string, value interface{}) error {
 	exists, err := Exists(id)
@@ -1234,7 +945,13 @@ func addComponent(id string, name string, value interface{}) error {
 		return fmt.Errorf("entity %s does not exist", id)
 	}
 
-	if ComponentExists(id, name) {
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if componentExists {
 		return fmt.Errorf("component %s already exists", name)
 	}
 
@@ -1248,10 +965,10 @@ func addComponent(id string, name string, value interface{}) error {
 		return err
 	}
 
-	err = engine.Redis.Set(context.Background(), componentId(id, name), value, 0).Err()
+	err = engine.RedisSet(componentId(id, name), value).Err()
 
 	if err != nil {
-		engine.Redis.Del(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)))
+		engine.RedisDel(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)))
 		return err
 	}
 
@@ -1266,11 +983,17 @@ func addToMapComponent(id string, name string, mapKey string, value interface{})
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !componentExists {
+		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
 	hasKey, err := mapHasKey(id, name, mapKey)
@@ -1280,7 +1003,7 @@ func addToMapComponent(id string, name string, mapKey string, value interface{})
 	}
 
 	if hasKey {
-		return MapHasKeyError{ID: id, Name: name, Key: mapKey}
+		return errors.MapHasKeyError{ID: id, Name: name, Key: mapKey}
 	}
 
 	log.Debug().Str("id", id).Str("name", name).Str("mapKey", mapKey).Msg("adding to map component")
@@ -1291,7 +1014,7 @@ func addToMapComponent(id string, name string, mapKey string, value interface{})
 		return err
 	}
 
-	err = engine.Redis.HSet(context.Background(), componentId(id, name), mapKey, value).Err()
+	err = engine.RedisHSet(componentId(id, name), mapKey, value).Err()
 
 	if err != nil {
 		return err
@@ -1308,24 +1031,30 @@ func addToSetComponent(id string, name string, value interface{}) error {
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
 	}
 
-	// check the value type aginst the set value type
+	if !componentExists {
+		return errors.MissingComponentError{ID: id, Name: name}
+	}
+
+	// check the value type against the set value type
 	valueType := reflect.TypeOf(value).Kind().String()
 	setValueType := getSetValueType(id, name)
 
 	if valueType != setValueType {
-		return SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
+		return errors.SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
 	}
 
 	log.Debug().Str("id", id).Str("name", name).Msg("adding to set component")
 
-	err = engine.Redis.SAdd(context.Background(), componentId(id, name), value).Err()
+	err = engine.RedisSAdd(componentId(id, name), value).Err()
 
 	if err != nil {
 		return err
@@ -1339,11 +1068,11 @@ func componentTypeMatch(id string, name string, value interface{}) bool {
 }
 
 func getEntityType(id string) (string, error) {
-	return engine.Redis.Get(context.Background(), entityTypeID(id)).Result()
+	return engine.RedisGet(entityTypeID(id)).Result()
 }
 
 func getSetValueType(id string, name string) string {
-	return engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name))).
+	return engine.RedisGet(fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name))).
 		Val()
 }
 
@@ -1355,15 +1084,21 @@ func getValueFromMapComponent(id string, name string, mapKey string) (interface{
 	}
 
 	if !exists {
-		return nil, EntityExistsError{ID: id}
+		return nil, errors.EntityExistsError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return nil, MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !componentExists {
+		return nil, errors.MissingComponentError{ID: id, Name: name}
 	}
 
 	if getComponentType(id, name) != "map" {
-		return nil, ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: getComponentType(id, name)}
+		return nil, errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: getComponentType(id, name)}
 	}
 
 	mhk, err := mapHasKey(id, name, mapKey)
@@ -1373,14 +1108,14 @@ func getValueFromMapComponent(id string, name string, mapKey string) (interface{
 	}
 
 	if !mhk {
-		return nil, MapKeyNotFoundError{ID: id, Name: name, Key: mapKey}
+		return nil, errors.MapKeyNotFoundError{ID: id, Name: name, Key: mapKey}
 	}
 
-	return engine.Redis.HGet(context.Background(), componentId(id, name), mapKey).Result()
+	return engine.RedisHGet(componentId(id, name), mapKey).Result()
 }
 
 func mapHasKey(id string, name string, mapKey string) (bool, error) {
-	return engine.Redis.HExists(context.Background(), componentId(id, name), mapKey).Result()
+	return engine.RedisHExists(componentId(id, name), mapKey).Result()
 }
 
 func mapValueMatch(id string, name string, mapKey string, value interface{}) bool {
@@ -1388,10 +1123,10 @@ func mapValueMatch(id string, name string, mapKey string, value interface{}) boo
 }
 
 func removeMetadata(id string) {
-	keys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s*", id)).Val()
+	keys := engine.RedisKeys(fmt.Sprintf("__*:%s*", id)).Val()
 
 	for _, key := range keys {
-		engine.Redis.Del(context.Background(), key)
+		engine.RedisDel(key)
 	}
 }
 
@@ -1403,11 +1138,17 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !componentExists {
+		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
 	// check the value type against the set value type
@@ -1415,12 +1156,12 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 	setValueType := getSetValueType(id, name)
 
 	if valueType != setValueType {
-		return SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
+		return errors.SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
 	}
 
 	log.Debug().Str("id", id).Str("name", name).Msg("removing from set component")
 
-	err = engine.Redis.SRem(context.Background(), componentId(id, name), value).Err()
+	err = engine.RedisSRem(componentId(id, name), value).Err()
 
 	if err != nil {
 		return err
@@ -1438,9 +1179,9 @@ func entityTypeID(id string) string {
 }
 
 func setEntityType(id string, entityType string) {
-	etid := entityTypeID(id)
-	log.Trace().Str("id", id).Str("entityType", entityType).Str("etid", etid).Msg("setting entity type")
-	engine.Redis.Set(context.Background(), etid, entityType, 0)
+	entId := entityTypeID(id)
+	log.Trace().Str("id", id).Str("entityType", entityType).Str("entId", entId).Msg("setting entity type")
+	engine.RedisSet(entId, entityType)
 }
 
 func updateComponent(id string, name string, value interface{}) error {
@@ -1451,15 +1192,21 @@ func updateComponent(id string, name string, value interface{}) error {
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !componentExists {
+		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
 	if !componentTypeMatch(id, name, value) {
-		return ComponentTypeMismatchError{
+		return errors.ComponentTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Expected: getComponentType(id, name),
@@ -1469,7 +1216,7 @@ func updateComponent(id string, name string, value interface{}) error {
 
 	log.Debug().Str("id", id).Str("name", name).Msg("updating component")
 
-	err = engine.Redis.Set(context.Background(), componentId(id, name), value, 0).Err()
+	err = engine.RedisSet(componentId(id, name), value).Err()
 
 	if err != nil {
 		return err
@@ -1487,17 +1234,23 @@ func updateInMapComponent(id string, name string, mapKey string, value interface
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
 	// check if the component exists
-	if !ComponentExists(id, name) {
-		return MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !componentExists {
+		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
 	// check if the component is of type 'map
 	if getComponentType(id, name) != "map" {
-		return ComponentTypeMismatchError{
+		return errors.ComponentTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Expected: "map",
@@ -1513,12 +1266,12 @@ func updateInMapComponent(id string, name string, mapKey string, value interface
 	}
 
 	if !hasKey {
-		return MapHasKeyError{ID: id, Name: name, Key: mapKey}
+		return errors.MapHasKeyError{ID: id, Name: name, Key: mapKey}
 	}
 
 	// check if the value type matches the expected type
 	if mapValueMatch(id, name, mapKey, value) {
-		return MapValueTypeMismatchError{
+		return errors.MapValueTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Key:      mapKey,
@@ -1529,7 +1282,7 @@ func updateInMapComponent(id string, name string, mapKey string, value interface
 
 	log.Debug().Str("id", id).Str("name", name).Str("mapKey", mapKey).Msg("updating in map component")
 
-	return engine.Redis.HSet(context.Background(), componentId(id, name), mapKey, value).Err()
+	return engine.RedisHSet(componentId(id, name), mapKey, value).Err()
 }
 
 func setMapValueType(id string, name string, mapKey string, value interface{}) error {
@@ -1540,11 +1293,17 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 	}
 
 	if !exists {
-		return EntityExistsError{ID: id}
+		return errors.EntityExistsError{ID: id}
 	}
 
-	if !ComponentExists(id, name) {
-		return MissingComponentError{ID: id, Name: name}
+	componentExists, err := ComponentExists(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !componentExists {
+		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
 	hasKey, err := mapHasKey(id, name, mapKey)
@@ -1554,13 +1313,12 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 	}
 
 	if hasKey {
-		return MapHasKeyError{ID: id, Name: name, Key: mapKey}
+		return errors.MapHasKeyError{ID: id, Name: name, Key: mapKey}
 	}
 
 	log.Trace().Str("id", id).Str("name", name).Str("mapKey", mapKey).Msg("setting map component value type")
 
-	err = engine.Redis.HSet(
-		context.Background(),
+	err = engine.RedisHSet(
 		fmt.Sprintf("%s:%s", constants.MapTypePrefix, componentId(id, name)),
 		mapKey,
 		reflect.TypeOf(value).Kind().String(),
@@ -1574,30 +1332,10 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 }
 
 func setComponentType(id string, name string, value interface{}) error {
-	err := engine.
-		Redis.
-		Set(
-			context.Background(),
-			fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)),
-			value,
-			0).
-		Err()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func setPreviousComponentValue(id string, name string, value interface{}) error {
-	err := engine.
-		Redis.
-		Set(
-			context.Background(),
-			fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name)),
-			value,
-			0).
+	err := engine.RedisSet(
+		fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)),
+		value,
+	).
 		Err()
 
 	if err != nil {
@@ -1608,7 +1346,7 @@ func setPreviousComponentValue(id string, name string, value interface{}) error 
 }
 
 func setComponentsFromMap(id string, components map[string]interface{}) error {
-	errors := make([]error, 0)
+	errs := make([]error, 0)
 
 	for name, value := range components {
 		kind := reflect.TypeOf(value).Kind().String()
@@ -1616,38 +1354,38 @@ func setComponentsFromMap(id string, components map[string]interface{}) error {
 		case "string":
 			err := AddStringComponent(id, name, value.(string))
 			if err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		case "bool":
 			err := AddBoolComponent(id, name, value.(bool))
 			if err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		case "int":
 			err := AddIntComponent(id, name, value.(int))
 			if err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		case "int64":
 			err := AddInt64Component(id, name, value.(int64))
 			if err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		case "map":
 			err := AddMapComponent(id, name, value.(map[string]interface{}))
 			if err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		case "slice":
 			err := AddSetComponent(id, name, value.([]interface{}))
 			if err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		}
 	}
 
-	if len(errors) > 0 {
-		return AddComponentErrors{Errors: errors}
+	if len(errs) > 0 {
+		return errors.AddComponentErrors{Errors: errs}
 	}
 
 	return nil
