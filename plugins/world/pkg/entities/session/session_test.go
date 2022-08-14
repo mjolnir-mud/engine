@@ -15,9 +15,6 @@ func TestSessionType_Create(t *testing.T) {
 		"store": map[string]interface{}{
 			"controller": "login",
 		},
-		"commandSets": []interface{}{
-			"base",
-			"movement",
-		},
+		"flash": map[string]interface{}{},
 	}, Type.Create(map[string]interface{}{}))
 }

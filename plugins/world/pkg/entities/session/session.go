@@ -19,13 +19,8 @@ func (s sessionType) Create(args map[string]interface{}) map[string]interface{} 
 		args["store"].(map[string]interface{})["controller"] = "login"
 	}
 
-	// ensure command sets are set
-
-	if _, ok := args["commandSets"]; !ok {
-		args["commandSets"] = []interface{}{
-			"base",
-			"movement",
-		}
+	if _, ok := args["flash"]; !ok {
+		args["flash"] = map[string]interface{}{}
 	}
 
 	return args
