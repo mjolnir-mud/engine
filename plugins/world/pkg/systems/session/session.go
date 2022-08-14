@@ -40,7 +40,7 @@ func (e session) MatchingComponentUpdated(_ string, _ string, _ interface{}, _ i
 
 func (e session) MatchingComponentRemoved(_ string, _ string) error { return nil }
 
-// Start starts the session with the given id. This calls the start method of the controller. If the session does not
+// Start starts the session with the given id. This calls the start method of the testController. If the session does not
 // exist, an error is returned.
 func Start(id string) error {
 	c, err := GetController(id)
@@ -52,7 +52,7 @@ func Start(id string) error {
 	return c.Start(id)
 }
 
-// GetController returns the controller for the session.
+// GetController returns the testController for the session.
 func GetController(name string) (controller.Controller, error) {
 	c, err := ecs.GetStringFromMapComponent(name, "store", "controller")
 
@@ -63,7 +63,7 @@ func GetController(name string) (controller.Controller, error) {
 	return controller_registry.Get(c)
 }
 
-// SetController sets the controller for the session. All input is passed through the session controller.
+// SetController sets the testController for the session. All input is passed through the session testController.
 func SetController(id, controller string) error {
 	return SetStringInStore(id, "controller", controller)
 }
@@ -72,7 +72,7 @@ func SetStringInStore(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
 }
 
-// HandleInput passes the input to the session controller.
+// HandleInput passes the input to the session testController.
 func HandleInput(id, input string) error {
 	c, err := GetController(id)
 

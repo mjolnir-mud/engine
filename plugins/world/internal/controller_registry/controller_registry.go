@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var registry map[string]controller.Controller
+var registry = make(map[string]controller.Controller)
 var log zerolog.Logger
 
 func Start() {
@@ -15,8 +15,6 @@ func Start() {
 		With().
 		Str("service", "controller_registry").
 		Logger()
-
-	registry = make(map[string]controller.Controller)
 }
 
 func Register(c controller.Controller) {
