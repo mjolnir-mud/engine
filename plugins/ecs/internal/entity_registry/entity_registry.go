@@ -223,6 +223,15 @@ func AddOrUpdateStringInMapComponent(id string, name string, key string, value s
 	return addOrUpdateToMapComponent(id, name, key, value)
 }
 
+// AddOrUpdateIntInMapComponent adds or updates an integer component to a map component. It takes the entity ID,
+// component name, the key to which to add the value, and the value to add to the map. If an entity with the same id
+// does not exist an error will be thrown. If a component with the same name does not exist, an error will be thrown.
+// If the key already exists, the value will be updated. Once a value is added to the map, the type of that key is
+// enforced. Attempting to change the type of key will result in an error in later updated.
+func AddOrUpdateIntInMapComponent(id string, name string, key string, value int) error {
+	return addOrUpdateToMapComponent(id, name, key, value)
+}
+
 // AddSetComponent adds a set component to an entity. It takes the entity ID, component name, and the value of
 // the component. If an entity with the same id already exists error will be thrown. If a component with the same name
 // already exists, an error will be thrown. Once a value is added to the set, the type of that value is enforced for

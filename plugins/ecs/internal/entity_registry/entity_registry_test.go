@@ -1170,6 +1170,29 @@ func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 	teardown()
 }
 
+func TestAddOrUpdateIntInMapComponent(t *testing.T) {
+	setup()
+
+	err := AddWithID("test", "testEntity", map[string]interface{}{
+		"testComponent": map[string]interface{}{
+			"testKey": 1,
+		},
+	})
+
+	assert.Nil(t, err)
+
+	// test happy path for adding a new key
+	err = AddOrUpdateIntInMapComponent("testEntity", "testComponent", "testKey", 2)
+
+	assert.Nil(t, err)
+
+	// test happy path for updating an existing key
+	err = AddOrUpdateIntInMapComponent("testEntity", "testComponent", "testKey", 3)
+
+	assert.Nil(t, err)
+	teardown()
+}
+
 func TestUpdateStringComponent(t *testing.T) {
 	setup()
 
