@@ -2,6 +2,7 @@ package entity_registry
 
 import (
 	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -624,6 +625,13 @@ func TestGetInt64FromMapComponent(t *testing.T) {
 	_, err = GetInt64FromMapComponent("test", "testComponent", "notRegistered")
 
 	assert.NotNil(t, err)
+
+	// test get when entity does not exist
+	_, err = GetInt64FromMapComponent("notRegistered", "testComponent", "testKey")
+
+	assert.NotNil(t, err)
+	assert.IsTypef(t, errors.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
+
 	teardown()
 }
 

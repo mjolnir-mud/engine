@@ -1084,7 +1084,7 @@ func getValueFromMapComponent(id string, name string, mapKey string) (interface{
 	}
 
 	if !exists {
-		return nil, errors.EntityExistsError{ID: id}
+		return nil, errors.EntityNotFoundError{ID: id}
 	}
 
 	componentExists, err := ComponentExists(id, name)
