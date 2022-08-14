@@ -6,7 +6,7 @@ func (s sessionType) Name() string {
 	return "session"
 }
 
-func (s sessionType) Create(_ string, args map[string]interface{}) map[string]interface{} {
+func (s sessionType) Create(args map[string]interface{}) map[string]interface{} {
 	args["expireIn"] = 900
 
 	// if the args does not have a store yet then create one

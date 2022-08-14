@@ -63,12 +63,24 @@ func GetController(name string) (controller.Controller, error) {
 	return controller_registry.Get(c)
 }
 
+// SetController sets the controller for the session. All input is passed through the session controller.
 func SetController(id, controller string) error {
 	return SetStringInStore(id, "controller", controller)
 }
 
 func SetStringInStore(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
+}
+
+// HandleInput passes the input to the session controller.
+func HandleInput(id, input string) error {
+	c, err := GetController(id)
+
+	if err != nil {
+		return err
+	}
+
+	return c.HandleInput(id, input)
 }
 
 var System = session{}

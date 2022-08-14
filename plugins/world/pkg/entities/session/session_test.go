@@ -19,5 +19,5 @@ func TestSessionType_Create(t *testing.T) {
 			"base",
 			"movement",
 		},
-	}, Type.Create("", map[string]interface{}{}))
+	}, Type.Create(map[string]interface{}{}))
 }
