@@ -11,6 +11,13 @@ import (
 	"testing"
 )
 
+var ch = make(chan inputArgs)
+
+type inputArgs struct {
+	Id    string
+	Input string
+}
+
 // testController is the login testController, responsible handling user logins.
 type testController struct{}
 
@@ -33,12 +40,37 @@ func (l testController) Stop(id string) error {
 }
 
 func (l testController) HandleInput(id string, input string) error {
+	go func() { ch <- inputArgs{Id: id, Input: input} }()
+
+	return nil
+}
+
+type altController struct{}
+
+func (a altController) Name() string {
+	return "alt"
+}
+
+func (a altController) Start(id string) error {
+	return nil
+}
+
+func (a altController) Resume(id string) error {
+	return nil
+}
+
+func (a altController) Stop(id string) error {
+	return nil
+}
+
+func (a altController) HandleInput(id string, input string) error {
 	return nil
 }
 
 func setup() {
 	ecs.RegisterEntityType(session2.Type)
 	controller_registry.Register(testController{})
+	controller_registry.Register(altController{})
 	controller_registry.Start()
 	testing2.Setup()
 	_ = engine.RedisFlushAll()
@@ -68,4 +100,50 @@ func TestStart(t *testing.T) {
 	err := Start("test")
 
 	assert.NoError(t, err)
+}
+
+func TestGetController(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	c, err := GetController("test")
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "login", c.Name())
+}
+
+func TestSetController(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := SetController("test", "alt")
+
+	assert.NoError(t, err)
+
+	c, err := GetController("test")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "alt", c.Name())
+}
+
+func TestHandleInput(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = HandleInput("test", "test")
+
+	assert.NoError(t, err)
+
+	i := <-ch
+	assert.Equal(t, "test", i.Input)
+	assert.Equal(t, "test", i.Id)
 }

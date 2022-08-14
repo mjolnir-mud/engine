@@ -52,7 +52,8 @@ func Start(id string) error {
 	return c.Start(id)
 }
 
-// GetController returns the testController for the session.
+// GetController returns the testController for the session. If the session does not exist, an error will be returned.
+// If the controller is not found, an error will be returned.
 func GetController(name string) (controller.Controller, error) {
 	c, err := ecs.GetStringFromMapComponent(name, "store", "controller")
 
@@ -63,16 +64,19 @@ func GetController(name string) (controller.Controller, error) {
 	return controller_registry.Get(c)
 }
 
-// SetController sets the testController for the session. All input is passed through the session testController.
+// SetController sets the testController for the session. All input is passed through the session controller. If the
+// session does not exist, an error is returned.
 func SetController(id, controller string) error {
 	return SetStringInStore(id, "controller", controller)
 }
 
+// SetStringInStore sets a string value in the store, under the given key. If the session does not exist, an error is
+// returned.
 func SetStringInStore(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
 }
 
-// HandleInput passes the input to the session testController.
+// HandleInput passes the input to the session controller. If the session does not exist, an error is returned.
 func HandleInput(id, input string) error {
 	c, err := GetController(id)
 
