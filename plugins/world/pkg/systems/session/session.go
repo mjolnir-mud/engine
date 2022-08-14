@@ -2,7 +2,9 @@ package session
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
+	session2 "github.com/mjolnir-mud/engine/plugins/world/internal/session"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/controller"
 )
 
@@ -74,6 +76,25 @@ func SetController(id, controller string) error {
 // returned.
 func SetStringInStore(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
+}
+
+// SendLine sends a line to the sessions connection. If the session does not exist, an error is returned.
+func SendLine(id, line string) error {
+	exists, err := ecs.EntityExists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.EntityNotFoundError{
+			ID: id,
+		}
+	}
+
+	session2.SendLine(id, line)
+
+	return nil
 }
 
 // HandleInput passes the input to the session controller. If the session does not exist, an error is returned.

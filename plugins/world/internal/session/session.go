@@ -1,6 +1,7 @@
 package session
 
 import (
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
@@ -32,7 +33,7 @@ func (s Session) Start() {
 		}
 	}
 
-	redis.Subscribe(events.InputEvent{}, s.id, func(payload interface{}) {
+	engine.Subscribe(events.InputEvent{}, s.id, func(payload interface{}) {
 		event, ok := payload.(*events.InputEvent)
 
 		if !ok {

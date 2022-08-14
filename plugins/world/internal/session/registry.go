@@ -51,8 +51,8 @@ func SendLineF(id string, data string, args ...interface{}) {
 
 func StartRegistry() {
 	log = logger.Instance.With().Str("service", "sessionRegistry").Logger()
-	assertSessionSubscription = redis.Subscribe(events.AssertSessionEvent{}, handleAssertSession)
-	sessionStoppedSubscription = redis.PSubscribe(events.SessionStoppedEvent{}, "*", handleSessionStopped)
+	assertSessionSubscription = redis.NewSubscription(events.AssertSessionEvent{}, handleAssertSession)
+	sessionStoppedSubscription = redis.NewPatternSubscription(events.SessionStoppedEvent{}, "*", handleSessionStopped)
 
 	err := redis.Publish(events.SessionRegistryStartedEvent{})
 

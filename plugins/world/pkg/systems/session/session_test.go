@@ -5,7 +5,9 @@ import (
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
+	session3 "github.com/mjolnir-mud/engine/plugins/world/internal/session"
 	session2 "github.com/mjolnir-mud/engine/plugins/world/pkg/entities/session"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
 	testing2 "github.com/mjolnir-mud/engine/plugins/world/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -73,6 +75,7 @@ func setup() {
 	controller_registry.Register(altController{})
 	controller_registry.Start()
 	testing2.Setup()
+	session3.StartRegistry()
 	_ = engine.RedisFlushAll()
 
 	ent, err := ecs.CreateEntity("session", map[string]interface{}{})
@@ -90,6 +93,7 @@ func setup() {
 
 func teardown() {
 	_ = redis.FlushAll()
+	session3.StopRegistry()
 	testing2.Teardown()
 }
 
@@ -146,4 +150,28 @@ func TestHandleInput(t *testing.T) {
 	i := <-ch
 	assert.Equal(t, "test", i.Input)
 	assert.Equal(t, "test", i.Id)
+}
+
+func TestSendLine(t *testing.T) {
+	setup()
+	defer teardown()
+	ch := make(chan string)
+
+	sub := engine.Subscribe(events.SendLineEvent{}, "test", func(e interface{}) {
+		go func() { ch <- e.(*events.SendLineEvent).Line }()
+	})
+
+	defer sub.Stop()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SendLine("test", "test")
+
+	assert.NoError(t, err)
+
+	line := <-ch
+
+	assert.Equal(t, "test", line)
 }
