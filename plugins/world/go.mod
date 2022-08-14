@@ -66,4 +66,5 @@ replace (
 	github.com/mjolnir-mud/engine  => ../../
 	github.com/mjolnir-mud/engine/plugins/command_parser => ../command_parser
 	github.com/mjolnir-mud/engine/plugins/templates  => ../templates
+	github.com/mjolnir-mud/engine/plugins/ecs  => ../ecs
 )

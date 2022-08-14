@@ -2,7 +2,7 @@ package character
 
 import (
 	"github.com/mjolnir-mud/engine/internal/session_registry"
-	"github.com/mjolnir-mud/engine/pkg/reactor"
+
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
 )
 

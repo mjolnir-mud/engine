@@ -1,15 +1,15 @@
 package system_registry
 
 import (
-	"context"
 	"fmt"
+	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/rs/zerolog"
 	"reflect"
 	"strings"
 
 	redis2 "github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/constants"
-	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
 )
 
@@ -30,6 +30,8 @@ func (s *subscription) Stop() {
 
 // Start starts the registry.
 func Start() {
+	log = logger.Instance.With().Str("service", "system_registry").Logger()
+	log.Info().Msg("starting system registry")
 	for _, s := range r.systems {
 		startComponentListener(s)
 	}
@@ -55,7 +57,7 @@ func startComponentListener(s system.System) {
 
 func startComponentSetListener(s system.System) {
 	log.Info().Msgf("starting component set listener for system %s", s.Name())
-	pubsub := engine.Redis.PSubscribe(context.Background(), keySpaceEventForSystem(s))
+	pubsub := engine.RedisPSubscribe(keySpaceEventForSystem(s))
 
 	sub := subscription{
 		pubSub: pubsub,
@@ -152,24 +154,24 @@ func callDelCallbacks(s system.System, id string, key string) {
 
 	for _, sys := range r.systems {
 		log.Trace().Msgf("calling component deleted callbacks for system %s", sys.Name())
-		valueType := engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
+		valueType := engine.RedisGet(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
 
 		switch valueType {
 		case "string":
-			value = engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+			value = engine.RedisGet(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 		case "int":
-			value = engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+			value = engine.RedisGet(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 		case "int64":
-			value = engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+			value = engine.RedisGet(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 		case "map":
-			m := engine.Redis.HGetAll(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+			m := engine.RedisHGetAll(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 			value = make(map[string]interface{})
 
 			for key, v := range m {
 				value.(map[string]interface{})[key] = v
 			}
 		case "set":
-			s := engine.Redis.SMembers(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+			s := engine.RedisSMembers(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 			value = make([]interface{}, len(s))
 
 			for i, v := range s {
@@ -194,16 +196,16 @@ func callDelCallbacks(s system.System, id string, key string) {
 		}
 	}
 
-	metaKeys := engine.Redis.Keys(context.Background(), fmt.Sprintf("__*:%s", k)).Val()
+	metaKeys := engine.RedisKeys(fmt.Sprintf("__*:%s", k)).Val()
 
 	for _, metaKey := range metaKeys {
-		engine.Redis.Del(context.Background(), metaKey)
+		engine.RedisDel(metaKey)
 	}
 }
 
 func callHSetCallbacks(s system.System, id string, key string) {
-	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
-	currentStringValue := engine.Redis.HGetAll(context.Background(), key).Val()
+	exists := engine.RedisExists(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+	currentStringValue := engine.RedisHGetAll(key).Val()
 
 	currentValue := make(map[string]interface{})
 
@@ -216,7 +218,7 @@ func callHSetCallbacks(s system.System, id string, key string) {
 		return
 	}
 
-	prevValue := engine.Redis.HGetAll(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+	prevValue := engine.RedisHGetAll(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 
 	prevValueMap := make(map[string]interface{})
 
@@ -232,8 +234,8 @@ func callHSetCallbacks(s system.System, id string, key string) {
 }
 
 func callSAddCallbacks(s system.System, id string, key string) {
-	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
-	currentStringValue := engine.Redis.SMembers(context.Background(), key).Val()
+	exists := engine.RedisExists(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+	currentStringValue := engine.RedisSMembers(key).Val()
 
 	currentValue := make([]interface{}, len(currentStringValue))
 
@@ -246,7 +248,7 @@ func callSAddCallbacks(s system.System, id string, key string) {
 		return
 	}
 
-	prevValue := engine.Redis.SMembers(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+	prevValue := engine.RedisSMembers(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 
 	prevValueSlice := make([]interface{}, len(prevValue))
 
@@ -262,15 +264,15 @@ func callSAddCallbacks(s system.System, id string, key string) {
 }
 
 func callSetCallbacks(s system.System, id string, key string) {
-	exists := engine.Redis.Exists(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
-	currentValue := engine.Redis.Get(context.Background(), key).Val()
+	exists := engine.RedisExists(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+	currentValue := engine.RedisGet(key).Val()
 
 	if exists == 0 {
 		callComponentAddedCallbacks(s, id, key, currentValue)
 		return
 	}
 
-	prevValue := engine.Redis.Get(context.Background(), fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
+	prevValue := engine.RedisGet(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, key)).Val()
 
 	if prevValue == currentValue {
 		return
@@ -280,7 +282,7 @@ func callSetCallbacks(s system.System, id string, key string) {
 }
 
 func keySpaceEventForSystem(s system.System) string {
-	return fmt.Sprintf("__keyspace@%d__:*:%s", 0, s.Component())
+	return fmt.Sprintf("__keyspace@*__:*:%s", s.Component())
 }
 
 func setComponentMeta(id string, key string, value interface{}) {
@@ -289,14 +291,14 @@ func setComponentMeta(id string, key string, value interface{}) {
 	switch valueType {
 	case "set":
 		for _, i := range value.([]interface{}) {
-			engine.Redis.SAdd(context.Background(), fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), i)
+			engine.RedisSAdd(fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), i)
 		}
 	case "map":
 		for k, v := range value.(map[string]interface{}) {
-			engine.Redis.HSet(context.Background(), fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), k, v)
+			engine.RedisHSet(fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), k, v)
 		}
 	default:
-		engine.Redis.Set(context.Background(), fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), value, 0)
+		engine.RedisSet(fmt.Sprintf("%s:%s:%s", constants.PreviousValuePrefix, id, key), value)
 	}
 
 }
@@ -318,7 +320,4 @@ var r = &registry{
 	listeners: make(map[string]subscription),
 }
 
-var log = logger.Logger.
-	With().
-	Str("service", "systemRegistry").
-	Logger()
+var log zerolog.Logger

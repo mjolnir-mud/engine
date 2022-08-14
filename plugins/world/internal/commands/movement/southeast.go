@@ -1,11 +1,7 @@
 package movement
 
-import (
-	"github.com/mjolnir-mud/engine/pkg/reactor"
-)
-
 type Southeast struct{}
 
-func (n *Southeast) Run(sess reactor.Session) error {
+func (n *Southeast) Run(sess string) error {
 	return moveSessionCharacterInDirection(sess, "southeast")
 }

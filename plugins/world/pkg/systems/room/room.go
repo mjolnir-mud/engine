@@ -1,9 +1,8 @@
 package room
 
 import (
-	"github.com/mjolnir-mud/engine/pkg/reactor"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/character"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/location"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/character"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/location"
 )
 
 type room struct{}

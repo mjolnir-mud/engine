@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/db"
 	"go.mongodb.org/mongo-driver/bson"

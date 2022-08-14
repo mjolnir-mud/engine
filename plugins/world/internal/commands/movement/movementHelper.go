@@ -1,20 +1,19 @@
 package movement
 
 import (
-	"github.com/mjolnir-mud/engine/pkg/reactor"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/entity_registry"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/character"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/systems/room"
 	templates2 "github.com/mjolnir-mud/engine/plugins/world/internal/templates"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/character"
+	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/room"
 )
 
-func moveSessionCharacterInDirection(sess reactor.Session, dir string) error {
+func moveSessionCharacterInDirection(sess string, dir string) error {
 	currentLocation := character.GetCurrentCharacterLocationForSession(sess)
 	currentCharacter := character.GetCurrentCharacter(sess)
 	currentCharacterName := character.GetCharacterName(currentCharacter)
 
-	loc, err := entity_registry.GetStringFromHashComponent(currentLocation, "exits", dir)
+	loc, err := ecs.GetStringFromMapComponent(currentLocation, "exits", dir)
 
 	if err != nil {
 		switch err.Error() {

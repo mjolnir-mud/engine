@@ -1,11 +1,7 @@
 package movement
 
-import (
-	"github.com/mjolnir-mud/engine/pkg/reactor"
-)
-
 type Out struct{}
 
-func (n *Out) Run(sess reactor.Session) error {
+func (n *Out) Run(sess string) error {
 	return moveSessionCharacterInDirection(sess, "out")
 }

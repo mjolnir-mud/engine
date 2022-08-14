@@ -1,7 +1,7 @@
 package system_registry
 
 import (
-	"context"
+	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
 	"testing"
 	"time"
 
@@ -14,7 +14,7 @@ import (
 var testSystem = test.NewTestSystem()
 
 func setup() {
-	engine.Start("test")
+	testing2.Setup()
 
 	entity_registry.Register(test.TestEntityType{})
 	Register(testSystem)
@@ -23,14 +23,14 @@ func setup() {
 
 	Start()
 
-	engine.Redis.FlushDB(context.Background())
+	_ = engine.RedisFlushAll()
 }
 
 func teardown() {
-	engine.Redis.FlushDB(context.Background())
+	_ = engine.RedisFlushAll()
 	Stop()
 	entity_registry.Stop()
-	engine.Stop()
+	testing2.Teardown()
 }
 
 func waitUntilCalledWith(system test.TestSystem, function string, args map[string]interface{}) chan bool {
@@ -138,7 +138,7 @@ func Test_ComponentRemovedEvents(t *testing.T) {
 	}))
 
 	// ensure no meta keys exist
-	keys := engine.Redis.Keys(context.Background(), "__*:test:*").Val()
+	keys := engine.RedisKeys("__*:test:*").Val()
 
 	assert.Len(t, keys, 0)
 }

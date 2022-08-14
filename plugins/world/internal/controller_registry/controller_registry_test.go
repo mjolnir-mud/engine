@@ -3,7 +3,6 @@ package controller_registry
 import (
 	"testing"
 
-	"github.com/mjolnir-mud/engine/pkg/reactor"
 	"github.com/stretchr/testify/assert"
 )
 
