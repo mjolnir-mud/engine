@@ -120,14 +120,34 @@ func SetIntInFlash(id, key string, value int) error {
 	return ecs.AddOrUpdateIntInMapComponent(id, "flash", key, value)
 }
 
+// SetStringInFlash sets a string value in the flash, under the given key. If the session does not exist, an error is
+// returned.
+func SetStringInFlash(id, key string, value string) error {
+	return ecs.AddOrUpdateStringInMapComponent(id, "flash", key, value)
+}
+
 // GetIntFromStore gets an int value from the store, under the given key. If the session does not exist, an error is
 // returned.
 func GetIntFromStore(id, key string) (int, error) {
 	return ecs.GetIntFromMapComponent(id, "store", key)
 }
 
+// GetIntFromFlash gets a string value from the store, under the given key. If the session does not exist, an error
+// is returned.
 func GetIntFromFlash(id, key string) (int, error) {
 	return ecs.GetIntFromMapComponent(id, "flash", key)
+}
+
+// GetStringFromStore gets a string value from the store, under the given key. If the session does not exist, an error
+// is returned.
+func GetStringFromStore(id, key string) (string, error) {
+	return ecs.GetStringFromMapComponent(id, "store", key)
+}
+
+// GetStringFromFlash gets a string value from the store, under the given key. If the session does not exist, an error
+// is returned.
+func GetStringFromFlash(id, key string) (string, error) {
+	return ecs.GetStringFromMapComponent(id, "flash", key)
 }
 
 func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
@@ -135,8 +155,6 @@ func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
 
 	if err != nil {
 		switch err.(type) {
-		case errors.ComponentNotFoundError:
-			return defaultValue, nil
 		case errors.MapKeyNotFoundError:
 			return defaultValue, nil
 		default:

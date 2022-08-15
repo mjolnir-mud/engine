@@ -233,4 +233,43 @@ func TestGetIntFromFlashWithDefault(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, i)
+
+	i, err = GetIntFromFlashWithDefault("testd", "test2", 3)
+
+	assert.Error(t, err)
+}
+
+func TestGetStringFromStore(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SetStringInStore("test", "test", "test")
+
+	assert.NoError(t, err)
+
+	s, err := GetStringFromStore("test", "test")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "test", s)
+}
+
+func TestGetStringFromFlash(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SetStringInFlash("test", "test", "test")
+	assert.NoError(t, err)
+
+	s, err := GetStringFromFlash("test", "test")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "test", s)
 }
