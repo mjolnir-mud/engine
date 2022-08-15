@@ -27,17 +27,15 @@ func (l testController) Name() string {
 	return "login"
 }
 
-func (l testController) Start(id string) error {
-	//_ = promptLoginUsername(session)
-
+func (l testController) Start(_ string) error {
 	return nil
 }
 
-func (l testController) Resume(id string) error {
+func (l testController) Resume(_ string) error {
 	return nil
 }
 
-func (l testController) Stop(id string) error {
+func (l testController) Stop(_ string) error {
 	return nil
 }
 
@@ -53,19 +51,19 @@ func (a altController) Name() string {
 	return "alt"
 }
 
-func (a altController) Start(id string) error {
+func (a altController) Start(_ string) error {
 	return nil
 }
 
-func (a altController) Resume(id string) error {
+func (a altController) Resume(_ string) error {
 	return nil
 }
 
-func (a altController) Stop(id string) error {
+func (a altController) Stop(_ string) error {
 	return nil
 }
 
-func (a altController) HandleInput(id string, input string) error {
+func (a altController) HandleInput(_ string, _ string) error {
 	return nil
 }
 
@@ -234,7 +232,7 @@ func TestGetIntFromFlashWithDefault(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, i)
 
-	i, err = GetIntFromFlashWithDefault("testd", "test2", 3)
+	i, err = GetIntFromFlashWithDefault("test3", "test2", 3)
 
 	assert.Error(t, err)
 }

@@ -78,7 +78,7 @@ func SetStringInStore(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
 }
 
-// SendLine sends a line to the sessions connection. If the session does not exist, an error is returned.
+// SendLine sends a line to the session's connection. If the session does not exist, an error is returned.
 func SendLine(id, line string) error {
 	exists, err := ecs.EntityExists(id)
 
