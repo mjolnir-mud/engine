@@ -175,3 +175,62 @@ func TestSendLine(t *testing.T) {
 
 	assert.Equal(t, "test", line)
 }
+
+func TestGetIntFromStore(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SetIntInStore("test", "test", 1)
+
+	assert.NoError(t, err)
+
+	i, err := GetIntFromStore("test", "test")
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, i)
+}
+
+func TestGetIntFromFlash(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SetIntInFlash("test", "test", 1)
+
+	assert.NoError(t, err)
+
+	i, err := GetIntFromFlash("test", "test")
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, i)
+}
+
+func TestGetIntFromFlashWithDefault(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SetIntInFlash("test", "test", 1)
+
+	assert.NoError(t, err)
+
+	i, err := GetIntFromFlashWithDefault("test", "test", 1)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, i)
+
+	i, err = GetIntFromFlashWithDefault("test", "test2", 2)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, i)
+}

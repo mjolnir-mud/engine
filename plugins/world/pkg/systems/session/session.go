@@ -108,4 +108,43 @@ func HandleInput(id, input string) error {
 	return c.HandleInput(id, input)
 }
 
+// SetIntInStore sets an int value in the store, under the given key. If the session does not exist, an error is
+// returned.
+func SetIntInStore(id, key string, value int) error {
+	return ecs.AddOrUpdateIntInMapComponent(id, "store", key, value)
+}
+
+// SetIntInFlash sets an int value in the flash, under the given key. If the session does not exist, an error is
+// returned.
+func SetIntInFlash(id, key string, value int) error {
+	return ecs.AddOrUpdateIntInMapComponent(id, "flash", key, value)
+}
+
+// GetIntFromStore gets an int value from the store, under the given key. If the session does not exist, an error is
+// returned.
+func GetIntFromStore(id, key string) (int, error) {
+	return ecs.GetIntFromMapComponent(id, "store", key)
+}
+
+func GetIntFromFlash(id, key string) (int, error) {
+	return ecs.GetIntFromMapComponent(id, "flash", key)
+}
+
+func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
+	i, err := GetIntFromFlash(id, key)
+
+	if err != nil {
+		switch err.(type) {
+		case errors.ComponentNotFoundError:
+			return defaultValue, nil
+		case errors.MapKeyNotFoundError:
+			return defaultValue, nil
+		default:
+			return 0, err
+		}
+	}
+
+	return i, nil
+}
+
 var System = session{}
