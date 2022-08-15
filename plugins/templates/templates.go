@@ -1,9 +1,10 @@
 package templates
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/templates/internal/template_registry"
+	"github.com/mjolnir-mud/engine/plugins/templates/internal/theme_registry"
 	"github.com/mjolnir-mud/engine/plugins/templates/pkg/template"
 	"github.com/mjolnir-mud/engine/plugins/templates/pkg/theme"
-	"github.com/rs/zerolog/log"
 )
 
 type templatePlugin struct {
@@ -16,48 +17,33 @@ func (p templatePlugin) Name() string {
 }
 
 func (p templatePlugin) Start() error {
+	theme_registry.Start()
+	template_registry.Start()
+
 	return nil
 }
 
+func (p templatePlugin) Stop() error {
+	theme_registry.Stop()
+	template_registry.Stop()
+
+	return nil
+}
+
+// RegisterTheme registers a theme with the theme registry.
 func RegisterTheme(t theme.Theme) {
-	Plugin.themes[t.Name()] = t
+	theme_registry.Register(t)
 }
 
-func GetTheme(name string) theme.Theme {
-	return Plugin.themes[name]
-}
-
+// RegisterTemplate registers a template with the template registry.
 func RegisterTemplate(t template.Template) {
-	Plugin.templates[t.Name()] = t
+	template_registry.Register(t)
 }
 
-func RenderTemplate(name string, ctx interface{}) string {
-	// get the template
-	t := Plugin.templates[name]
-
-	// if the template doesn't exist, return an error
-	if t == nil {
-		log.Error().Str("template", name).Msg("template not found")
-		return "Something went terribly wrong."
-	}
-
-	// get the theme and style
-	thm := GetTheme("default")
-	style := thm.GetStyleFor(t.Style())
-
-	text, err := t.Render(ctx)
-
-	if err != nil {
-		log.Error().Err(err).Msg("error rendering template")
-		return "Something went terribly wrong."
-	}
-
-	return style.Render(text)
+// RenderTemplate renders a template with the given name passing the given data to the template. If the template is not
+// found, an error is returned.
+func RenderTemplate(name string, ctx interface{}) (string, error) {
+	return template_registry.Render(name, ctx)
 }
 
-var logger = log.With().Str("plugin", "templates").Logger()
-
-var Plugin = &templatePlugin{
-	themes:    make(map[string]theme.Theme),
-	templates: make(map[string]template.Template),
-}
+var Plugin = &templatePlugin{}

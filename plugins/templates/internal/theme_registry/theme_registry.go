@@ -13,9 +13,12 @@ var log zerolog.Logger
 func Start() {
 	log = logger.Instance.With().Str("service", "theme_registry").Logger()
 	themes = map[string]theme.Theme{}
+	log.Info().Msg("starting theme registry")
 }
 
-func Stop() {}
+func Stop() {
+	log.Info().Msg("stopping theme registry")
+}
 
 func Register(t theme.Theme) {
 	log.Info().Str("theme", t.Name()).Msg("registering theme")
