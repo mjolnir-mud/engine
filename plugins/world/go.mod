@@ -5,9 +5,7 @@ go 1.17
 require (
 	github.com/charmbracelet/lipgloss v0.5.0
 	github.com/mjolnir-mud/engine v0.1.0
-	github.com/mjolnir-mud/engine/plugins/command_parser v0.0.0-00010101000000-000000000000
 	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-00010101000000-000000000000
-	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
