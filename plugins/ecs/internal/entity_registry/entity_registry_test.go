@@ -1167,6 +1167,19 @@ func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 	err = AddOrUpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue3")
 
 	assert.Nil(t, err)
+
+	// test that an error is thrown if the entity does not exist
+	err = AddOrUpdateStringInMapComponent("notRegistered", "testComponent", "testKey", "testValue3")
+
+	assert.NotNil(t, err)
+	assert.IsTypef(t, errors.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
+
+	// test that an error is thrown if the component does not exist
+	err = AddOrUpdateStringInMapComponent("testEntity", "notRegistered", "testKey", "testValue3")
+
+	assert.NotNil(t, err)
+	assert.IsTypef(t, errors.ComponentNotFoundError{}, err, "error should be of type ComponentNotFoundError")
+
 	teardown()
 }
 

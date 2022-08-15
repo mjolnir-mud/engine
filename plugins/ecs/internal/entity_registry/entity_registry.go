@@ -913,7 +913,21 @@ func addOrUpdateToMapComponent(id string, name string, key string, value interfa
 		return err
 	}
 
+	// TODO add test for this
 	if !exists {
+		return errors.ComponentNotFoundError{
+			ID:   id,
+			Name: name,
+		}
+	}
+
+	hasKey, err := mapHasKey(id, name, key)
+
+	if err != nil {
+		return err
+	}
+
+	if !hasKey {
 		return addToMapComponent(id, name, key, value)
 	}
 
@@ -1275,7 +1289,7 @@ func updateInMapComponent(id string, name string, mapKey string, value interface
 	}
 
 	if !hasKey {
-		return errors.MapHasKeyError{ID: id, Name: name, Key: mapKey}
+		return errors.MapKeyNotFoundError{ID: id, Name: name, Key: mapKey}
 	}
 
 	// check if the value type matches the expected type
