@@ -28,6 +28,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000 // indirect
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect

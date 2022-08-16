@@ -3,6 +3,7 @@ package session
 import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
+	"github.com/mjolnir-mud/engine/plugins/templates"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
 	session2 "github.com/mjolnir-mud/engine/plugins/world/internal/session"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/controller"
@@ -150,6 +151,8 @@ func GetStringFromFlash(id, key string) (string, error) {
 	return ecs.GetStringFromMapComponent(id, "flash", key)
 }
 
+// GetIntFromFlashWithDefault gets a string value from the store, under the given key. If the session does not exist,`
+// an error is returned. If the key is not found, the default value is returned.
 func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
 	i, err := GetIntFromFlash(id, key)
 
@@ -163,6 +166,18 @@ func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
 	}
 
 	return i, nil
+}
+
+// RenderTemplate renders the template  with the given name and data. If the session does not exist, an error is
+// returned.
+func RenderTemplate(id, template string, data interface{}) error {
+	rendered, err := templates.RenderTemplate(template, data)
+
+	if err != nil {
+		return err
+	}
+
+	return SendLine(id, rendered)
 }
 
 var System = session{}

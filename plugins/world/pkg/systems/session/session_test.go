@@ -4,6 +4,7 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/templates"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
 	session3 "github.com/mjolnir-mud/engine/plugins/world/internal/session"
 	session2 "github.com/mjolnir-mud/engine/plugins/world/pkg/entities/session"
@@ -18,6 +19,20 @@ var ch = make(chan inputArgs)
 type inputArgs struct {
 	Id    string
 	Input string
+}
+
+type testTemplate struct{}
+
+func (t testTemplate) Render(args interface{}) (string, error) {
+	return "test", nil
+}
+
+func (t testTemplate) Name() string {
+	return "test"
+}
+
+func (t testTemplate) Style() string {
+	return "default"
 }
 
 // testController is the login testController, responsible handling user logins.
@@ -72,6 +87,7 @@ func setup() {
 	controller_registry.Register(testController{})
 	controller_registry.Register(altController{})
 	controller_registry.Start()
+	engine.RegisterPlugin(templates.Plugin)
 	testing2.Setup()
 	session3.StartRegistry()
 	_ = engine.RedisFlushAll()
@@ -270,4 +286,31 @@ func TestGetStringFromFlash(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "test", s)
+}
+
+func TestRenderTemplate(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ch := make(chan string)
+
+	templates.RegisterTemplate(testTemplate{})
+
+	sub := engine.Subscribe(events.SendLineEvent{}, "test", func(e interface{}) {
+		go func() { ch <- e.(*events.SendLineEvent).Line }()
+	})
+
+	defer sub.Stop()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = RenderTemplate("test", "test", "test")
+
+	assert.NoError(t, err)
+
+	line := <-ch
+
+	assert.Equal(t, "test", line)
 }
