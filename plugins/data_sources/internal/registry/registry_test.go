@@ -10,16 +10,15 @@ import (
 )
 
 func setup() {
-	engine.Start("test")
+	engine.RegisterPlugin(ecs.Plugin)
 	ecs.RegisterEntityType(test.FakeEntityType)
 	Register(test.FakeDataSource)
-	_ = ecs.Plugin.Start()
 	_ = Start()
+	engine.Start("test")
 }
 
 func teardown() {
 	_ = Stop()
-	_ = ecs.Plugin.Stop()
 	engine.Stop()
 }
 
@@ -37,7 +36,7 @@ func TestLoad(t *testing.T) {
 	entity, err := Load("fake", "test1")
 
 	assert.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{"testComponent": "test1"}, entity)
+	assert.Equal(t, entity, map[string]interface{}{"testComponent": "test1"})
 }
 
 func TestLoadAll(t *testing.T) {
@@ -46,5 +45,5 @@ func TestLoadAll(t *testing.T) {
 	entities, err := LoadAll("fake")
 
 	assert.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{"testComponent": "test"}, entities["fakeId"])
+	assert.Equal(t, map[string]interface{}{"testComponent": "test1"}, entities["test1"])
 }

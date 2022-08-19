@@ -39,4 +39,10 @@ func LoadAll(source string) (map[string]map[string]interface{}, error) {
 	return registry.LoadAll(source)
 }
 
+// Count returns the number of entities in a data source using the provided map as a filter. If the data source does not
+// exist, an error will be returned.
+func Count(source string, filter map[string]interface{}) (int64, error) {
+	return registry.Count(source, filter)
+}
+
 var Plugin = plugin{}

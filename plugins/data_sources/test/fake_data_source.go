@@ -40,6 +40,10 @@ func (f fakeDataSource) Find(search map[string]interface{}) (map[string]map[stri
 	return entities, nil
 }
 
+func (f fakeDataSource) Count(filter map[string]interface{}) (int64, error) {
+	return int64(len(f.entities)), nil
+}
+
 func (f fakeDataSource) Save(entityId string, entity map[string]interface{}) error {
 	return nil
 }
@@ -48,13 +52,13 @@ var FakeDataSource = fakeDataSource{
 	entities: map[string]map[string]interface{}{
 		"test1": map[string]interface{}{
 			"__metadata": map[string]interface{}{
-				"type": "fake",
+				"entityType": "fake",
 			},
 			"testComponent": "test1",
 		},
 		"test2": map[string]interface{}{
 			"__metadata": map[string]interface{}{
-				"type": "fake",
+				"entityType": "fake",
 			},
 			"testComponent": "test2",
 		},

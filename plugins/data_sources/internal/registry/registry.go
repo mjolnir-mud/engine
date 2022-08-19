@@ -73,6 +73,7 @@ func Load(source string, entityId string) (map[string]interface{}, error) {
 			return nil, err
 		}
 
+		data["id"] = entityId
 		return loadEntity(data)
 	} else {
 		return nil, InvalidDataSourceError{Source: source}
@@ -136,10 +137,19 @@ func Save(source string, entityId string, entity map[string]interface{}) error {
 	}
 }
 
+func Count(source string, search map[string]interface{}) (int64, error) {
+	if d, ok := r.dataSources[source]; ok {
+		return d.Count(search)
+	} else {
+		return 0, InvalidDataSourceError{Source: source}
+	}
+}
+
 func loadEntities(entities map[string]map[string]interface{}) (map[string]map[string]interface{}, error) {
 	result := make(map[string]map[string]interface{})
 
 	for id, entity := range entities {
+		entity["id"] = id
 		loadedEntity, err := loadEntity(entity)
 
 		if err != nil {
@@ -153,17 +163,24 @@ func loadEntities(entities map[string]map[string]interface{}) (map[string]map[st
 }
 
 func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
+	id, ok := entity["id"]
+
+	if !ok {
+		return nil, errors.IDRequiredError{}
+	}
+
 	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 	if !ok {
 		return nil, errors.MetadataRequiredError{ID: entity["id"].(string)}
 	}
 	delete(entity, constants.MetadataKey)
+	delete(entity, "id")
 
 	entityType, ok := metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return nil, MetadataTypeRequiredError{ID: entity["id"].(string)}
+		return nil, MetadataTypeRequiredError{ID: id.(string)}
 	}
 
 	return ecs.CreateEntity(entityType, entity)
