@@ -85,8 +85,9 @@ func AllComponents(id string) map[string]interface{} {
 	return components
 }
 
-// Add adds an entity to the entity registry. It takes a type, a map of components to be added to the entity. If the
-// entity already exists, an error will be returned. If the type is not registered, an error will be returned.
+// Add adds an entity to the entity registry. It takes the entity id, and a map of arguments to be passed to the entity
+// type's constructor. If the entity type is not registered, an error will be returned. If the entity already exists,
+// an error will be returned.
 func Add(entityType string, args map[string]interface{}) (string, error) {
 	id := generateID()
 	err := AddWithID(entityType, id, args)
@@ -98,9 +99,9 @@ func Add(entityType string, args map[string]interface{}) (string, error) {
 	return id, nil
 }
 
-// AddWithID adds an entity with the provided id to the entity registry. It takes the entity id,
-// and a map of components to be added. If an entity with the same id already exists, an error will be thrown. If the
-// type is not registered, an error will be thrown.
+// AddWithID adds an entity with the provided id to the entity registry. It takes the entity id, and a map of arguments
+// to be passed to the entity type's constructor. If the entity type is not registered, an error will be returned. If
+// the entity already exists, an error will be returned.
 func AddWithID(entityType string, id string, args map[string]interface{}) error {
 	exists, err := Exists(id)
 
@@ -118,6 +119,12 @@ func AddWithID(entityType string, id string, args map[string]interface{}) error 
 
 	log.Debug().Str("id", id).Msg("adding entity")
 	setEntityType(id, entityType)
+
+	args, err = Create(entityType, args)
+
+	if err != nil {
+		return err
+	}
 
 	// add the entities components to the world
 	err = setComponentsFromMap(id, args)

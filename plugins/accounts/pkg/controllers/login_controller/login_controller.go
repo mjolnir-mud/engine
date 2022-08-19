@@ -57,7 +57,7 @@ func handleInput(id string, input string) error {
 }
 
 func handleUsername(id string, input string) error {
-	if input == "new" {
+	if input == "create" {
 		err := session.SetController(id, "new_account")
 
 		if err != nil {
@@ -73,6 +73,18 @@ func handleUsername(id string, input string) error {
 		return err
 	}
 
+	err = session.SetIntInFlash(id, "step", 2)
+
+	if err != nil {
+		return err
+	}
+
+	err = session.RenderTemplate(id, "prompt_password", nil)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -81,6 +93,7 @@ func handlePassword(id string, input string) error {
 }
 
 func promptLoginPasswordn(id string) error {
+
 	return nil
 }
 

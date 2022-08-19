@@ -310,8 +310,8 @@ func stopComponentListener(s system.System) {
 
 func stopComponentSetListener(s system.System) {
 	log.Info().Msgf("stopping component set listener for system %s", s.Name())
-	sub := r.listeners[s.Name()]
-	sub.Stop()
+	//sub := r.listeners[s.Name()]
+	//sub.Stop()
 	delete(r.listeners, s.Name())
 }
 

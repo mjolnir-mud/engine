@@ -6,6 +6,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/session"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/controller"
+	session3 "github.com/mjolnir-mud/engine/plugins/world/pkg/entities/session"
 	session2 "github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
 	"github.com/spf13/cobra"
 )
@@ -25,20 +26,26 @@ var command = &cobra.Command{
 }
 
 func (w world) Registered() error {
-	controller_registry.Start()
+	engine.EnsureRegistered(ecs.Plugin.Name())
 
-	engine.RegisterCLICommand(command)
+	engine.RegisterAfterStartCallback(func() {
+		controller_registry.Start()
 
-	ecs.RegisterSystem(session2.System)
+		engine.RegisterCLICommand(command)
 
-	session.RegisterSessionStartedHandler(func(id string) error {
-		err := ecs.AddEntityWithID(id, "session", map[string]interface{}{})
+		ecs.RegisterEntityType(session3.Type)
 
-		if err != nil {
-			return err
-		}
+		ecs.RegisterSystem(session2.System)
 
-		return session2.Start(id)
+		session.RegisterSessionStartedHandler(func(id string) error {
+			err := ecs.AddEntityWithID(id, "session", map[string]interface{}{})
+
+			if err != nil {
+				return err
+			}
+
+			return session2.Start(id)
+		})
 	})
 
 	return nil

@@ -1,6 +1,7 @@
 package ecs
 
 import (
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
@@ -13,27 +14,30 @@ func (p plugin) Name() string {
 	return "ecs"
 }
 
-func (p plugin) Start() error {
-	entity_registry.Start()
-	system_registry.Start()
+func (p plugin) Registered() error {
+	engine.RegisterAfterStartCallback(func() {
+		entity_registry.Start()
+		system_registry.Start()
+	})
+
+	engine.RegisterBeforeStopCallback(func() {
+		entity_registry.Stop()
+		system_registry.Stop()
+	})
+
 	return nil
 }
 
-func (p plugin) Stop() error {
-	entity_registry.Stop()
-	system_registry.Stop()
-	return nil
-}
-
-// AddEntity adds an entity to the entity registry. It takes a type, a map of components to be added to the entity. If the
-// entity already exists, an error will be returned. If the type is not registered, an error will be returned.
+// AddEntity adds an entity to the entity registry. It takes the entity id, and a map of arguments to be passed to the entity
+// type's constructor. If the entity type is not registered, an error will be returned. If the entity already exists,
+// an error will be returned.
 func AddEntity(entityType string, args map[string]interface{}) (string, error) {
 	return entity_registry.Add(entityType, args)
 }
 
-// AddEntityWithID adds an entity with the provided id to the entity registry. It takes the entity id,
-// and a map of components to be added. If an entity with the same id already exists, an error will be thrown. If the
-// type is not registered, an error will be thrown.
+// AddEntityWithID adds an entity with the provided id to the entity registry. It takes the entity id, and a map of arguments
+// to be passed to the entity type's constructor. If the entity type is not registered, an error will be returned. If
+// the entity already exists, an error will be returned.
 func AddEntityWithID(entityType string, id string, args map[string]interface{}) error {
 	return entity_registry.AddWithID(entityType, id, args)
 }
@@ -167,13 +171,6 @@ func ComponentExists(id string, component string) (bool, error) {
 // entity type returning the merged components as a map.
 func CreateEntity(entityType string, args map[string]interface{}) (map[string]interface{}, error) {
 	return entity_registry.Create(entityType, args)
-}
-
-// CreateAndAddEntity creates an entity of the given entity type, adds it to the entity registry, and returns the
-// id of the entity. It takes the entity type and a map of components. It will merge the provided components with the
-// default components for the entity type returning the merged components as a map.
-func CreateAndAddEntity(entityType string, args map[string]interface{}) (string, error) {
-	return entity_registry.CreateAndAdd(entityType, args)
 }
 
 // EntityExists checks if an entity with the given id exists. It takes the entity id and returns a boolean.
