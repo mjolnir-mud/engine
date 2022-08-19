@@ -107,3 +107,17 @@ func TestMongoDataSource_Save(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), c)
 }
+
+func TestMongoDataSource_Count(t *testing.T) {
+	setup()
+	defer teardown()
+
+	dataSource := New("entities")
+
+	c, err := dataSource.Count(map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), c)
+}

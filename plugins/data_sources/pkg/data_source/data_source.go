@@ -24,6 +24,9 @@ type DataSource interface {
 	// LoadAll loads all entities from the data source returning a map of entity ID to entities.
 	LoadAll() (map[string]map[string]interface{}, error)
 
+	// Count returns the number of entities in the data source using the provided map.
+	Count(map[string]interface{}) (int64, error)
+
 	// Find returns a list of entities from executing a search against a provided map. It returns a list of entities as a
 	// map keyed by their ids.
 	Find(search map[string]interface{}) (map[string]map[string]interface{}, error)

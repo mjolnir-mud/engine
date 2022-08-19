@@ -172,6 +172,18 @@ func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[str
 	return results, nil
 }
 
+func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
+	m.logger.Debug().Interface("search", search).Msg("counting entities")
+
+	count, err := m.collection.CountDocuments(context.Background(), search)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (m MongoDataSource) Save(entityId string, entity map[string]interface{}) error {
 	metadata, ok := entity[constants.MetadataKey]
 
