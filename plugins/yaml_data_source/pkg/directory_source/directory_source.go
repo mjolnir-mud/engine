@@ -90,6 +90,12 @@ func (d DirectorySource) Find(search map[string]interface{}) (map[string]map[str
 	}
 
 	searchResults := make(map[string]map[string]interface{})
+
+	// if the search map is empty, return all entities
+	if len(search) == 0 {
+		return entities, nil
+	}
+
 	for id, entity := range entities {
 		for k, v := range search {
 			if entity[k] != v {
@@ -100,6 +106,17 @@ func (d DirectorySource) Find(search map[string]interface{}) (map[string]map[str
 	}
 
 	return searchResults, nil
+}
+
+func (d DirectorySource) Count(search map[string]interface{}) (int64, error) {
+	recs, err := d.Find(search)
+
+	if err != nil {
+		log.Error().Err(err).Msg("failed to find")
+		return 0, err
+	}
+
+	return int64(len(recs)), nil
 }
 
 func (d DirectorySource) Save(entityId string, entity map[string]interface{}) error {

@@ -125,6 +125,16 @@ func TestDirectorySource_Save(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestDirectorySource_Count(t *testing.T) {
+	ds := New("entities_1", "../../test/fixtures")
+
+	count, err := ds.Count(map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	assert.Equal(t, int64(4), count)
+}
+
 func resetToEmptyFile(file string) {
 	f, err := os.Create(file)
 
