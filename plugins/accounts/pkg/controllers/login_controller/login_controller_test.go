@@ -102,5 +102,32 @@ func TestControllerHandlesUsername(t *testing2.T) {
 	line := <-receivedLine
 
 	assert.Equal(t, "Enter your password:", line)
+}
 
+func TestControllerHandleUsernameCreate(t *testing2.T) {
+	setup()
+	defer teardown()
+
+	receivedLine := make(chan string)
+
+	sub := engine.Subscribe(events.SendLineEvent{}, "sess", func(e interface{}) {
+		go func() { receivedLine <- e.(*events.SendLineEvent).Line }()
+	})
+
+	defer sub.Stop()
+
+	c := controller{}
+
+	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	assert.NoError(t, err)
+
+	err = c.HandleInput("sess", "create")
+
+	assert.NoError(t, err)
+
+	i, err := session.GetIntFromFlash("sess", "step")
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, i)
 }

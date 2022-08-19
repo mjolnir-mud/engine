@@ -1,6 +1,7 @@
 package session
 
 import (
+	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/templates"
@@ -96,6 +97,11 @@ func SendLine(id, line string) error {
 	session2.SendLine(id, line)
 
 	return nil
+}
+
+// SendLineF sends a line to the session's connection. If the session does not exist, an error is returned.
+func SendLineF(id string, format string, args ...interface{}) error {
+	return SendLine(id, fmt.Sprintf(format, args...))
 }
 
 // HandleInput passes the input to the session controller. If the session does not exist, an error is returned.

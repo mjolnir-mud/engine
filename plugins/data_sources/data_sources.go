@@ -45,4 +45,11 @@ func Count(source string, filter map[string]interface{}) (int64, error) {
 	return registry.Count(source, filter)
 }
 
+// Save saves data to a data source for a given entity. If the entity does not have a valid metadata field an error will
+// be thrown. If the data source does not exist, an error will be thrown. If the metadata field does not have a type
+// set, an error will be thrown. If the entity exists in the data source, it will be overwritten.
+func Save(source string, entityId string, entity map[string]interface{}) error {
+	return registry.Save(source, entityId, entity)
+}
+
 var Plugin = plugin{}

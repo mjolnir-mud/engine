@@ -314,3 +314,28 @@ func TestRenderTemplate(t *testing.T) {
 
 	assert.Equal(t, "test", line)
 }
+
+func TestSendLineF(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ch := make(chan string)
+
+	sub := engine.Subscribe(events.SendLineEvent{}, "test", func(e interface{}) {
+		go func() { ch <- e.(*events.SendLineEvent).Line }()
+	})
+
+	defer sub.Stop()
+
+	err := Start("test")
+
+	assert.NoError(t, err)
+
+	err = SendLineF("test", "test%s", "test")
+
+	assert.NoError(t, err)
+
+	line := <-ch
+
+	assert.Equal(t, "testtest", line)
+}
