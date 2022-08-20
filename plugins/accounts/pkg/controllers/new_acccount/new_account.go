@@ -15,7 +15,7 @@ type controller struct{}
 
 var Controller = controller{}
 
-var UsernameValidator = func(username string) (bool, error) {
+var UsernameValidator = func(username string) error {
 	r, err := regexp.Compile("^[a-zA-Z0-9_\\-]+$")
 
 	if err != nil {
@@ -23,23 +23,47 @@ var UsernameValidator = func(username string) (bool, error) {
 	}
 
 	if len(username) < 4 {
-		return false, fmt.Errorf("'%s' is not a valid username. It must be at least 4 characters long", username)
+		return fmt.Errorf("'%s' is not a valid username. It must be at least 4 characters long", username)
 	}
 
 	if len(username) > 10 {
-		return false, fmt.Errorf("'%s' is not a valid username. It must be less than 10 characters long", username)
+		return fmt.Errorf("'%s' is not a valid username. It must be less than 10 characters long", username)
 	}
 
 	if !r.MatchString(username) {
-		return false, fmt.Errorf(
+		return fmt.Errorf(
 			"'%s' is not a valid username. It must contain only alpha-numeric characters, dashes (-) or underscrores (_)",
 			username,
 		)
 	}
 
-	return true, nil
+	return nil
 }
-var PasswordValidator func(password string) (bool, error)
+var PasswordValidator = func(password string) error {
+	if len(password) < 8 {
+		//goland:noinspection ALL
+		return fmt.Errorf("Not a valid password. It must be at least 8 characters long.")
+	}
+
+	r, err := regexp.Compile("^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).*$")
+
+	if err != nil {
+		panic(err)
+	}
+
+	if !r.MatchString(password) {
+		//goland:noinspection GoErrorStringFormat
+		return fmt.Errorf(
+			"Not a valid password. It must contain at least one lowercase letter, one uppercase letter, one number, and one special character.",
+		)
+	}
+
+	return nil
+}
+
+var AfterCreatCallback = func(sessId string, entityId string) error {
+	return nil
+}
 
 func (n controller) Name() string {
 	return "new_account"
@@ -79,6 +103,12 @@ func (n controller) HandleInput(id string, input string) error {
 }
 
 func handlePassword(id string, input string) error {
+	err := PasswordValidator(input)
+
+	if err != nil {
+		return session.SendLine(id, err.Error())
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(input), 4)
 
 	if err != nil {
@@ -95,10 +125,29 @@ func handlePassword(id string, input string) error {
 }
 
 func handleEmail(id string, input string) error {
+	input = strings.ToLower(input)
 	_, err := mail.ParseAddress(input)
 
 	if err != nil {
-		err := session.SendLine(id, "Invalid email address.")
+		err := session.SendLineF(id, "'%s' is an invalid email address.", input)
+
+		if err != nil {
+			return err
+		}
+
+		return promptEmail(id)
+	}
+
+	count, err := data_sources.Count("accounts", map[string]interface{}{
+		"email": input,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		err := session.SendLineF(id, "'%s' is already registered to an account.")
 
 		if err != nil {
 			return err
@@ -126,13 +175,19 @@ func handleUsername(id, input string) error {
 	}
 
 	if count > int64(0) {
-		err := session.SendLine(id, "That username is already taken.")
+		err := session.SendLineF(id, "The username '%s' is already taken.")
 
 		if err != nil {
 			return err
 		}
 
 		return promptSigninUsername(id)
+	}
+
+	err = UsernameValidator(input)
+
+	if err != nil {
+		return session.SendLine(id, err.Error())
 	}
 
 	err = session.SetStringInFlash(id, "username", input)
@@ -188,16 +243,17 @@ func handlePasswordConfirmation(id string, input string) error {
 		"password": hashedPassword,
 	})
 
-	session.WriteToConnection("Account created.")
-
-	return nil
+	return AfterCreatCallback(id, userId)
 }
 
-func promptSigninUsername(session session.Session) error {
-	session.SetInFlash("step", 1)
-	session.WriteToConnection("Enter a username:")
+func promptSigninUsername(id string) error {
+	err := session.SetIntInFlash(id, "step", 1)
 
-	return nil
+	if err != nil {
+		return err
+	}
+
+	return session.SendLine(id, "Enter a username:")
 }
 
 func promptEmail(session session.Session) error {

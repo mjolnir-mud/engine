@@ -2,15 +2,15 @@ package templates
 
 type promptPasswordTemplate struct{}
 
-func (t *promptPasswordTemplate) Name() string {
+func (t promptPasswordTemplate) Name() string {
 	return "prompt_password"
 }
 
-func (t *promptPasswordTemplate) Style() string {
+func (t promptPasswordTemplate) Style() string {
 	return "default"
 }
 
-func (t *promptPasswordTemplate) Render(_ interface{}) (string, error) {
+func (t promptPasswordTemplate) Render(_ interface{}) (string, error) {
 	return "Enter your password:", nil
 }
 

@@ -33,11 +33,15 @@ func (p *plugin) Registered() error {
 	return nil
 }
 
-func RegisterUsernameValidator(validator func(username string) (bool, error)) {
+// RegisterUsernameValidator overwrites the default username validator. This is a function that simply returns an error
+// whose message will be presented to the connected user when the error is present.
+func RegisterUsernameValidator(validator func(username string) error) {
 	new_acccount.UsernameValidator = validator
 }
 
-func RegisterPasswordValidator(validator func(password string) (bool, error)) {
+// RegisterPasswordValidator overwrites the default password validator. This is a function that simply returns an error
+// whose message will be presented to the connected user when the error is present.
+func RegisterPasswordValidator(validator func(password string) error) {
 	new_acccount.PasswordValidator = validator
 }
 
