@@ -25,7 +25,15 @@ func (p *plugin) Registered() error {
 	engine.EnsureRegistered(templates.Plugin.Name())
 
 	engine.RegisterBeforeStartCallback(func() {
+
 		templates.RegisterTemplate(templates2.PromptUsernameTemplate)
+		templates.RegisterTemplate(templates2.PromptPasswordTemplate)
+		templates.RegisterTemplate(templates2.PromptEmailTemplate)
+		templates.RegisterTemplate(templates2.PromptNewPasswordTemplate)
+		templates.RegisterTemplate(templates2.PromptPasswordConfirmationTemplate)
+		templates.RegisterTemplate(templates2.PromptNewUsernameTemplate)
+		templates.RegisterTemplate(templates2.PromptNewEmailTemplate)
+
 		data_sources.Register(data_source.Accounts)
 		ecs.RegisterEntityType(entities.Account)
 	})
