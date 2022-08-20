@@ -33,6 +33,9 @@ func (p *plugin) Registered() error {
 		templates.RegisterTemplate(templates2.PromptPasswordConfirmationTemplate)
 		templates.RegisterTemplate(templates2.PromptNewUsernameTemplate)
 		templates.RegisterTemplate(templates2.PromptNewEmailTemplate)
+		templates.RegisterTemplate(templates2.InvalidEmailAddressTemplate)
+		templates.RegisterTemplate(templates2.PasswordMatchFailTemplate)
+		templates.RegisterTemplate(templates2.UsernameTakenTemplate)
 
 		data_sources.Register(data_source.Accounts)
 		ecs.RegisterEntityType(entities.Account)
