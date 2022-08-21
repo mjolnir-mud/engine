@@ -2,6 +2,7 @@ package directory_source
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/yaml_data_source/internal/logger"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,7 +12,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	constants2 "github.com/mjolnir-mud/engine/plugins/yaml_data_source/pkg/constants"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,6 +29,8 @@ type DirectorySource struct {
 	logger zerolog.Logger
 }
 
+var log = logger.Instance
+
 func New(name string, path string) DirectorySource {
 	path, err := filepath.Abs(path)
 
@@ -40,6 +42,10 @@ func New(name string, path string) DirectorySource {
 	return DirectorySource{
 		name: name,
 		path: path,
+		logger: log.With().
+			Str("directory", path).
+			Str("name", name).
+			Logger(),
 	}
 }
 
@@ -59,7 +65,7 @@ func (d DirectorySource) Load(entityId string) (map[string]interface{}, error) {
 	entities, err := d.loadDirectory(d.path)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load directory")
+		d.logger.Error().Err(err).Msg("failed to load directory")
 		return nil, err
 	}
 
@@ -74,7 +80,7 @@ func (d DirectorySource) LoadAll() (map[string]map[string]interface{}, error) {
 	entities, err := d.loadDirectory(d.path)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load directory")
+		d.logger.Error().Err(err).Msg("failed to load directory")
 		return nil, err
 	}
 
@@ -85,7 +91,7 @@ func (d DirectorySource) Find(search map[string]interface{}) (map[string]map[str
 	entities, err := d.loadDirectory(d.path)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load directory")
+		d.logger.Error().Err(err).Msg("failed to load directory")
 		return nil, err
 	}
 
@@ -108,11 +114,26 @@ func (d DirectorySource) Find(search map[string]interface{}) (map[string]map[str
 	return searchResults, nil
 }
 
+func (d DirectorySource) FindOne(search map[string]interface{}) (map[string]interface{}, error) {
+	entities, err := d.Find(search)
+
+	if err != nil {
+		d.logger.Error().Err(err).Msg("failed to find")
+		return nil, err
+	}
+
+	for _, entity := range entities {
+		return entity, nil
+	}
+
+	return nil, errors.EntityNotFoundError{ID: ""}
+}
+
 func (d DirectorySource) Count(search map[string]interface{}) (int64, error) {
 	recs, err := d.Find(search)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to find")
+		d.logger.Error().Err(err).Msg("failed to find")
 		return 0, err
 	}
 
@@ -123,7 +144,7 @@ func (d DirectorySource) Save(entityId string, entity map[string]interface{}) er
 	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 	if !ok {
-		log.Error().Msg("failed to find metadata")
+		d.logger.Error().Msg("failed to find metadata")
 		return errors.MetadataRequiredError{ID: entityId}
 	}
 
@@ -134,11 +155,11 @@ func (d DirectorySource) Save(entityId string, entity map[string]interface{}) er
 	}
 
 	// load from a yml file and process
-	log.Debug().Str("file", file).Msg("saving entity to file")
+	d.logger.Debug().Str("file", file).Msg("saving entity to file")
 	entities, err := d.loadFromFile(file)
 
 	if err != nil {
-		log.Error().Err(err).Msgf("failed to load file %s", file)
+		d.logger.Error().Err(err).Msgf("failed to load file %s", file)
 		return err
 	}
 
@@ -147,14 +168,14 @@ func (d DirectorySource) Save(entityId string, entity map[string]interface{}) er
 	content, err := yaml.Marshal(entities)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to marshal yaml")
+		d.logger.Error().Err(err).Msg("failed to marshal yaml")
 		return err
 	}
 
 	err = ioutil.WriteFile(file, content, 0644)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to write file")
+		d.logger.Error().Err(err).Msg("failed to write file")
 		return err
 	}
 
@@ -166,7 +187,7 @@ func (d DirectorySource) loadDirectory(dir string) (map[string]map[string]interf
 	files, err := os.Open(dir)
 
 	if err != nil {
-		log.Error().Err(err).Msgf("failed to open directory %s", dir)
+		d.logger.Error().Err(err).Msgf("failed to open directory %s", dir)
 		return nil, err
 	}
 
@@ -177,7 +198,7 @@ func (d DirectorySource) loadDirectory(dir string) (map[string]map[string]interf
 	names, err := files.Readdirnames(0)
 
 	if err != nil {
-		log.Error().Err(err).Msgf("failed to read directory %s", dir)
+		d.logger.Error().Err(err).Msgf("failed to read directory %s", dir)
 		return nil, err
 	}
 
@@ -192,7 +213,7 @@ func (d DirectorySource) loadDirectory(dir string) (map[string]map[string]interf
 			}
 
 			if err != nil {
-				log.Error().Err(err).Msgf("failed to load file %s", name)
+				d.logger.Error().Err(err).Msgf("failed to load file %s", name)
 				return nil, err
 			}
 		}
@@ -204,11 +225,11 @@ func (d DirectorySource) loadDirectory(dir string) (map[string]map[string]interf
 func (d DirectorySource) loadFromFile(file string) (map[string]map[string]interface{}, error) {
 
 	// load from a yml file and process
-	log.Debug().Str("file", file).Msg("loading entities from file")
+	d.logger.Debug().Str("file", file).Msg("loading entities from file")
 	content, err := os.ReadFile(file)
 
 	if err != nil {
-		log.Error().Str("file", file).Err(err).Msgf("failed to read file %s", file)
+		d.logger.Error().Str("file", file).Err(err).Msgf("failed to read file %s", file)
 		return nil, err
 	}
 
@@ -217,7 +238,7 @@ func (d DirectorySource) loadFromFile(file string) (map[string]map[string]interf
 	err = yaml.Unmarshal(content, ymlEntries)
 
 	if err != nil {
-		log.Error().Err(err).Msg("failed to parse yaml")
+		d.logger.Error().Err(err).Msg("failed to parse yaml")
 		return nil, err
 	}
 
@@ -226,7 +247,7 @@ func (d DirectorySource) loadFromFile(file string) (map[string]map[string]interf
 		metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 		if !ok {
-			log.Error().Str("file", file).Msg("failed to find metadata")
+			d.logger.Error().Str("file", file).Msg("failed to find metadata")
 			return nil, errors.MetadataRequiredError{ID: id}
 		}
 
