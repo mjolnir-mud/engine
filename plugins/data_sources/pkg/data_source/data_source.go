@@ -31,6 +31,9 @@ type DataSource interface {
 	// map keyed by their ids.
 	Find(search map[string]interface{}) (map[string]map[string]interface{}, error)
 
+	// FindOne returns a single entity from executing a search against a provided map.
+	FindOne(search map[string]interface{}) (map[string]interface{}, error)
+
 	// Save saves an entity to the data source. The entity ID is the key used to save the entity. The entity is a map of
 	// key/value pairs representing the component.
 	Save(entityId string, entity map[string]interface{}) error
