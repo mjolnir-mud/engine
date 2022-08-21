@@ -108,6 +108,26 @@ func TestMongoDataSource_Save(t *testing.T) {
 	assert.Equal(t, int64(1), c)
 }
 
+func TestMongoDataSource_FindOne(t *testing.T) {
+	setup()
+	defer teardown()
+
+	dataSource := New("entities")
+
+	entity, err := dataSource.FindOne(map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"__metadata": map[string]interface{}{
+			"collection": "entities",
+			"type":       "fake",
+		},
+		"testComponent": "test",
+	}, entity)
+}
+
 func TestMongoDataSource_Count(t *testing.T) {
 	setup()
 	defer teardown()
