@@ -100,17 +100,23 @@ func Find(source string, search map[string]interface{}) (map[string]map[string]i
 	}
 }
 
-func FindOne(source string, search map[string]interface{}) (map[string]interface{}, error) {
+func FindOne(source string, search map[string]interface{}) (string, map[string]interface{}, error) {
 	if d, ok := r.dataSources[source]; ok {
-		entity, err := d.FindOne(search)
+		id, entity, err := d.FindOne(search)
 
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
 
-		return loadEntity(entity)
+		e, err := loadEntity(entity)
+
+		if err != nil {
+			return "", nil, err
+		}
+
+		return id, e, nil
 	} else {
-		return nil, InvalidDataSourceError{Source: source}
+		return "", nil, InvalidDataSourceError{Source: source}
 	}
 }
 

@@ -3,6 +3,7 @@ package mongo_data_source
 import (
 	"context"
 	"fmt"
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
@@ -22,57 +23,57 @@ func (p *plugin) Name() string {
 	return "mongo_data_source"
 }
 
-func (p *plugin) Start() error {
+func (p *plugin) Registered() error {
 	log = logger.Instance
-	env := viper.GetString("env")
-	viper.SetDefault("mongo_url", "mongodb://localhost:27017")
-	viper.SetDefault("database", fmt.Sprintf("mjolnir_%s", env))
-	err := viper.BindEnv("mongo_url")
+	engine.RegisterBeforeStartCallback(func() {
+		env := viper.GetString("env")
+		viper.SetDefault("mongo_url", "mongodb://localhost:27017")
+		viper.SetDefault("database", fmt.Sprintf("mjolnir_%s", env))
+		err := viper.BindEnv("mongo_url")
+		if err != nil {
+			log.Fatal().Err(err).Msg("error binding env")
+			panic(err)
+		}
 
-	if err != nil {
-		log.Fatal().Err(err).Msg("error binding env")
-		panic(err)
-	}
+		err = viper.BindEnv("database")
 
-	err = viper.BindEnv("database")
+		if err != nil {
+			log.Fatal().Err(err).Msg("error binding env")
+			panic(err)
+		}
 
-	if err != nil {
-		log.Fatal().Err(err).Msg("error binding env")
-		panic(err)
-	}
+		log = logger.
+			Instance.
+			With().
+			Str("mongo_url", viper.GetString("mongo_url")).
+			Str("database", viper.GetString("database")).
+			Logger()
 
-	log = logger.
-		Instance.
-		With().
-		Str("mongo_url", viper.GetString("mongo_url")).
-		Str("database", viper.GetString("database")).
-		Logger()
+		log.Info().Msg("starting mongo connection")
+		c, err := mongo.NewClient(options.Client().ApplyURI(viper.GetString("mongo_url")))
 
-	log.Info().Msg("starting mongo connection")
-	c, err := mongo.NewClient(options.Client().ApplyURI(viper.GetString("mongo_url")))
+		if err != nil {
+			log.Fatal().Err(err).Msg("error connecting to mongo")
+			panic(err)
+		}
 
-	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to mongo")
-		panic(err)
-	}
+		err = c.Connect(context.Background())
 
-	err = c.Connect(context.Background())
+		if err != nil {
+			log.Fatal().Err(err).Msg("error connecting to mongo")
+			panic(err)
+		}
 
-	if err != nil {
-		log.Fatal().Err(err).Msg("error connecting to mongo")
-		panic(err)
-	}
+		p.database = c.Database(viper.GetString("database"))
 
-	p.database = c.Database(viper.GetString("database"))
+		log.Info().Msg("mongo connection started")
+	})
 
-	log.Info().Msg("mongo connection started")
+	engine.RegisterBeforeStopCallback(func() {
+		log.Info().Msg("stopping mongo connection")
+		_ = p.database.Client().Disconnect(context.Background())
+	})
 
-	return nil
-}
-
-func (p *plugin) Stop() error {
-	log.Info().Msg("stopping mongo connection")
-	_ = p.database.Client().Disconnect(context.Background())
 	return nil
 }
 
@@ -93,7 +94,6 @@ type MongoDataSource struct {
 func New(collection string) MongoDataSource {
 	return MongoDataSource{
 		collectionName: collection,
-		collection:     Plugin.collection(collection),
 		logger:         log.With().Str("collection", collection).Logger(),
 	}
 }
@@ -103,6 +103,8 @@ func (m MongoDataSource) Name() string {
 }
 
 func (m MongoDataSource) Start() error {
+	m.collection = Plugin.collection(m.collectionName)
+
 	return nil
 }
 

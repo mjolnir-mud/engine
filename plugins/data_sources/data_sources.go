@@ -1,6 +1,7 @@
 package data_sources
 
 import (
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 )
@@ -11,12 +12,16 @@ func (p plugin) Name() string {
 	return "data_sources"
 }
 
-func (p plugin) Start() error {
-	return registry.Start()
-}
+func (p plugin) Registered() error {
+	engine.RegisterAfterStartCallback(func() {
+		err := registry.Start()
 
-func (p plugin) Stop() error {
-	return registry.Stop()
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	return nil
 }
 
 // Register registers a data source with the registry. If a data source with the same name is already registered,
@@ -33,7 +38,7 @@ func Find(source string, filter map[string]interface{}) (map[string]map[string]i
 
 // FindOne returns the first entity in a data source that matches the provided filter. If the data source does not
 // exist, an error will be thrown.
-func FindOne(source string, filter map[string]interface{}) (map[string]interface{}, error) {
+func FindOne(source string, filter map[string]interface{}) (string, map[string]interface{}, error) {
 	return registry.FindOne(source, filter)
 }
 
