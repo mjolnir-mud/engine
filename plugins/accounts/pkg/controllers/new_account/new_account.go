@@ -1,4 +1,4 @@
-package new_acccount
+package new_account
 
 import (
 	"fmt"
@@ -70,7 +70,7 @@ func (n controller) Name() string {
 }
 
 func (n controller) Start(id string) error {
-	return promptSigninUsername(id)
+	return promptNewUsername(id)
 }
 
 func (n controller) Resume(_ string) error {
@@ -135,7 +135,7 @@ func handleEmail(id string, input string) error {
 			return err
 		}
 
-		return promptEmail(id)
+		return promptNewEmail(id)
 	}
 
 	count, err := data_sources.Count("accounts", map[string]interface{}{
@@ -153,7 +153,7 @@ func handleEmail(id string, input string) error {
 			return err
 		}
 
-		return promptEmail(id)
+		return promptNewEmail(id)
 	}
 
 	err = session.SetStringInFlash(id, "email", input)
@@ -162,7 +162,7 @@ func handleEmail(id string, input string) error {
 		return err
 	}
 
-	return promptPassword(id)
+	return promptNewPassword(id)
 }
 
 func handleUsername(id, input string) error {
@@ -175,13 +175,13 @@ func handleUsername(id, input string) error {
 	}
 
 	if count > int64(0) {
-		err := session.SendLineF(id, "The username '%s' is already taken.")
+		err := session.RenderTemplate(id, "username_taken", input)
 
 		if err != nil {
 			return err
 		}
 
-		return promptSigninUsername(id)
+		return promptNewUsername(id)
 	}
 
 	err = UsernameValidator(input)
@@ -196,7 +196,7 @@ func handleUsername(id, input string) error {
 		return err
 	}
 
-	return promptEmail(id)
+	return promptNewEmail(id)
 }
 
 func handlePasswordConfirmation(id string, input string) error {
@@ -209,13 +209,13 @@ func handlePasswordConfirmation(id string, input string) error {
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(input))
 
 	if err != nil {
-		err := session.SendLine(id, "The password and confirmation do not match.")
+		err := session.RenderTemplate(id, "password_match_fail", nil)
 
 		if err != nil {
 			return err
 		}
 
-		return promptPassword(id)
+		return promptNewPassword(id)
 	}
 
 	username, err := session.GetStringFromFlash(id, "username")
@@ -246,33 +246,60 @@ func handlePasswordConfirmation(id string, input string) error {
 	return AfterCreatCallback(id, userId)
 }
 
-func promptSigninUsername(id string) error {
+func promptNewUsername(id string) error {
 	err := session.SetIntInFlash(id, "step", 1)
 
 	if err != nil {
 		return err
 	}
 
-	return session.SendLine(id, "Enter a username:")
+	return session.RenderTemplate(id, "prompt_new_username", nil)
 }
 
-func promptEmail(session session.Session) error {
-	session.SetInFlash("step", 2)
-	session.WriteToConnection("Enter an email address:")
+func promptNewEmail(id string) error {
+	err := session.SetIntInFlash(id, "step", 2)
+
+	if err != nil {
+		return err
+	}
+
+	err = session.RenderTemplate(id, "prompt_new_email", nil)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func promptPassword(session session.Session) error {
-	session.SetInFlash("step", 3)
-	session.WriteToConnection("Enter a password:")
+func promptNewPassword(id string) error {
+	err := session.SetIntInFlash(id, "step", 3)
+
+	if err != nil {
+		return err
+	}
+
+	err = session.RenderTemplate(id, "prompt_new_password", nil)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func promptPasswordConfirmation(session session.Session) error {
-	session.SetInFlash("step", 4)
-	session.WriteToConnection("Confirm your password:")
+func promptPasswordConfirmation(id string) error {
+	err := session.SetIntInFlash(id, "step", 4)
+
+	if err != nil {
+		return err
+	}
+
+	err = session.RenderTemplate(id, "prompt_password_confirmation", nil)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

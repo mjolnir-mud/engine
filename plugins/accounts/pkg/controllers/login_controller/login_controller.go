@@ -25,18 +25,7 @@ func (l controller) Stop(_ string) error {
 }
 
 func (l controller) HandleInput(id string, input string) error {
-	switch input {
-	case "new":
-		err := session.SetController(id, "new_account")
-
-		if err != nil {
-			return err
-		}
-
-		return nil
-	default:
-		return handleInput(id, input)
-	}
+	return handleInput(id, input)
 }
 
 func handleInput(id string, input string) error {
@@ -73,7 +62,15 @@ func handleUsername(id string, input string) error {
 		return err
 	}
 
-	err = session.SetIntInFlash(id, "step", 2)
+	return promptPassword(id)
+}
+
+func handlePassword(id string, input string) error {
+	return nil
+}
+
+func promptPassword(id string) error {
+	err := session.SetIntInFlash(id, "step", 2)
 
 	if err != nil {
 		return err
@@ -84,20 +81,12 @@ func handleUsername(id string, input string) error {
 	if err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func handlePassword(id string, input string) error {
-	return nil
-}
-
-func promptLoginPasswordn(id string) error {
-
 	return nil
 }
 
 func promptLoginUsername(id string) error {
+	err := session.SetIntInFlash(id, "step", 1)
+
 	v, err := templates.RenderTemplate("prompt_username", nil)
 
 	if err != nil {

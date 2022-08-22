@@ -91,8 +91,8 @@ type MongoDataSource struct {
 	logger         zerolog.Logger
 }
 
-func New(collection string) MongoDataSource {
-	return MongoDataSource{
+func New(collection string) *MongoDataSource {
+	return &MongoDataSource{
 		collectionName: collection,
 		logger:         log.With().Str("collection", collection).Logger(),
 	}
@@ -183,6 +183,8 @@ func (m *MongoDataSource) FindOne(search map[string]interface{}) (string, map[st
 	id := result["_id"].(string)
 
 	cleanId(result)
+
+	result["id"] = id
 
 	return id, result, nil
 }

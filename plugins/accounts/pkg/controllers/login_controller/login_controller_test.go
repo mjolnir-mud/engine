@@ -19,8 +19,7 @@ func setup() {
 	engine.RegisterPlugin(world.Plugin)
 
 	testing.Setup()
-	templates.RegisterTemplate(templates2.PromptUsernameTemplate)
-	templates.RegisterTemplate(templates2.PromptPasswordTemplate)
+	templates2.RegisterAll()
 	_ = engine.RedisFlushAll()
 }
 
@@ -67,7 +66,7 @@ func TestController_Start(t *testing2.T) {
 	assert.Equal(t, "Enter your username, or type '\u001B[1mcreate\u001B[0m' to create a new account:", line)
 }
 
-func TestControllerHandlesUsername(t *testing2.T) {
+func TestControllerHandlesLogin(t *testing2.T) {
 	setup()
 	defer teardown()
 
@@ -108,14 +107,6 @@ func TestControllerHandleUsernameCreate(t *testing2.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.SendLineEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.SendLineEvent).Line }()
-	})
-
-	defer sub.Stop()
-
 	c := controller{}
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
@@ -126,8 +117,8 @@ func TestControllerHandleUsernameCreate(t *testing2.T) {
 
 	assert.NoError(t, err)
 
-	i, err := session.GetIntFromFlash("sess", "step")
+	i, err := session.GetStringFromStore("sess", "controller")
 
 	assert.NoError(t, err)
-	assert.Equal(t, 1, i)
+	assert.Equal(t, "new_account", i)
 }

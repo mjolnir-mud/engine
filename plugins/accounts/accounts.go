@@ -4,8 +4,8 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
 	templates2 "github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
-	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/new_acccount"
-	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities"
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/new_account"
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source"
@@ -25,20 +25,10 @@ func (p *plugin) Registered() error {
 	engine.EnsureRegistered(templates.Plugin.Name())
 
 	engine.RegisterBeforeStartCallback(func() {
-
-		templates.RegisterTemplate(templates2.PromptUsernameTemplate)
-		templates.RegisterTemplate(templates2.PromptPasswordTemplate)
-		templates.RegisterTemplate(templates2.PromptEmailTemplate)
-		templates.RegisterTemplate(templates2.PromptNewPasswordTemplate)
-		templates.RegisterTemplate(templates2.PromptPasswordConfirmationTemplate)
-		templates.RegisterTemplate(templates2.PromptNewUsernameTemplate)
-		templates.RegisterTemplate(templates2.PromptNewEmailTemplate)
-		templates.RegisterTemplate(templates2.InvalidEmailAddressTemplate)
-		templates.RegisterTemplate(templates2.PasswordMatchFailTemplate)
-		templates.RegisterTemplate(templates2.UsernameTakenTemplate)
+		templates2.RegisterAll()
 
 		data_sources.Register(data_source.Accounts)
-		ecs.RegisterEntityType(entities.Account)
+		ecs.RegisterEntityType(account.Account)
 	})
 
 	return nil
@@ -47,13 +37,13 @@ func (p *plugin) Registered() error {
 // RegisterUsernameValidator overwrites the default username validator. This is a function that simply returns an error
 // whose message will be presented to the connected user when the error is present.
 func RegisterUsernameValidator(validator func(username string) error) {
-	new_acccount.UsernameValidator = validator
+	new_account.UsernameValidator = validator
 }
 
 // RegisterPasswordValidator overwrites the default password validator. This is a function that simply returns an error
 // whose message will be presented to the connected user when the error is present.
 func RegisterPasswordValidator(validator func(password string) error) {
-	new_acccount.PasswordValidator = validator
+	new_account.PasswordValidator = validator
 }
 
 var Plugin = plugin{}
