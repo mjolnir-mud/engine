@@ -61,22 +61,7 @@ func (d DirectorySource) Stop() error {
 	return nil
 }
 
-func (d DirectorySource) Load(entityId string) (map[string]interface{}, error) {
-	entities, err := d.loadDirectory(d.path)
-
-	if err != nil {
-		d.logger.Error().Err(err).Msg("failed to load directory")
-		return nil, err
-	}
-
-	if _, ok := entities[entityId]; !ok {
-		return nil, errors.EntityNotFoundError{ID: entityId}
-	}
-
-	return entities[entityId], nil
-}
-
-func (d DirectorySource) LoadAll() (map[string]map[string]interface{}, error) {
+func (d DirectorySource) All() (map[string]map[string]interface{}, error) {
 	entities, err := d.loadDirectory(d.path)
 
 	if err != nil {

@@ -9,34 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDirectorySource_Load(t *testing.T) {
+func TestDirectorySource_All(t *testing.T) {
 	ds := New("entities_1", "../../test/fixtures")
 
 	p, err := filepath.Abs("../../test/fixtures")
 
 	assert.Nil(t, err)
 
-	e, err := ds.Load("entity_1")
-
-	assert.Nil(t, err)
-
-	assert.Equal(t, map[string]interface{}{
-		"__metadata": map[string]interface{}{
-			"entityType": "fake",
-			"file":       path.Join(p, "entities_1.yml"),
-		},
-		"testComponent": "test",
-	}, e)
-}
-
-func TestDirectorySource_LoadAll(t *testing.T) {
-	ds := New("entities_1", "../../test/fixtures")
-
-	p, err := filepath.Abs("../../test/fixtures")
-
-	assert.Nil(t, err)
-
-	e, err := ds.LoadAll()
+	e, err := ds.All()
 
 	assert.Nil(t, err)
 
@@ -119,7 +99,7 @@ func TestDirectorySource_FindOne(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"__metadata": map[string]interface{}{
 			"entityType": "fake",
-			"file":       path.Join(p, "entities_1.yml"),
+			"file":       path.Join(p, "entities_2.yml"),
 		},
 		"testComponent": "test",
 	}, e)
