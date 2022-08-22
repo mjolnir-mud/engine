@@ -120,6 +120,22 @@ func FindOne(source string, search map[string]interface{}) (string, map[string]i
 	}
 }
 
+func Delete(source string, entityId string) error {
+	if d, ok := r.dataSources[source]; ok {
+		return d.Delete(entityId)
+	} else {
+		return InvalidDataSourceError{Source: source}
+	}
+}
+
+func FindAndDelete(source string, search map[string]interface{}) error {
+	if d, ok := r.dataSources[source]; ok {
+		return d.FindAndDelete(search)
+	} else {
+		return InvalidDataSourceError{Source: source}
+	}
+}
+
 // Save saves data to a data source for a given entity. If the entity does not have a valid metadata field an error will
 // be thrown. If the data source does not exist, an error will be thrown. If the metadata field does not have a type
 // set, an error will be thrown. If the entity exists in the data source, it will be overwritten.

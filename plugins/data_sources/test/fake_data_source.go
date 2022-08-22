@@ -57,17 +57,17 @@ func (f fakeDataSource) Find(search map[string]interface{}) (map[string]map[stri
 	return entities, nil
 }
 
-func (t fakeDataSource) FindOne(search map[string]interface{}) (map[string]interface{}, error) {
+func (t fakeDataSource) FindOne(search map[string]interface{}) (string, map[string]interface{}, error) {
 	entities, err := t.Find(search)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	for _, entity := range entities {
-		return entity, nil
+		return "", entity, nil
 	}
 
-	return nil, nil
+	return "", nil, nil
 }
 
 func (f fakeDataSource) Count(filter map[string]interface{}) (int64, error) {
@@ -75,6 +75,30 @@ func (f fakeDataSource) Count(filter map[string]interface{}) (int64, error) {
 }
 
 func (f fakeDataSource) Save(entityId string, entity map[string]interface{}) error {
+	return nil
+}
+
+func (f fakeDataSource) Delete(entityId string) error {
+	delete(f.entities, entityId)
+
+	return nil
+}
+
+func (f fakeDataSource) FindAndDelete(search map[string]interface{}) error {
+	entities, err := f.Find(search)
+
+	if err != nil {
+		return err
+	}
+
+	for id, _ := range entities {
+		err := f.Delete(id)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

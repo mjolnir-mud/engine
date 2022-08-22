@@ -26,6 +26,12 @@ type DataSource interface {
 	// FindOne returns a single id, and entity from executing a search against a provided map.
 	FindOne(search map[string]interface{}) (string, map[string]interface{}, error)
 
+	// Delete deletes an entity from the data source.
+	Delete(entityId string) error
+
+	// FindAndDelete deletes all entities from the data source that match the provided filter.
+	FindAndDelete(search map[string]interface{}) error
+
 	// Save saves an entity to the data source. The entity ID is the key used to save the entity. The entity is a map of
 	// key/value pairs representing the component.
 	Save(entityId string, entity map[string]interface{}) error

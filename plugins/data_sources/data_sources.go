@@ -42,10 +42,21 @@ func FindOne(source string, filter map[string]interface{}) (string, map[string]i
 	return registry.FindOne(source, filter)
 }
 
-// LoadAll loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
+// All loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
 // for each entity, and return a map of entities keyed by their ids.
 func All(source string) (map[string]map[string]interface{}, error) {
 	return registry.All(source)
+}
+
+// Delete deletes an entity from a data source. If the data source does not exist, an error will be thrown.
+func Delete(source string, entityId string) error {
+	return registry.Delete(source, entityId)
+}
+
+// FindAndDelete deletes all entities in a data source that match the provided filter. If the data source does not exist,
+// an error will be thrown.
+func FindAndDelete(source string, filter map[string]interface{}) error {
+	return registry.FindAndDelete(source, filter)
 }
 
 // Count returns the number of entities in a data source using the provided map as a filter. If the data source does not
