@@ -39,32 +39,13 @@ func teardown() {
 	engine.Stop()
 }
 
-func TestMongoDataSource_Load(t *testing.T) {
+func TestMongoDataSource_All(t *testing.T) {
 	setup()
 	defer teardown()
 
 	dataSource := New("entities")
 
-	entity, err := dataSource.Load("entity_1")
-
-	assert.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"__metadata": map[string]interface{}{
-			"collection": "entities",
-			"type":       "fake",
-		},
-		"testComponent": "test",
-	}, entity)
-
-}
-
-func TestMongoDataSource_LoadAll(t *testing.T) {
-	setup()
-	defer teardown()
-
-	dataSource := New("entities")
-
-	entities, err := dataSource.LoadAll()
+	entities, err := dataSource.All()
 
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(entities))

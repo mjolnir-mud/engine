@@ -3,10 +3,9 @@ package mongo_data_source
 import (
 	"context"
 	"fmt"
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
-
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
 	constants2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/constants"
 	errors2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/errors"
 	"github.com/rs/zerolog"
@@ -111,29 +110,7 @@ func (m MongoDataSource) Stop() error {
 	return nil
 }
 
-func (m MongoDataSource) Load(entityId string) (map[string]interface{}, error) {
-	m.logger.Debug().Str("entityId", entityId).Msg("loading entity")
-
-	filter := map[string]interface{}{
-		"_id": entityId,
-	}
-
-	result := map[string]interface{}{}
-
-	err := m.collection.FindOne(context.Background(), filter).Decode(&result)
-
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.EntityNotFoundError{ID: entityId}
-		}
-	}
-
-	cleanId(result)
-
-	return result, nil
-}
-
-func (m MongoDataSource) LoadAll() (map[string]map[string]interface{}, error) {
+func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Msg("loading all entities")
 
 	cursor, err := m.collection.Find(context.Background(), map[string]interface{}{})
@@ -142,14 +119,22 @@ func (m MongoDataSource) LoadAll() (map[string]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var results map[string]map[string]interface{}
+	var results []map[string]interface{}
 	err = cursor.All(context.Background(), &results)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return results, nil
+	entities := make(map[string]map[string]interface{})
+
+	for _, entity := range results {
+		id := entity["_id"].(string)
+		cleanId(entity)
+		entities[id] = entity
+	}
+
+	return entities, nil
 }
 
 func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
@@ -161,16 +146,22 @@ func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[str
 		return nil, err
 	}
 
-	var results map[string]map[string]interface{}
+	var results []map[string]interface{}
 	err = cursor.All(context.Background(), &results)
 
 	if err != nil {
 		return nil, err
 	}
 
-	cleanIds(results)
+	entities := make(map[string]map[string]interface{})
 
-	return results, nil
+	for _, entity := range results {
+		id := entity["_id"].(string)
+		cleanId(entity)
+		entities[id] = entity
+	}
+
+	return entities, nil
 }
 
 func (m MongoDataSource) FindOne(search map[string]interface{}) (map[string]interface{}, error) {
@@ -230,12 +221,6 @@ func (m MongoDataSource) Save(entityId string, entity map[string]interface{}) er
 
 	_, err := m.collection.InsertOne(context.Background(), entity)
 	return err
-}
-
-func cleanIds(entities map[string]map[string]interface{}) {
-	for _, entity := range entities {
-		cleanId(entity)
-	}
 }
 
 func cleanId(entity map[string]interface{}) {
