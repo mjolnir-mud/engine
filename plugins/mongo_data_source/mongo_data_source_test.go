@@ -2,6 +2,7 @@ package mongo_data_source
 
 import (
 	"context"
+	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -9,9 +10,10 @@ import (
 )
 
 func setup() {
-	engine.Start("test")
+	engine.RegisterPlugin(data_sources.Plugin)
+	engine.RegisterPlugin(Plugin)
 	engine.SetEnv("test")
-	_ = Plugin.Start()
+	engine.Start("test")
 	// seed data
 	_, _ = Plugin.collection("entities").InsertOne(context.Background(), map[string]interface{}{
 		"_id": "entity_1",
@@ -34,8 +36,6 @@ func setup() {
 
 func teardown() {
 	_ = Plugin.collection("entities").Drop(context.Background())
-
-	_ = Plugin.Stop()
 	engine.Stop()
 }
 
@@ -44,6 +44,7 @@ func TestMongoDataSource_All(t *testing.T) {
 	defer teardown()
 
 	dataSource := New("entities")
+	_ = dataSource.Start()
 
 	entities, err := dataSource.All()
 
@@ -56,6 +57,7 @@ func TestMongoDataSource_Find(t *testing.T) {
 	defer teardown()
 
 	dataSource := New("entities")
+	_ = dataSource.Start()
 
 	entities, err := dataSource.Find(map[string]interface{}{
 		"testComponent": "test",
@@ -70,6 +72,7 @@ func TestMongoDataSource_Save(t *testing.T) {
 	defer teardown()
 
 	dataSource := New("entities")
+	_ = dataSource.Start()
 
 	err := dataSource.Save("entity_3", map[string]interface{}{
 		"__metadata": map[string]interface{}{
@@ -94,8 +97,9 @@ func TestMongoDataSource_FindOne(t *testing.T) {
 	defer teardown()
 
 	dataSource := New("entities")
+	_ = dataSource.Start()
 
-	entity, err := dataSource.FindOne(map[string]interface{}{
+	id, entity, err := dataSource.FindOne(map[string]interface{}{
 		"testComponent": "test",
 	})
 
@@ -107,6 +111,8 @@ func TestMongoDataSource_FindOne(t *testing.T) {
 		},
 		"testComponent": "test",
 	}, entity)
+
+	assert.Equal(t, "entity_1", id)
 }
 
 func TestMongoDataSource_Count(t *testing.T) {
@@ -114,6 +120,7 @@ func TestMongoDataSource_Count(t *testing.T) {
 	defer teardown()
 
 	dataSource := New("entities")
+	_ = dataSource.Start()
 
 	c, err := dataSource.Count(map[string]interface{}{
 		"testComponent": "test",
@@ -121,4 +128,44 @@ func TestMongoDataSource_Count(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), c)
+}
+
+func TestMongoDataSource_Delete(t *testing.T) {
+	setup()
+	defer teardown()
+
+	dataSource := New("entities")
+	_ = dataSource.Start()
+
+	err := dataSource.Delete("entity_1")
+
+	assert.Nil(t, err)
+
+	c, err := Plugin.collection("entities").CountDocuments(context.Background(), map[string]interface{}{
+		"_id": "entity_1",
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), c)
+}
+
+func TestMongoDataSource_FindAndDelete(t *testing.T) {
+	setup()
+	defer teardown()
+
+	dataSource := New("entities")
+	_ = dataSource.Start()
+
+	err := dataSource.FindAndDelete(map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.Nil(t, err)
+
+	c, err := Plugin.collection("entities").CountDocuments(context.Background(), map[string]interface{}{
+		"_id": "entity_1",
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), c)
 }

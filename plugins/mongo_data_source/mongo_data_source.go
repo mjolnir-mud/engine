@@ -98,21 +98,21 @@ func New(collection string) MongoDataSource {
 	}
 }
 
-func (m MongoDataSource) Name() string {
+func (m *MongoDataSource) Name() string {
 	return m.collectionName
 }
 
-func (m MongoDataSource) Start() error {
+func (m *MongoDataSource) Start() error {
 	m.collection = Plugin.collection(m.collectionName)
 
 	return nil
 }
 
-func (m MongoDataSource) Stop() error {
+func (m *MongoDataSource) Stop() error {
 	return nil
 }
 
-func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
+func (m *MongoDataSource) All() (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Msg("loading all entities")
 
 	cursor, err := m.collection.Find(context.Background(), map[string]interface{}{})
@@ -139,7 +139,7 @@ func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
 	return entities, nil
 }
 
-func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
+func (m *MongoDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching entities")
 
 	cursor, err := m.collection.Find(context.Background(), search)
@@ -166,7 +166,7 @@ func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[str
 	return entities, nil
 }
 
-func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[string]interface{}, error) {
+func (m *MongoDataSource) FindOne(search map[string]interface{}) (string, map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching one entity")
 
 	result := map[string]interface{}{}
@@ -187,7 +187,32 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[str
 	return id, result, nil
 }
 
-func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
+func (m *MongoDataSource) Delete(id string) error {
+	m.logger.Debug().Str("id", id).Msg("deleting entity")
+
+	_ = m.collection.FindOneAndDelete(context.Background(), map[string]interface{}{"_id": id})
+
+	return nil
+}
+
+func (m *MongoDataSource) FindAndDelete(search map[string]interface{}) error {
+	m.logger.Debug().Interface("search", search).Msg("searching and deleting entity")
+
+	result := map[string]interface{}{}
+
+	err := m.collection.FindOneAndDelete(context.Background(), search).Decode(&result)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.EntityNotFoundError{}
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MongoDataSource) Count(search map[string]interface{}) (int64, error) {
 	m.logger.Debug().Interface("search", search).Msg("counting entities")
 
 	count, err := m.collection.CountDocuments(context.Background(), search)
@@ -199,7 +224,7 @@ func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (m MongoDataSource) Save(entityId string, entity map[string]interface{}) error {
+func (m *MongoDataSource) Save(entityId string, entity map[string]interface{}) error {
 	metadata, ok := entity[constants.MetadataKey]
 
 	if !ok {
