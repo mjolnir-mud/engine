@@ -13,16 +13,8 @@ type DataSource interface {
 	// Stop is called when the registry is stopped, and should be used to do any work to "stop" the data source.
 	Stop() error
 
-	// Load loads an entity from the data source. The entity ID is the key used to load the entity. If the entity does
-	// not exist, an error should be returned. The method should return an the id,  a map of key/value pairs
-	// representing the component, as well as an additional __metadata key, whose value is a map of
-	// key/value pairs representing the metadata. The metadata MUST include the __entityType key, whose value is a
-	// valid entity type registered with the ECS plugin. The data source registry will then call `ecs.CreateWithId`
-	// when the `data_source.Load()` method is called.
-	Load(entityId string) (map[string]interface{}, error)
-
-	// LoadAll loads all entities from the data source returning a map of entity ID to entities.
-	LoadAll() (map[string]map[string]interface{}, error)
+	// All loads all entities from the data source returning a map of entity ID to entities.
+	All() (map[string]map[string]interface{}, error)
 
 	// Count returns the number of entities in the data source using the provided map.
 	Count(map[string]interface{}) (int64, error)

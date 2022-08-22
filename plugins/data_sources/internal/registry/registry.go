@@ -2,12 +2,12 @@ package registry
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
 
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/rs/zerolog/log"
 )
 
 type InvalidDataSourceError struct {
@@ -25,6 +25,11 @@ type MetadataTypeRequiredError struct {
 func (e MetadataTypeRequiredError) Error() string {
 	return fmt.Sprintf("data source %s does not return an entity with the type set in the metadata", e.ID)
 }
+
+var log = logger.Instance.
+	With().
+	Str("service", "registry").
+	Logger()
 
 type registry struct {
 	dataSources map[string]data_source.DataSource
@@ -61,30 +66,11 @@ func Register(dataSource data_source.DataSource) {
 	r.dataSources[dataSource.Name()] = dataSource
 }
 
-// Load loads data from a data source for a given entity. It will call `ecs.Create` passing the map returned by
-// the data source. If the data source does not return an entity with the type  set in the metadata, an error will be
-// returned. If the data source does not exist, an error will be returned. If the data source does not reference the
-// entity, an error will be returned.
-func Load(source string, entityId string) (map[string]interface{}, error) {
-	if d, ok := r.dataSources[source]; ok {
-		data, err := d.Load(entityId)
-
-		if err != nil {
-			return nil, err
-		}
-
-		data["id"] = entityId
-		return loadEntity(data)
-	} else {
-		return nil, InvalidDataSourceError{Source: source}
-	}
-}
-
-// LoadAll loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
+// All loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
 // for each entity, and return a map of entities keyed by their ids.
-func LoadAll(source string) (map[string]map[string]interface{}, error) {
+func All(source string) (map[string]map[string]interface{}, error) {
 	if d, ok := r.dataSources[source]; ok {
-		entities, err := d.LoadAll()
+		entities, err := d.All()
 
 		if err != nil {
 			return nil, err
@@ -109,6 +95,20 @@ func Find(source string, search map[string]interface{}) (map[string]map[string]i
 		}
 
 		return loadEntities(entities)
+	} else {
+		return nil, InvalidDataSourceError{Source: source}
+	}
+}
+
+func FindOne(source string, search map[string]interface{}) (map[string]interface{}, error) {
+	if d, ok := r.dataSources[source]; ok {
+		entity, err := d.FindOne(search)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return loadEntity(entity)
 	} else {
 		return nil, InvalidDataSourceError{Source: source}
 	}
@@ -189,5 +189,3 @@ func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
 var r = &registry{
 	dataSources: make(map[string]data_source.DataSource),
 }
-
-var logger = log.With().Str("plugin", "data_source").Str("service", "registry").Logger()

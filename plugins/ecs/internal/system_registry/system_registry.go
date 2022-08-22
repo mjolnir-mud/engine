@@ -72,6 +72,11 @@ func startComponentSetListener(s system.System) {
 			case <-sub.stop:
 				return
 			case msg := <-pubsub.Channel():
+
+				if msg == nil {
+					return
+				}
+
 				log.Trace().Msgf("received message %s", msg.Payload)
 				parts := strings.Split(msg.Channel, ":")
 				id := parts[1]
