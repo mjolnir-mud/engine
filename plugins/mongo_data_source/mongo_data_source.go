@@ -164,7 +164,7 @@ func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[str
 	return entities, nil
 }
 
-func (m MongoDataSource) FindOne(search map[string]interface{}) (map[string]interface{}, error) {
+func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching one entity")
 
 	result := map[string]interface{}{}
@@ -173,14 +173,16 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (map[string]inte
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.EntityNotFoundError{}
+			return "", nil, errors.EntityNotFoundError{}
 		}
-		return nil, err
+		return "", nil, err
 	}
+
+	id := result["_id"].(string)
 
 	cleanId(result)
 
-	return result, nil
+	return id, result, nil
 }
 
 func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {

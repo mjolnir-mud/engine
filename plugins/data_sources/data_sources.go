@@ -25,14 +25,6 @@ func Register(source data_source.DataSource) {
 	registry.Register(source)
 }
 
-// Load loads data from a data source for a given entity. It will call `ecs.Create` passing the map returned by
-// the data source. If the data source does not return an entity with the type  set in the metadata, an error will be
-// returned. If the data source does not exist, an error will be returned. If the data source does not reference the
-// entity, an error will be returned.
-func Load(source string, entityId string) (map[string]interface{}, error) {
-	return registry.Load(source, entityId)
-}
-
 // Find returns all entities in a data source that match the provided filter. If the data source does not exist, an
 // error will be thrown.
 func Find(source string, filter map[string]interface{}) (map[string]map[string]interface{}, error) {
@@ -47,7 +39,7 @@ func FindOne(source string, filter map[string]interface{}) (map[string]interface
 
 // LoadAll loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
 // for each entity, and return a map of entities keyed by their ids.
-func LoadAll(source string) (map[string]map[string]interface{}, error) {
+func All(source string) (map[string]map[string]interface{}, error) {
 	return registry.All(source)
 }
 

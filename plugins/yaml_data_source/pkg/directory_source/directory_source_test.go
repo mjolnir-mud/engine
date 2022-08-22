@@ -86,23 +86,12 @@ func TestDirectorySource_Find(t *testing.T) {
 func TestDirectorySource_FindOne(t *testing.T) {
 	ds := New("entities_1", "../../test/fixtures")
 
-	p, err := filepath.Abs("../../test/fixtures")
-
-	assert.Nil(t, err)
-
-	e, err := ds.FindOne(map[string]interface{}{
+	id, _, err := ds.FindOne(map[string]interface{}{
 		"testComponent": "test",
 	})
 
 	assert.Nil(t, err)
-
-	assert.Equal(t, map[string]interface{}{
-		"__metadata": map[string]interface{}{
-			"entityType": "fake",
-			"file":       path.Join(p, "entities_2.yml"),
-		},
-		"testComponent": "test",
-	}, e)
+	assert.NotNil(t, id)
 }
 
 func TestDirectorySource_Save(t *testing.T) {

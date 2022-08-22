@@ -99,19 +99,19 @@ func (d DirectorySource) Find(search map[string]interface{}) (map[string]map[str
 	return searchResults, nil
 }
 
-func (d DirectorySource) FindOne(search map[string]interface{}) (map[string]interface{}, error) {
+func (d DirectorySource) FindOne(search map[string]interface{}) (string, map[string]interface{}, error) {
 	entities, err := d.Find(search)
 
 	if err != nil {
 		d.logger.Error().Err(err).Msg("failed to find")
-		return nil, err
+		return "", nil, err
 	}
 
-	for _, entity := range entities {
-		return entity, nil
+	for id, entity := range entities {
+		return id, entity, nil
 	}
 
-	return nil, errors.EntityNotFoundError{ID: ""}
+	return "", nil, errors.EntityNotFoundError{ID: ""}
 }
 
 func (d DirectorySource) Count(search map[string]interface{}) (int64, error) {
