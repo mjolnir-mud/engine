@@ -5,6 +5,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
+	passwordvalidator "github.com/wagslane/go-password-validator"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -16,24 +17,45 @@ type controller struct{}
 
 var Controller = controller{}
 
+const MinUsernameLength = 4
+const MaxUsernameLength = 20
+const UsernameRegex = `^[a-zA-Z0-9_]+$`
+
+const PasswordEntropy = 40
+
+const UsernameStep = 1
+const EmailStep = 2
+const PasswordStep = 3
+const PasswordConfirmationStep = 4
+
 var UsernameValidator = func(username string) error {
-	r, err := regexp.Compile("^[a-zA-Z0-9_\\-]+$")
+	r, err := regexp.Compile(UsernameRegex)
 
 	if err != nil {
 		panic(err)
 	}
 
-	if len(username) < 4 {
-		return fmt.Errorf("'%s' is not a valid username. It must be at least 4 characters long", username)
+	if len(username) < MinUsernameLength {
+		//goland:noinspection GoErrorStringFormat
+		return fmt.Errorf(
+			"'%s' is not a valid username. It must be at least %d characters long.",
+			username,
+			MinUsernameLength,
+		)
 	}
 
-	if len(username) > 10 {
-		return fmt.Errorf("'%s' is not a valid username. It must be less than 10 characters long", username)
+	if len(username) >= MaxUsernameLength {
+		//goland:noinspection GoErrorStringFormat
+		return fmt.Errorf(
+			"'%s' is not a valid username. It must be at most %d characters long.",
+			username,
+			MaxUsernameLength,
+		)
 	}
 
 	if !r.MatchString(username) {
 		return fmt.Errorf(
-			"'%s' is not a valid username. It must contain only alpha-numeric characters, dashes (-) or underscrores (_)",
+			"'%s' is not a valid username. It must contain only alpha-numeric characters, dashes (-) or underscores (_)",
 			username,
 		)
 	}
@@ -41,22 +63,11 @@ var UsernameValidator = func(username string) error {
 	return nil
 }
 var PasswordValidator = func(password string) error {
-	if len(password) < 8 {
-		//goland:noinspection ALL
-		return fmt.Errorf("Not a valid password. It must be at least 8 characters long.")
-	}
+	e := passwordvalidator.GetEntropy(password)
 
-	r, err := regexp.Compile("^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).*$")
-
-	if err != nil {
-		panic(err)
-	}
-
-	if !r.MatchString(password) {
+	if e < PasswordEntropy {
 		//goland:noinspection GoErrorStringFormat
-		return fmt.Errorf(
-			"Not a valid password. It must contain at least one lowercase letter, one uppercase letter, one number, and one special character.",
-		)
+		return fmt.Errorf("That isn't a very secure password. Try something stronger.")
 	}
 
 	return nil
@@ -130,7 +141,7 @@ func handleEmail(id string, input string) error {
 	_, err := mail.ParseAddress(input)
 
 	if err != nil {
-		err := session.SendLineF(id, "'%s' is an invalid email address.", input)
+		err := session.RenderTemplate(id, "email_invalid", input)
 
 		if err != nil {
 			return err
@@ -148,7 +159,7 @@ func handleEmail(id string, input string) error {
 	}
 
 	if count > 0 {
-		err := session.SendLineF(id, "'%s' is already registered to an account.")
+		err := session.RenderTemplate(id, "email_taken", input)
 
 		if err != nil {
 			return err

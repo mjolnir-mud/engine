@@ -19,6 +19,7 @@ require (
 	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000
 	github.com/mjolnir-mud/engine/plugins/world v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.0
+	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 )
 
