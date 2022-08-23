@@ -56,10 +56,10 @@ func Start(id string) error {
 	return c.Start(id)
 }
 
-// GetController returns the testController for the session. If the session does not exist, an error will be returned.
+// GetController returns the Controller for the session. If the session does not exist, an error will be returned.
 // If the controller is not found, an error will be returned.
-func GetController(name string) (controller.Controller, error) {
-	c, err := ecs.GetStringFromMapComponent(name, "store", "controller")
+func GetController(id string) (controller.Controller, error) {
+	c, err := GetStringFromStore(id, "controller")
 
 	if err != nil {
 		return nil, err
