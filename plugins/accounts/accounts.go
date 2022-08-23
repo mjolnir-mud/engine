@@ -4,6 +4,7 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
 	templates2 "github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/new_account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
@@ -27,8 +28,8 @@ func (p *plugin) Registered() error {
 	engine.RegisterBeforeStartCallback(func() {
 		templates2.RegisterAll()
 
-		data_sources.Register(data_source.Accounts)
-		ecs.RegisterEntityType(account.Account)
+		data_sources.Register(data_source.Create())
+		ecs.RegisterEntityType(account.Type)
 	})
 
 	return nil
@@ -44,6 +45,19 @@ func RegisterUsernameValidator(validator func(username string) error) {
 // whose message will be presented to the connected user when the error is present.
 func RegisterPasswordValidator(validator func(password string) error) {
 	new_account.PasswordValidator = validator
+}
+
+// RegisterAfterLoginCallback registers a callback that will be called after a successful login. This can be used to set
+// up post login tasks such as setting a new controller. The callback will be called with the session id as an argument.
+func RegisterAfterLoginCallback(callback func(id string) error) {
+	login_controller.AfterLoginCallback = callback
+}
+
+// RegisterAfterCreateCallback registers a callback that will be called after a successful account creation. This
+// can be used to set up post account creation tasks such as setting a new controller. The callback will be called with
+// the session id as an argument, and the account id as an argument.
+func RegisterAfterCreateCallback(callback func(id string, accountId string) error) {
+	new_account.AfterCreateCallback = callback
 }
 
 var Plugin = plugin{}

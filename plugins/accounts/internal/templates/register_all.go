@@ -13,4 +13,5 @@ func RegisterAll() {
 	templates2.RegisterTemplate(InvalidEmailAddressTemplate)
 	templates2.RegisterTemplate(PasswordMatchFailTemplate)
 	templates2.RegisterTemplate(UsernameTakenTemplate)
+	templates2.RegisterTemplate(LoginInvalidTemplate)
 }

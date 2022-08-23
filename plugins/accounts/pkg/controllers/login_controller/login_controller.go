@@ -1,12 +1,23 @@
 package login_controller
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/templates"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
 )
 
 // controller is the login controller, responsible handling user logins.
 type controller struct{}
+
+var AfterLoginCallback = func(id string) error {
+	err := session.SetController(id, "game")
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (l controller) Name() string {
 	return "login"
@@ -26,6 +37,21 @@ func (l controller) Stop(_ string) error {
 
 func (l controller) HandleInput(id string, input string) error {
 	return handleInput(id, input)
+}
+
+func Login(id string, accountId string) error {
+	err := session.SetStringInStore(id, "accountId", accountId)
+
+	if err != nil {
+		return err
+	}
+	err = AfterLoginCallback(id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func handleInput(id string, input string) error {
@@ -66,7 +92,28 @@ func handleUsername(id string, input string) error {
 }
 
 func handlePassword(id string, input string) error {
-	return nil
+	username, err := session.GetStringFromFlash(id, "username")
+
+	if err != nil {
+		return err
+	}
+
+	accountId, err := account.ValidateAccount(account.Credentials{
+		Username: username,
+		Password: input,
+	})
+
+	if err != nil {
+		err := session.RenderTemplate(id, "login_invalid", nil)
+
+		if err != nil {
+			return err
+		}
+
+		return promptLoginUsername(id)
+	}
+
+	return Login(id, accountId)
 }
 
 func promptPassword(id string) error {

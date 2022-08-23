@@ -2,6 +2,7 @@ package new_account
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
 	"net/mail"
@@ -61,8 +62,8 @@ var PasswordValidator = func(password string) error {
 	return nil
 }
 
-var AfterCreatCallback = func(sessId string, entityId string) error {
-	return nil
+var AfterCreateCallback = func(sessId string, entityId string) error {
+	return login_controller.Login(sessId, entityId)
 }
 
 func (n controller) Name() string {
@@ -243,7 +244,7 @@ func handlePasswordConfirmation(id string, input string) error {
 		"password": hashedPassword,
 	})
 
-	return AfterCreatCallback(id, userId)
+	return AfterCreateCallback(id, userId)
 }
 
 func promptNewUsername(id string) error {
