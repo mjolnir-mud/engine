@@ -2,6 +2,7 @@ package redis
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/pkg/event"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -12,22 +13,9 @@ type testEvent struct {
 	Value string
 }
 
-func (e testEvent) Topic(args ...interface{}) string {
-	id := args[0].(string)
+func (e testEvent) Topic() string {
 
-	return fmt.Sprintf("test.%s", id)
-}
-
-func (e testEvent) Payload(args ...interface{}) interface{} {
-	if len(args) > 0 {
-		id := args[0].(string)
-
-		return &testEvent{
-			Value: id,
-		}
-	}
-
-	return &testEvent{}
+	return fmt.Sprintf("test.%s", e.Value)
 }
 
 func setup() {
@@ -44,11 +32,17 @@ func TestSubscribe(t *testing.T) {
 	defer teardown()
 	ch := make(chan interface{})
 
-	s := NewSubscription(&testEvent{}, "test", func(payload interface{}) {
-		ch <- payload
+	s := NewSubscription(&testEvent{Value: "test"}, func(payload event.EventPayload) {
+		p := &testEvent{}
+
+		_ = payload.Unmarshal(p)
+
+		ch <- p
 	})
 
-	err := Publish(&testEvent{}, "test")
+	err := Publish(&testEvent{
+		Value: "test",
+	})
 
 	assert.Nil(t, err)
 
@@ -56,7 +50,7 @@ func TestSubscribe(t *testing.T) {
 
 	assert.Equal(t, &testEvent{
 		Value: "test",
-	}, v.(*testEvent))
+	}, v)
 
 	s.Stop()
 }
@@ -66,11 +60,16 @@ func TestPSubscribe(t *testing.T) {
 	defer teardown()
 	ch := make(chan interface{})
 
-	s := NewPatternSubscription(&testEvent{}, "*", func(payload interface{}) {
-		ch <- payload
+	s := NewPatternSubscription(&testEvent{Value: "*"}, func(payload event.EventPayload) {
+		e := &testEvent{}
+		_ = payload.Unmarshal(e)
+
+		ch <- e
 	})
 
-	err := Publish(&testEvent{}, "testing")
+	err := Publish(&testEvent{
+		Value: "testing",
+	})
 
 	assert.Nil(t, err)
 
@@ -78,7 +77,7 @@ func TestPSubscribe(t *testing.T) {
 
 	assert.Equal(t, &testEvent{
 		Value: "testing",
-	}, v.(*testEvent))
+	}, v)
 
 	s.Stop()
 }

@@ -16,7 +16,7 @@ type Subscription interface {
 	Stop()
 }
 
-// EnsureRegistered ensures that the plugin is registered with the engine. If the plugin is not registered, an the
+// EnsureRegistered ensures that the plugin is registered with the engine. If the plugin is not registered, and the
 // engine will panic. This should be used by plugins that need to ensure that another plugin is registered before
 // they can start.
 func EnsureRegistered(pluginName string) {
@@ -103,29 +103,31 @@ func RedisSRem(key string, value interface{}) *redis2.IntCmd {
 	return redis.SRem(key, value)
 }
 
-// RedisSubscribe subscribes to a channel on Redis.
+// RedisSubscribe subscribes to a channel on Redis. This should not be confused with PSubscribe, which subscribes to an
+//// event, even though it uses the underlying Redis PubSub command.
 func RedisSubscribe(channels ...string) *redis2.PubSub {
 	return redis.Subscribe(channels...)
 }
 
-// RedisPSubscribe subscribes to a channel on Redis
+// RedisPSubscribe pattern subscribes to a channel on Redis. This should not be confused with PSubscribe, which
+// subscribes to an event, even though it uses the underlying Redis PubSub command.
 func RedisPSubscribe(channels ...string) *redis2.PubSub {
 	return redis.PSubscribe(channels...)
 }
 
-// PSubscribe subscribes to an event on the message bus. It accepts an event and an arbitrary number of arguments that
-// will be passed to the event's topic constructor. The last argument should be a callback function otherwise the engine
-// will panic. The callback function is called when a message is received on the topic, with a payload decoded against
-// the event's Payload constructor. PSubscribe accepts topic patterns, and will subscribe to all matching topics. See
-// the [Redis documentation](https://redis.io/topics/pubsub) for more information.
-func PSubscribe(e event.Event, args ...interface{}) Subscription {
-	return redis.NewPatternSubscription(e, args...)
+// PSubscribe subscribes to an event on the message bus. It accepts an event and a callback function that will be
+// called when the event is published. The callback function will be passed an EventPayload, with which `Unmarshal` can
+// be called to unmarshal the payload into a Go struct. PSubscribe uses
+//[Redis PubSub PSubscribe](https://redis.io/commands/psubscribe). It should not be confused with the `RedisPSubscribe`
+// function, which simply subscribes to a channel on Redis, without wiring any of the underlying event handling.
+func PSubscribe(e event.Event, cb func(payload event.EventPayload)) Subscription {
+	return redis.NewPatternSubscription(e, cb)
 }
 
 // Publish publishes an event on the message bus. It accepts an event and an arbitrary number of arguments that will be
 // passed to the event's topic and payload constructors.
-func Publish(e event.Event, args ...interface{}) error {
-	return redis.Publish(e, args...)
+func Publish(e interface{}) error {
+	return redis.Publish(e)
 }
 
 // RegisterAfterStartCallback registers a callback function that is called after the engine is started.
@@ -170,13 +172,13 @@ func Stop() {
 	instance.Stop()
 }
 
-// Subscribe subscribes to an event on the message bus. It accepts an event and an arbitrary number of arguments that
-// will be passed to the event's topic constructor. The last argument should be a callback function otherwise the engine
-// will panic. The callback function is called when a message is received on the topic, with a payload decoded against
-// the event's Payload constructor. If it is wanted to subscribe against a pattern, the `PSubscribe` method should be
-// used instead. See the [Redis documentation](https://redis.io/topics/pubsub) for more information.
-func Subscribe(e event.Event, args ...interface{}) Subscription {
-	return redis.NewSubscription(e, args...)
+// Subscribe subscribes to an event on the message bus. It accepts an event and a callback function that will be
+// called when the event is published. The callback function will be passed an EventPayload, with which `Unmarshal` can
+// be called to unmarshal the payload into a Go struct. PSubscribe uses
+//[Redis PubSub PSubscribe](https://redis.io/commands/subscribe). It should not be confused with the `RedisSubscribe`
+// function, which simply subscribes to a channel on Redis, without wiring any of the underlying event handling.
+func Subscribe(e event.Event, cb func(event.EventPayload)) Subscription {
+	return redis.NewSubscription(e, cb)
 }
 
 // SetEnv sets the environment for the engine. Mjolnir recognizes three different environments by default, development

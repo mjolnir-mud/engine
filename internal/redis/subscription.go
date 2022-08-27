@@ -1,8 +1,6 @@
 package redis
 
 import (
-	"encoding/json"
-
 	"github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/logger"
@@ -12,35 +10,21 @@ import (
 type Subscription struct {
 	pubsub   *redis.PubSub
 	stop     chan bool
-	callback func(payload interface{})
+	callback func(payload event.EventPayload)
 	logger   zerolog.Logger
 	event    event.Event
 }
 
-func NewSubscription(e event.Event, args ...interface{}) *Subscription {
-	callback, ok := args[len(args)-1].(func(payload interface{}))
-	if !ok {
-		panic("callback is not a function")
-	}
-	// remove the last argument as the callback
-	args = args[:len(args)-1]
-
-	return createSubscription(Subscribe(e.Topic(args...)), e, callback)
+func NewSubscription(e event.Event, callback func(payload event.EventPayload)) *Subscription {
+	return createSubscription(Subscribe(e.Topic()), e, callback)
 
 }
 
-func NewPatternSubscription(e event.Event, args ...interface{}) *Subscription {
-	callback, ok := args[len(args)-1].(func(payload interface{}))
-	if !ok {
-		panic("callback is not a function")
-	}
-	// remove the last argument as the callback
-	args = args[:len(args)-1]
-
-	return createSubscription(PSubscribe(e.Topic(args...)), e, callback)
+func NewPatternSubscription(e event.Event, callback func(payload event.EventPayload)) *Subscription {
+	return createSubscription(PSubscribe(e.Topic()), e, callback)
 }
 
-func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(payload interface{})) *Subscription {
+func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(payload event.EventPayload)) *Subscription {
 	s := &Subscription{
 		pubsub:   pubsub,
 		stop:     make(chan bool),
@@ -65,13 +49,8 @@ func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(paylo
 
 				s.logger.Debug().Msgf("received message: %d", length)
 
-				newEvent := e.Payload()
-
-				err := json.Unmarshal([]byte(msg.Payload), newEvent)
-
-				if err != nil {
-					s.logger.Error().Err(err).Msg("error unmarshalling message")
-					continue
+				newEvent := event.EventPayload{
+					Payload: payloadBytes,
 				}
 
 				s.callback(newEvent)

@@ -31,12 +31,10 @@ func Ping() error {
 	return client.Ping(context.Background()).Err()
 }
 
-func Publish(e event.Event, args ...interface{}) error {
-	p := e.Payload(args...)
+func Publish(e interface{}) error {
+	payloadBytes, err := json.Marshal(e)
 
-	payloadBytes, err := json.Marshal(p)
-
-	topic := e.Topic(args...)
+	topic := e.(event.Event).Topic()
 
 	if err != nil {
 		log.Error().Err(err).Str("topic", topic).Msg("error marshalling event")
