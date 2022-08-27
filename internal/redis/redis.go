@@ -127,7 +127,7 @@ func Start() {
 
 	log = logger.Instance.
 		With().
-		Str("service", "redis").
+		Str("component", "redis").
 		Logger()
 
 	if err != nil {

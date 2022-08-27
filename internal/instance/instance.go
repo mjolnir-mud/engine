@@ -16,10 +16,13 @@ var command = &cobra.Command{
 	Short: "Mjolnir MUD Engine",
 	Long:  "Mjolnir MUD Engine CLI interface",
 }
+
 var beforeStartCallbacks = make([]func(), 0)
 var afterStartCallbacks = make([]func(), 0)
 var beforeStopCallbacks = make([]func(), 0)
 var afterStopCallbacks = make([]func(), 0)
+var beforeProcessStartCallbacks = make(map[string][]func())
+var afterProcessStartCallbacks = make(map[string][]func())
 
 func IsRunning() bool {
 	return redis2.Ping() == nil
@@ -34,7 +37,7 @@ func RegisterAfterStartCallback(f func()) {
 }
 
 func RegisterAfterStopCallback(f func()) {
-	afterStopCallbacks = append(beforeStopCallbacks, f)
+	afterStopCallbacks = append(afterStopCallbacks, f)
 }
 
 func RegisterBeforeStopCallback(f func()) {
@@ -50,11 +53,11 @@ func RegisterCLICommand(c *cobra.Command) {
 }
 
 func Start(n string) {
-	name = n
-	setEnv()
+	setEnv(n)
+
 	logger.Start()
 	fmt.Print("Mjolnir MUD Engine\n")
-	log = logger.Instance
+	log = logger.Instance.With().Str("component", "engine").Logger()
 	log.Info().Msgf("running beforeStartCallbacks")
 	redis2.Start()
 	for _, f := range beforeStartCallbacks {
@@ -84,7 +87,7 @@ func Stop() {
 var name string
 var log zerolog.Logger
 
-func setEnv() {
+func setEnv(name string) {
 	viper.SetEnvPrefix("MJOLNIR")
 	err := viper.BindEnv("env")
 
@@ -95,6 +98,8 @@ func setEnv() {
 	viper.SetDefault("env", "development")
 
 	err = viper.BindEnv("redis_url")
+
+	viper.Set("name", name)
 
 	if err != nil {
 		panic(err)

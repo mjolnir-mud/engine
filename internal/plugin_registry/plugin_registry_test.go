@@ -18,6 +18,10 @@ func tearDown() {
 func TestRegister(t *testing.T) {
 	setup()
 	defer tearDown()
+
+	Start()
+	defer Stop()
+
 	Register(test.CreateTestPlugin())
 	assert.Equal(t, len(plugins), 1)
 }

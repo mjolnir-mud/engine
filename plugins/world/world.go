@@ -3,11 +3,11 @@ package world
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	session3 "github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
+	session2 "github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
 	"github.com/mjolnir-mud/engine/plugins/world/internal/session"
 	"github.com/mjolnir-mud/engine/plugins/world/pkg/controller"
-	session3 "github.com/mjolnir-mud/engine/plugins/world/pkg/entities/session"
-	session2 "github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
 	"github.com/spf13/cobra"
 )
 

@@ -6,13 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var beforeStartCalled = make(chan bool)
-var afterStartCalled = make(chan bool)
-
-var beforeStopCalled = make(chan bool)
-var afterStopCalled = make(chan bool)
-
 func TestStart(t *testing.T) {
+
+	beforeStartCalled := make(chan bool)
+	afterStartCalled := make(chan bool)
+
 	RegisterBeforeStartCallback(func() {
 		go func() {
 			beforeStartCalled <- true
@@ -26,6 +24,7 @@ func TestStart(t *testing.T) {
 	})
 
 	Start("test")
+	defer Stop()
 
 	<-beforeStartCalled
 	<-afterStartCalled
@@ -34,6 +33,9 @@ func TestStart(t *testing.T) {
 }
 
 func TestStop(t *testing.T) {
+	beforeStopCalled := make(chan bool)
+	afterStopCalled := make(chan bool)
+
 	RegisterBeforeStopCallback(func() {
 		go func() {
 			beforeStopCalled <- true
