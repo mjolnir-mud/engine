@@ -171,8 +171,8 @@ func TestSendLine(t *testing.T) {
 	defer teardown()
 	ch := make(chan string)
 
-	sub := engine.Subscribe(events.SendLineEvent{}, "test", func(e interface{}) {
-		go func() { ch <- e.(*events.SendLineEvent).Line }()
+	sub := engine.Subscribe(events.PlayerOutputEvent{}, "test", func(e interface{}) {
+		go func() { ch <- e.(*events.PlayerOutputEvent).Line }()
 	})
 
 	defer sub.Stop()
@@ -296,8 +296,8 @@ func TestRenderTemplate(t *testing.T) {
 
 	templates.RegisterTemplate(testTemplate{})
 
-	sub := engine.Subscribe(events.SendLineEvent{}, "test", func(e interface{}) {
-		go func() { ch <- e.(*events.SendLineEvent).Line }()
+	sub := engine.Subscribe(events.PlayerOutputEvent{}, "test", func(e interface{}) {
+		go func() { ch <- e.(*events.PlayerOutputEvent).Line }()
 	})
 
 	defer sub.Stop()
@@ -321,8 +321,8 @@ func TestSendLineF(t *testing.T) {
 
 	ch := make(chan string)
 
-	sub := engine.Subscribe(events.SendLineEvent{}, "test", func(e interface{}) {
-		go func() { ch <- e.(*events.SendLineEvent).Line }()
+	sub := engine.Subscribe(events.PlayerOutputEvent{}, "test", func(e interface{}) {
+		go func() { ch <- e.(*events.PlayerOutputEvent).Line }()
 	})
 
 	defer sub.Stop()
