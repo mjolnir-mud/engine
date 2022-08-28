@@ -21,15 +21,11 @@ var beforeStartCallbacks = make([]func(), 0)
 var afterStartCallbacks = make([]func(), 0)
 var beforeStopCallbacks = make([]func(), 0)
 var afterStopCallbacks = make([]func(), 0)
-var beforeProcessStartCallbacks = make(map[string][]func())
-var afterProcessStartCallbacks = make(map[string][]func())
+var onServiceStartCallbacks = make(map[string][]func())
+var onServiceStopCallbacks = make(map[string][]func())
 
 func IsRunning() bool {
 	return redis2.Ping() == nil
-}
-
-func ExecuteCLI() {
-	_ = command.Execute()
 }
 
 func RegisterAfterStartCallback(f func()) {
@@ -46,6 +42,14 @@ func RegisterBeforeStopCallback(f func()) {
 
 func RegisterBeforeStartCallback(f func()) {
 	beforeStartCallbacks = append(beforeStartCallbacks, f)
+}
+
+func RegisterOnServiceStartCallback(service string, f func()) {
+	onServiceStartCallbacks[service] = append(onServiceStartCallbacks[service], f)
+}
+
+func RegisterOnServiceStopCallback(service string, f func()) {
+	onServiceStopCallbacks[service] = append(onServiceStopCallbacks[service], f)
 }
 
 func RegisterCLICommand(c *cobra.Command) {
@@ -67,6 +71,20 @@ func Start(n string) {
 	plugin_registry.Start()
 	log.Info().Msgf("running afterStartCallbacks")
 	for _, f := range afterStartCallbacks {
+		f()
+	}
+}
+
+func StopService(service string) {
+	log.Info().Str("service", service).Msg("stopping service")
+	for _, f := range onServiceStopCallbacks[service] {
+		f()
+	}
+}
+
+func StartService(service string) {
+	log.Info().Str("service", service).Msg("starting service")
+	for _, f := range onServiceStartCallbacks[service] {
 		f()
 	}
 }

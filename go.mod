@@ -11,6 +11,8 @@ require (
 	github.com/stretchr/testify v1.7.5
 )
 
+require github.com/alecthomas/kong v0.6.1 // indirect
+
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

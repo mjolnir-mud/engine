@@ -6,6 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func setup() {
+	Start("test")
+}
+
+func teardown() {
+	Stop()
+}
+
 func TestStart(t *testing.T) {
 
 	beforeStartCalled := make(chan bool)
@@ -53,5 +61,24 @@ func TestStop(t *testing.T) {
 	Stop()
 	<-beforeStopCalled
 	<-afterStopCalled
+	assert.True(t, true)
+}
+
+func TestStartService(t *testing.T) {
+	setup()
+	defer teardown()
+
+	onStartCalled := make(chan bool)
+
+	RegisterOnServiceStartCallback("test", func() {
+		go func() {
+			onStartCalled <- true
+		}()
+	})
+
+	StartService("test")
+	defer StopService("test")
+
+	<-onStartCalled
 	assert.True(t, true)
 }

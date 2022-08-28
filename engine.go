@@ -23,11 +23,6 @@ func EnsureRegistered(pluginName string) {
 	plugin_registry.EnsureRegistered(pluginName)
 }
 
-// ExecuteCLI executes the CLI.
-func ExecuteCLI() {
-	instance.ExecuteCLI()
-}
-
 // RedisPing pings the Redis server. This is a direct pass-through to the Redis client, simply setting the context.
 func RedisPing() error {
 	return redis.Ping()
@@ -148,6 +143,16 @@ func RegisterBeforeStartCallback(callback func()) {
 // RegisterBeforeStopCallback registers a callback function that is called before the engine is stopped.
 func RegisterBeforeStopCallback(callback func()) {
 	instance.RegisterBeforeStopCallback(callback)
+}
+
+// RegisterOnServiceStartCallback registers a callback function that is called when the engine is started.
+func RegisterOnServiceStartCallback(service string, callback func()) {
+	instance.RegisterOnServiceStartCallback(service, callback)
+}
+
+// RegisterOnServiceStopCallback registers a callback function that is called when the engine is stopped.
+func RegisterOnServiceStopCallback(service string, callback func()) {
+	instance.RegisterOnServiceStopCallback(service, callback)
 }
 
 // RegisterCLICommand registers a CLI command with the engine. The command will be available in the CLI when calling
