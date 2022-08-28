@@ -15,12 +15,12 @@ func (p plugin) Name() string {
 }
 
 func (p plugin) Registered() error {
-	engine.RegisterAfterStartCallback(func() {
+	engine.RegisterOnServiceStartCallback("world", func() {
 		entity_registry.Start()
 		system_registry.Start()
 	})
 
-	engine.RegisterBeforeStopCallback(func() {
+	engine.RegisterOnServiceStopCallback("world", func() {
 		entity_registry.Stop()
 		system_registry.Stop()
 	})
