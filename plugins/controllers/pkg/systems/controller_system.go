@@ -69,3 +69,13 @@ var ControllerSystem = controllerSystem{}
 func GetController(name string) (controller.Controller, error) {
 	return registry.Get(name)
 }
+
+func HandleInput(entityId string, input string) error {
+	c, err := GetController(entityId)
+
+	if err != nil {
+		return err
+	}
+
+	return c.HandleInput(entityId, input)
+}

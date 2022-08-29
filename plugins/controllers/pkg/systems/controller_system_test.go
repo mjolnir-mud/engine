@@ -7,8 +7,9 @@ import (
 )
 
 type testController struct {
-	StartCalled chan string
-	StopCalled  chan string
+	StartCalled       chan string
+	StopCalled        chan string
+	HandleInputCalled chan []string
 }
 
 func (c testController) Name() string {
@@ -31,14 +32,17 @@ func (c testController) Stop(entityId string) error {
 	return nil
 }
 
-func (c testController) HandleInput(_ string, _ string) error {
+func (c testController) HandleInput(entityId string, input string) error {
+	go func() { c.HandleInputCalled <- []string{entityId, input} }()
+
 	return nil
 }
 
 func setup() {
 	tc = &testController{
-		StartCalled: make(chan string),
-		StopCalled:  make(chan string),
+		StartCalled:       make(chan string),
+		StopCalled:        make(chan string),
+		HandleInputCalled: make(chan []string),
 	}
 
 	registry.Start()
@@ -85,4 +89,26 @@ func TestControllerSystem_MatchingComponentUpdated(t *testing.T) {
 	entityId = <-tc.StartCalled
 
 	assert.Equal(t, "test", entityId)
+}
+
+func TestGetController(t *testing.T) {
+	setup()
+	defer teardown()
+
+	c, err := GetController("test")
+
+	assert.Nil(t, err)
+	assert.Equal(t, tc, c)
+}
+
+func TestHandleInput(t *testing.T) {
+	setup()
+	defer teardown()
+
+	assert.Nil(t, HandleInput("test", "test"))
+
+	called := <-tc.HandleInputCalled
+
+	assert.Equal(t, "test", called[0])
+	assert.Equal(t, "test", called[1])
 }
