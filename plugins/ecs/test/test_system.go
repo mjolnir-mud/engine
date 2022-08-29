@@ -57,20 +57,18 @@ func (s TestSystem) ComponentRemoved(entityId string, key string) error {
 	return nil
 }
 
-func (s TestSystem) MatchingComponentAdded(entityId string, key string, value interface{}) error {
+func (s TestSystem) MatchingComponentAdded(entityId string, value interface{}) error {
 	s.appendCall("MatchingComponentAdded", map[string]interface{}{
 		"entityId": entityId,
-		"key":      key,
 		"value":    value,
 	})
 
 	return nil
 }
 
-func (s TestSystem) MatchingComponentUpdated(entityId string, key string, oldValue interface{}, newValue interface{}) error {
+func (s TestSystem) MatchingComponentUpdated(entityId string, oldValue interface{}, newValue interface{}) error {
 	s.appendCall("MatchingComponentUpdated", map[string]interface{}{
 		"entityId": entityId,
-		"key":      key,
 		"oldValue": oldValue,
 		"newValue": newValue,
 	})
@@ -78,10 +76,9 @@ func (s TestSystem) MatchingComponentUpdated(entityId string, key string, oldVal
 	return nil
 }
 
-func (s TestSystem) MatchingComponentRemoved(entityId string, key string) error {
+func (s TestSystem) MatchingComponentRemoved(entityId string) error {
 	s.appendCall("MatchingComponentRemoved", map[string]interface{}{
 		"entityId": entityId,
-		"key":      key,
 	})
 
 	return nil

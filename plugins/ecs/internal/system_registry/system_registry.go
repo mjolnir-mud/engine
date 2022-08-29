@@ -123,7 +123,7 @@ func callComponentAddedCallbacks(s system.System, id string, key string, value i
 
 	if s.Match(key, value) {
 		log.Trace().Msgf("component %s added to system %s", k, s.Name())
-		err := s.MatchingComponentAdded(id, k, value)
+		err := s.MatchingComponentAdded(id, value)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling matching component added callbacks for system %s", s.Name())
@@ -144,7 +144,7 @@ func callComponentUpdatedCallbacks(s system.System, id string, key string, oldVa
 
 	if s.Match(key, newValue) {
 		log.Trace().Msgf("component %s updated in system %s", k, s.Name())
-		err := s.MatchingComponentUpdated(id, k, oldValue, newValue)
+		err := s.MatchingComponentUpdated(id, oldValue, newValue)
 
 		if err != nil {
 			log.Error().Err(err).Msgf("error calling matching component updated callbacks for system %s", s.Name())
@@ -193,7 +193,7 @@ func callDelCallbacks(s system.System, id string, key string) {
 
 	if s.Match(k, nil) {
 		log.Trace().Msgf("component %s deleted from system %s", k, s.Name())
-		err := s.MatchingComponentRemoved(id, k)
+		err := s.MatchingComponentRemoved(id)
 
 		if err != nil {
 			log.Error().Err(err).

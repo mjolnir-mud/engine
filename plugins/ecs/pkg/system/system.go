@@ -21,13 +21,13 @@ type System interface {
 
 	// MatchingComponentAdded is called when a component is added to an entity, but only if the system is interested
 	// in the component.
-	MatchingComponentAdded(entityId string, component string, value interface{}) error
+	MatchingComponentAdded(entityId string, value interface{}) error
 
 	// MatchingComponentUpdated is called when a component is updated on an entity, but only if the system is interested
 	// in the component.
-	MatchingComponentUpdated(entityId string, component string, oldValue interface{}, newValue interface{}) error
+	MatchingComponentUpdated(entityId string, oldValue interface{}, newValue interface{}) error
 
 	// MatchingComponentRemoved is called when a component is removed from an entity, but only if the system is
 	// interested in the component.
-	MatchingComponentRemoved(entityId string, component string) error
+	MatchingComponentRemoved(entityId string) error
 }

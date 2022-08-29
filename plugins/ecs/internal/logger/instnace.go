@@ -2,7 +2,7 @@ package logger
 
 import "github.com/rs/zerolog/log"
 
-var Logger = log.
+var Instance = log.
 	With().
 	Str("plugin", "ecs").
 	Logger()

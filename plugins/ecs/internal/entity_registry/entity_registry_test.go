@@ -1,7 +1,7 @@
 package entity_registry
 
 import (
-	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"testing"
 
@@ -12,19 +12,20 @@ import (
 
 func setup() {
 	Register(test.TestEntityType{})
-	testing2.Setup()
+	engineTesting.Setup()
 	_ = engine.RedisFlushAll()
 	Start()
 }
 
 func teardown() {
 	_ = engine.RedisFlushAll()
-	testing2.Teardown()
+	engineTesting.Teardown()
 	Stop()
 }
 
 func TestAdd(t *testing.T) {
 	setup()
+	defer teardown()
 
 	// test happy path
 	id, err := Add("test", map[string]interface{}{})
@@ -49,6 +50,7 @@ func TestAdd(t *testing.T) {
 // type is not registered, an error will be thrown.
 func TestAddWithID(t *testing.T) {
 	setup()
+	defer teardown()
 
 	// test happy path
 	err := AddWithID("test", "testId", map[string]interface{}{})
@@ -77,28 +79,29 @@ func TestAddWithID(t *testing.T) {
 // same name already exists, an error will be thrown.
 func TestAddBoolComponent(t *testing.T) {
 	setup()
+	defer teardown()
 
 	err := AddWithID("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
 	// test happy path
-	err = AddBoolComponent("testEntity", "testComponent", true)
+	err = AddBoolComponent("testEntity", "otherTestComponent", true)
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.RedisGet("testEntity:testComponent").Bool()
+	componentValue, err := engine.RedisGet("testEntity:otherTestComponent").Bool()
 
 	assert.Nil(t, err)
 	assert.Equal(t, true, componentValue)
 
 	// test that an error is thrown if the entity does not exist
-	err = AddBoolComponent("notRegistered", "testComponent", true)
+	err = AddBoolComponent("notRegistered", "otherTestComponent", true)
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the component already exists
-	err = AddBoolComponent("test", "testComponent", true)
+	err = AddBoolComponent("test", "otherTestComponent", true)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -146,22 +149,22 @@ func TestAddIntComponent(t *testing.T) {
 	assert.Nil(t, err)
 
 	// test happy path
-	err = AddIntComponent("testEntity", "testComponent", 1)
+	err = AddIntComponent("testEntity", "otherTestComponent", 1)
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.RedisGet("testEntity:testComponent").Int()
+	componentValue, err := engine.RedisGet("testEntity:otherTestComponent").Int()
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1, componentValue)
 
 	// test that an error is thrown if the entity does not exist
-	err = AddIntComponent("notRegistered", "testComponent", 1)
+	err = AddIntComponent("notRegistered", "otherTestComponent", 1)
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the component already exists
-	err = AddIntComponent("test", "testComponent", 1)
+	err = AddIntComponent("test", "otherTestComponent", 1)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -211,22 +214,22 @@ func TestAddInt64Component(t *testing.T) {
 	assert.Nil(t, err)
 
 	// test happy path
-	err = AddInt64Component("testEntity", "testComponent", int64(1))
+	err = AddInt64Component("testEntity", "otherTestComponent", int64(1))
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.RedisGet("testEntity:testComponent").Int64()
+	componentValue, err := engine.RedisGet("testEntity:otherTestComponent").Int64()
 
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), componentValue)
 
 	// test that an error is thrown if the entity does not exist
-	err = AddInt64Component("notRegistered", "testComponent", int64(1))
+	err = AddInt64Component("notRegistered", "otherTestComponent", int64(1))
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the component already exists
-	err = AddInt64Component("test", "testComponent", int64(1))
+	err = AddInt64Component("test", "otherTestComponent", int64(1))
 
 	assert.NotNil(t, err)
 	teardown()
@@ -276,26 +279,26 @@ func TestAddMapComponent(t *testing.T) {
 	assert.Nil(t, err)
 
 	// test happy path
-	err = AddMapComponent("testEntity", "testComponent", map[string]interface{}{
+	err = AddMapComponent("testEntity", "otherTestComponent", map[string]interface{}{
 		"testKey": "testValue",
 	})
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.RedisHGet("testEntity:testComponent", "testKey").Result()
+	componentValue, err := engine.RedisHGet("testEntity:otherTestComponent", "testKey").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
 
 	// test that an error is thrown if the entity does not exist
-	err = AddMapComponent("notRegistered", "testComponent", map[string]interface{}{
+	err = AddMapComponent("notRegistered", "otherTestComponent", map[string]interface{}{
 		"testKey": "testValue",
 	})
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the component already exists
-	err = AddMapComponent("test", "testComponent", map[string]interface{}{
+	err = AddMapComponent("test", "otherTestComponent", map[string]interface{}{
 		"testKey": "testValue",
 	})
 
@@ -311,22 +314,22 @@ func TestAddSetComponent(t *testing.T) {
 	assert.Nil(t, err)
 
 	// test happy path
-	err = AddSetComponent("testEntity", "testComponent", []interface{}{"testValue"})
+	err = AddSetComponent("testEntity", "otherTestComponent", []interface{}{"testValue"})
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.RedisSMembers("testEntity:testComponent").Result()
+	componentValue, err := engine.RedisSMembers("testEntity:otherTestComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"testValue"}, componentValue)
 
 	// test that an error is thrown if the entity does not exist
-	err = AddSetComponent("notRegistered", "testComponent", []interface{}{"testValue"})
+	err = AddSetComponent("notRegistered", "otherTestComponent", []interface{}{"testValue"})
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the component already exists
-	err = AddSetComponent("test", "testComponent", []interface{}{"testValue"})
+	err = AddSetComponent("test", "otherTestComponent", []interface{}{"testValue"})
 
 	assert.NotNil(t, err)
 	teardown()
@@ -340,22 +343,22 @@ func TestAddStringComponent(t *testing.T) {
 	assert.Nil(t, err)
 
 	// test happy path
-	err = AddStringComponent("testEntity", "testComponent", "testValue")
+	err = AddStringComponent("testEntity", "otherTestComponent", "testValue")
 
 	assert.Nil(t, err)
 
-	componentValue, err := engine.RedisGet("testEntity:testComponent").Result()
+	componentValue, err := engine.RedisGet("testEntity:otherTestComponent").Result()
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
 
 	// test that an error is thrown if the entity does not exist
-	err = AddStringComponent("notRegistered", "testComponent", "testValue")
+	err = AddStringComponent("notRegistered", "otherTestComponent", "testValue")
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the component already exists
-	err = AddStringComponent("test", "testComponent", "testValue")
+	err = AddStringComponent("test", "otherTestComponent", "testValue")
 
 	assert.NotNil(t, err)
 	teardown()
