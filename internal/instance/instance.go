@@ -2,20 +2,12 @@ package instance
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
 	redis2 "github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 )
-
-var command = &cobra.Command{
-	Use:   "mjolnir",
-	Short: "Mjolnir MUD Engine",
-	Long:  "Mjolnir MUD Engine CLI interface",
-}
 
 var beforeStartCallbacks = make([]func(), 0)
 var afterStartCallbacks = make([]func(), 0)
@@ -50,10 +42,6 @@ func RegisterOnServiceStartCallback(service string, f func()) {
 
 func RegisterOnServiceStopCallback(service string, f func()) {
 	onServiceStopCallbacks[service] = append(onServiceStopCallbacks[service], f)
-}
-
-func RegisterCLICommand(c *cobra.Command) {
-	command.AddCommand(c)
 }
 
 func Start(n string) {

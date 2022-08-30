@@ -1,19 +1,28 @@
 package engine
 
 import (
+	"github.com/alecthomas/kong"
 	redis2 "github.com/go-redis/redis/v9"
+	"github.com/mjolnir-mud/engine/internal/cli"
 	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 // Subscription represents a pubsub to an event.
 type Subscription interface {
 	Stop()
+}
+
+// Cli returns and execute CLI commands.
+func Cli() {
+	ctx := kong.Parse(&cli.StartCmd{})
+
+	err := ctx.Run()
+	ctx.FatalIfErrorf(err)
 }
 
 // EnsureRegistered ensures that the plugin is registered with the engine. If the plugin is not registered, and the
@@ -158,12 +167,6 @@ func RegisterOnServiceStartCallback(service string, callback func()) {
 // RegisterOnServiceStopCallback registers a callback function that is called when the engine is stopped.
 func RegisterOnServiceStopCallback(service string, callback func()) {
 	instance.RegisterOnServiceStopCallback(service, callback)
-}
-
-// RegisterCLICommand registers a CLI command with the engine. The command will be available in the CLI when calling
-// the compiled binary.
-func RegisterCLICommand(command *cobra.Command) {
-	instance.RegisterCLICommand(command)
 }
 
 // RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
