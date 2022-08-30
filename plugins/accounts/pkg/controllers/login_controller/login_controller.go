@@ -2,8 +2,8 @@ package login_controller
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
+	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
 )
 
 // controller is the login controller, responsible handling user logins.

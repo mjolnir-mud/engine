@@ -10,9 +10,9 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
+	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
 	"github.com/mjolnir-mud/engine/plugins/world"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	testing2 "testing"
@@ -72,8 +72,8 @@ func TestController_Start(t *testing2.T) {
 
 	receivedLine := make(chan string)
 
-	sub := engine.Subscribe(events.SendLineEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.SendLineEvent).Line }()
+	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
+		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
 	})
 
 	defer sub.Stop()
@@ -101,8 +101,8 @@ func TestControllerHandlesInvalidLogin(t *testing2.T) {
 
 	receivedLine := make(chan string)
 
-	sub := engine.Subscribe(events.SendLineEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.SendLineEvent).Line }()
+	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
+		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
 	})
 
 	defer sub.Stop()
@@ -144,8 +144,8 @@ func TestControllerHandlesValidLogin(t *testing2.T) {
 
 	receivedLine := make(chan string)
 
-	sub := engine.Subscribe(events.SendLineEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.SendLineEvent).Line }()
+	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
+		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
 	})
 
 	defer sub.Stop()

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/systems/session"
+	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"net/mail"
 	"regexp"
