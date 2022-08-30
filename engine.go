@@ -73,6 +73,11 @@ func RedisHSet(key string, mapKey string, value interface{}) *redis2.IntCmd {
 	return redis.HSet(key, mapKey, value)
 }
 
+// RedisHMSet sets the values for the provided map key from the Redis database.
+func RedisHMSet(key string, values map[string]interface{}) *redis2.BoolCmd {
+	return redis.HMSet(key, values)
+}
+
 // RedisKeys returns the keys for the provided pattern from the Redis database.
 func RedisKeys(pattern string) *redis2.StringSliceCmd {
 	return redis.Keys(pattern)

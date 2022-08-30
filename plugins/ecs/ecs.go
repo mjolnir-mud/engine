@@ -39,7 +39,7 @@ func AddEntity(entityType string, args map[string]interface{}) (string, error) {
 // to be passed to the entity type's constructor. If the entity type is not registered, an error will be returned. If
 // the entity already exists, an error will be returned.
 func AddEntityWithID(entityType string, id string, args map[string]interface{}) error {
-	return entity_registry.AddWithID(entityType, id, args)
+	return entity_registry.AddWithId(entityType, id, args)
 }
 
 // AddBoolComponent adds a boolean component to an entity. It takes the entity ID, component name, and the

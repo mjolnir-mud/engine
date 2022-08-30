@@ -45,7 +45,7 @@ func TestAdd(t *testing.T) {
 	teardown()
 }
 
-// Test that AddWithID adds an entity with the provided id to the entity registry. It takes the entity id,
+// Test that AddWithId adds an entity with the provided id to the entity registry. It takes the entity id,
 // and a map of components to be added. If an entity with the same id already exists, an error will be thrown. If the
 // type is not registered, an error will be thrown.
 func TestAddWithID(t *testing.T) {
@@ -53,7 +53,7 @@ func TestAddWithID(t *testing.T) {
 	defer teardown()
 
 	// test happy path
-	err := AddWithID("test", "testId", map[string]interface{}{})
+	err := AddWithId("test", "testId", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -63,12 +63,12 @@ func TestAddWithID(t *testing.T) {
 	assert.Equal(t, "test", ty)
 
 	// test that an error is thrown if the entity type is not registered
-	err = AddWithID("notRegistered", "testId", map[string]interface{}{})
+	err = AddWithId("notRegistered", "testId", map[string]interface{}{})
 
 	assert.NotNil(t, err)
 
 	// test that an error is thrown if the id is already in use
-	err = AddWithID("test", "testId", map[string]interface{}{})
+	err = AddWithId("test", "testId", map[string]interface{}{})
 
 	assert.NotNil(t, err)
 	teardown()
@@ -81,7 +81,7 @@ func TestAddBoolComponent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -110,7 +110,7 @@ func TestAddBoolComponent(t *testing.T) {
 func TestAddBoolToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
@@ -144,7 +144,7 @@ func TestAddBoolToMapComponent(t *testing.T) {
 func TestAddIntComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -173,7 +173,7 @@ func TestAddIntComponent(t *testing.T) {
 func TestAddIntToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
@@ -209,7 +209,7 @@ func TestAddIntToMapComponent(t *testing.T) {
 func TestAddInt64Component(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -238,7 +238,7 @@ func TestAddInt64Component(t *testing.T) {
 func TestAddInt64ToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
@@ -274,7 +274,7 @@ func TestAddInt64ToMapComponent(t *testing.T) {
 func TestAddMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -309,7 +309,7 @@ func TestAddMapComponent(t *testing.T) {
 func TestAddSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -338,7 +338,7 @@ func TestAddSetComponent(t *testing.T) {
 func TestAddStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
@@ -370,7 +370,7 @@ func TestAddStringComponent(t *testing.T) {
 func TestAddToStringSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{
 			"testValue",
 		},
@@ -403,7 +403,7 @@ func TestAddToStringSetComponent(t *testing.T) {
 func TestAddStringToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
@@ -439,7 +439,7 @@ func TestAddStringToMapComponent(t *testing.T) {
 func TestAddToIntSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{
 			1,
 		},
@@ -472,7 +472,7 @@ func TestAddToIntSetComponent(t *testing.T) {
 func TestAddToInt64SetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{
 			int64(1),
 		},
@@ -546,7 +546,7 @@ func TestCreateAndAdd(t *testing.T) {
 func TestGetBoolComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": true,
 	})
 
@@ -573,7 +573,7 @@ func TestGetBoolComponent(t *testing.T) {
 func TestGetIntComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": 1,
 	})
 
@@ -600,7 +600,7 @@ func TestGetIntComponent(t *testing.T) {
 func TestGetInt64FromMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": int64(1),
 		},
@@ -641,7 +641,7 @@ func TestGetInt64FromMapComponent(t *testing.T) {
 func TestGetIntFromMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": 1,
 		},
@@ -675,7 +675,7 @@ func TestGetIntFromMapComponent(t *testing.T) {
 func TestGetMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -706,7 +706,7 @@ func TestGetMapComponent(t *testing.T) {
 func TestGetStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": "testValue",
 	})
 
@@ -733,7 +733,7 @@ func TestGetStringComponent(t *testing.T) {
 func TestGetStringFromMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -785,7 +785,7 @@ func TestIsEntityTypeRegistered(t *testing.T) {
 func TestReplace(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -816,7 +816,7 @@ func TestReplace(t *testing.T) {
 func TestRemove(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -844,7 +844,7 @@ func TestRemove(t *testing.T) {
 func TestRemoveComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -877,7 +877,7 @@ func TestRemoveComponent(t *testing.T) {
 func TestRemoveFromStringSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{"testValue"},
 	})
 
@@ -908,7 +908,7 @@ func TestRemoveFromStringSetComponent(t *testing.T) {
 func TestRemoveFromInt64SetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{int64(1)},
 	})
 
@@ -938,7 +938,7 @@ func TestRemoveFromInt64SetComponent(t *testing.T) {
 func TestRemoveFromIntSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{int(1)},
 	})
 
@@ -968,7 +968,7 @@ func TestRemoveFromIntSetComponent(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": "testValue",
 	})
 
@@ -993,7 +993,7 @@ func TestUpdate(t *testing.T) {
 func TestUpdateBoolComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": true,
 	})
 
@@ -1014,7 +1014,7 @@ func TestUpdateBoolComponent(t *testing.T) {
 func TestUpdateInt64Component(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": int64(1),
 	})
 
@@ -1035,7 +1035,7 @@ func TestUpdateInt64Component(t *testing.T) {
 func TestUpdateIntComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": int(1),
 	})
 
@@ -1056,7 +1056,7 @@ func TestUpdateIntComponent(t *testing.T) {
 func TestUpdateBoolInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": true,
 		},
@@ -1079,7 +1079,7 @@ func TestUpdateBoolInMapComponent(t *testing.T) {
 func TestUpdateInt64InMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": int64(1),
 		},
@@ -1102,7 +1102,7 @@ func TestUpdateInt64InMapComponent(t *testing.T) {
 func TestUpdateIntInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": int(1),
 		},
@@ -1125,7 +1125,7 @@ func TestUpdateIntInMapComponent(t *testing.T) {
 func TestUpdateStringInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -1153,7 +1153,7 @@ func TestUpdateStringInMapComponent(t *testing.T) {
 func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -1189,7 +1189,7 @@ func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 func TestAddOrUpdateIntInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": 1,
 		},
@@ -1212,7 +1212,7 @@ func TestAddOrUpdateIntInMapComponent(t *testing.T) {
 func TestUpdateStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithID("test", "testEntity", map[string]interface{}{
+	err := AddWithId("test", "testEntity", map[string]interface{}{
 		"testComponent": "testValue",
 	})
 

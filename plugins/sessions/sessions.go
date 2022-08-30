@@ -28,6 +28,11 @@ func RegisterSessionStoppedHandler(h func(id string) error) {
 	registry.RegisterSessionStoppedHandler(h)
 }
 
+// RegisterSessionLineHandler registers a handler that is called when a line is received from a session.
+func RegisterLineHandler(h func(id string, line string) error) {
+	registry.RegisterLineHandler(h)
+}
+
 // StopSessionRegistry stops the session registry. This should only be called non-portal services.
 func StopSessionRegistry() {
 	registry.Stop()

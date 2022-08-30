@@ -89,4 +89,4 @@ package create_character
 //	return db.Collection("characters")
 //}
 //
-//var Controller = &selectCharacter{}
+//var Name = &selectCharacter{}

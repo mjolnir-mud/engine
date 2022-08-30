@@ -13,10 +13,8 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
 )
 
-type registry struct {
-	systems   map[string]system.System
-	listeners map[string]subscription
-}
+var systems map[string]system.System
+var listeners map[string]subscription
 
 type subscription struct {
 	pubSub *redis2.PubSub
@@ -30,15 +28,14 @@ func (s *subscription) Stop() {
 
 // Start starts the registry.
 func Start() {
-	log = logger.Instance.With().Str("service", "system_registry").Logger()
+	log = logger.Instance.With().Str("component", "system_registry").Logger()
 	log.Info().Msg("starting system registry")
-	for _, s := range r.systems {
-		startComponentListener(s)
-	}
+	systems = make(map[string]system.System)
+	listeners = make(map[string]subscription)
 }
 
 func Stop() {
-	for _, s := range r.systems {
+	for _, s := range systems {
 		stopComponentListener(s)
 	}
 }
@@ -47,7 +44,9 @@ func Stop() {
 // overwritten.
 func Register(system system.System) {
 	log.Info().Msgf("registering system %s", system.Name())
-	r.systems[system.Name()] = system
+	systems[system.Name()] = system
+
+	startComponentListener(system)
 }
 
 func startComponentListener(s system.System) {
@@ -64,7 +63,7 @@ func startComponentSetListener(s system.System) {
 		stop:   make(chan bool),
 	}
 
-	r.listeners[s.Name()] = sub
+	listeners[s.Name()] = sub
 
 	go func() {
 		for {
@@ -112,7 +111,7 @@ func callComponentAddedCallbacks(s system.System, id string, key string, value i
 	k := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
 	setComponentMeta(id, k, value)
 
-	for _, sys := range r.systems {
+	for _, sys := range systems {
 		log.Trace().Msgf("calling component %s added callbacks for system %s", k, sys.Name())
 		err := sys.ComponentAdded(id, k, value)
 
@@ -133,7 +132,7 @@ func callComponentAddedCallbacks(s system.System, id string, key string, value i
 
 func callComponentUpdatedCallbacks(s system.System, id string, key string, oldValue interface{}, newValue interface{}) {
 	k := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
-	for _, sys := range r.systems {
+	for _, sys := range systems {
 		log.Trace().Msgf("calling component %s updated callbacks for system %s", k, sys.Name())
 		err := sys.ComponentUpdated(id, k, oldValue, newValue)
 
@@ -157,7 +156,7 @@ func callDelCallbacks(s system.System, id string, key string) {
 	var value interface{}
 	k := strings.Replace(key, fmt.Sprintf("%s:", id), "", 1)
 
-	for _, sys := range r.systems {
+	for _, sys := range systems {
 		log.Trace().Msgf("calling component deleted callbacks for system %s", sys.Name())
 		valueType := engine.RedisGet(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, key)).Val()
 
@@ -315,14 +314,9 @@ func stopComponentListener(s system.System) {
 
 func stopComponentSetListener(s system.System) {
 	log.Info().Msgf("stopping component set listener for system %s", s.Name())
-	//sub := r.listeners[s.Name()]
+	//sub := listeners[s.Name()]
 	//sub.Stop()
-	delete(r.listeners, s.Name())
-}
-
-var r = &registry{
-	systems:   make(map[string]system.System),
-	listeners: make(map[string]subscription),
+	delete(listeners, s.Name())
 }
 
 var log zerolog.Logger

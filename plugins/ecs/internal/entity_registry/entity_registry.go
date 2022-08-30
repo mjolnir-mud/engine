@@ -90,7 +90,7 @@ func AllComponents(id string) map[string]interface{} {
 // an error will be returned.
 func Add(entityType string, args map[string]interface{}) (string, error) {
 	id := generateID()
-	err := AddWithID(entityType, id, args)
+	err := AddWithId(entityType, id, args)
 
 	if err != nil {
 		return "", err
@@ -99,10 +99,10 @@ func Add(entityType string, args map[string]interface{}) (string, error) {
 	return id, nil
 }
 
-// AddWithID adds an entity with the provided id to the entity registry. It takes the entity id, and a map of arguments
+// AddWithId adds an entity with the provided id to the entity registry. It takes the entity id, and a map of arguments
 // to be passed to the entity type's constructor. If the entity type is not registered, an error will be returned. If
 // the entity already exists, an error will be returned.
-func AddWithID(entityType string, id string, args map[string]interface{}) error {
+func AddWithId(entityType string, id string, args map[string]interface{}) error {
 	exists, err := Exists(id)
 
 	if err != nil {
@@ -196,29 +196,7 @@ func AddInt64ToMapComponent(id string, name string, key string, value int64) err
 // the component. If an entity with the same id already exists an error will be thrown. If a component with the same name
 // already exists, an error will be thrown.
 func AddMapComponent(id string, name string, value map[string]interface{}) error {
-	exists, err := Exists(id)
-
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return errors.EntityNotFoundError{ID: id}
-	}
-
-	err = setComponentType(id, name, "map")
-
-	if err != nil {
-		return err
-	}
-
-	log.Debug().Str("id", id).Str("name", name).Msg("adding map component")
-
-	for k, v := range value {
-		engine.RedisHSet(componentId(id, name), k, v)
-	}
-
-	return nil
+	return addComponent(id, name, value)
 }
 
 // AddOrUpdateStringInMapComponent adds or updates a string component to a map component. It takes the entity ID,
@@ -245,47 +223,7 @@ func AddOrUpdateIntInMapComponent(id string, name string, key string, value int)
 // all members of the set. Attempting to change the type of value will result in an error in later updates. One cannot
 // add empty sets, so if the value is empty, an error will be thrown.
 func AddSetComponent(id string, name string, value []interface{}) error {
-	exists, err := Exists(id)
-
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return errors.EntityExistsError{ID: id}
-	}
-
-	err = setComponentType(id, name, "set")
-
-	if err != nil {
-		return err
-	}
-
-	if len(value) == 0 {
-		return errors.EmptySetError{ID: id}
-	}
-
-	firstElement := value[0]
-
-	setType := reflect.TypeOf(firstElement).Kind().String()
-
-	for _, element := range value {
-		elementType := reflect.TypeOf(element).Kind().String()
-		if elementType != setType {
-			return errors.SetValueTypeError{ID: id, Name: name, Expected: setType, Actual: elementType}
-		}
-	}
-
-	log.Debug().Str("id", id).Str("name", name).Msg("adding set component")
-
-	err = engine.RedisSet(
-		fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name)),
-		setType,
-	).Err()
-
-	err = engine.RedisSAdd(componentId(id, name), value).Err()
-
-	return nil
+	return addComponent(id, name, value)
 }
 
 // AddStringComponent adds a string component to an entity. It takes the entity ID, component name, and the
@@ -568,8 +506,14 @@ func GetMapComponent(id string, name string) (map[string]interface{}, error) {
 		return nil, errors.ComponentNotFoundError{ID: id, Name: name}
 	}
 
-	if getComponentType(id, name) != "map" {
-		return nil, errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: getComponentType(id, name)}
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if t != "map" {
+		return nil, errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: t}
 	}
 
 	h, err := engine.RedisHGetAll(componentId(id, name)).Result()
@@ -581,6 +525,10 @@ func GetMapComponent(id string, name string) (map[string]interface{}, error) {
 	final := make(map[string]interface{})
 
 	for k, v := range h {
+		if k == "" {
+			continue
+		}
+
 		final[k] = v
 	}
 
@@ -612,8 +560,14 @@ func GetStringComponent(id string, name string) (string, error) {
 		return "", errors.ComponentNotFoundError{ID: id, Name: name}
 	}
 
-	if getComponentType(id, name) != "string" {
-		return "", errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "string", Actual: getComponentType(id, name)}
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return "", err
+	}
+
+	if t != "string" {
+		return "", errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "string", Actual: t}
 	}
 
 	return engine.RedisGet(componentId(id, name)).Result()
@@ -687,7 +641,7 @@ func Replace(id string, components map[string]interface{}) error {
 	}
 
 	// add the entity
-	err = AddWithID(t, id, components)
+	err = AddWithId(t, id, components)
 
 	if err != nil {
 		return err
@@ -882,7 +836,7 @@ func UpdateOrAdd(entityType string, id string, components map[string]interface{}
 		return Update(id, components)
 	}
 
-	return AddWithID(entityType, id, components)
+	return AddWithId(entityType, id, components)
 }
 
 // UpdateStringComponent updates a string component in the entity registry. It takes the entity ID, component name, and
@@ -949,8 +903,8 @@ func generateID() string {
 	return uuid.NewString()
 }
 
-func getComponentType(id string, key string) string {
-	return engine.RedisGet(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, key))).Val()
+func getComponentType(id string, key string) (string, error) {
+	return engine.RedisGet(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, key))).Result()
 }
 
 func getMapValueType(id string, name string, key string) string {
@@ -989,20 +943,225 @@ func addComponent(id string, name string, value interface{}) error {
 
 	valueType := reflect.TypeOf(value).Kind().String()
 
+	if valueType == "slice" {
+		valueType = "set"
+	}
+
 	err = setComponentType(id, name, valueType)
 
 	if err != nil {
+		log.Error().Err(err).Msg("error setting component type")
 		return err
 	}
 
-	err = engine.RedisSet(componentId(id, name), value).Err()
+	cleanup := func() {
+		engine.RedisDel(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)))
+		engine.RedisDel(componentId(id, name))
+		removeMetadata(id)
+	}
+
+	switch valueType {
+	case "map":
+
+		if len(value.(map[string]interface{})) == 0 {
+			return nil
+		}
+
+		err := engine.RedisHMSet(componentId(id, name), value.(map[string]interface{})).Err()
+
+		if err != nil {
+			log.Error().Err(err).Msg("error setting component value")
+			cleanup()
+			return err
+		}
+
+		err = setMapValueTypes(id, name, value.(map[string]interface{}))
+
+		if err != nil {
+			log.Error().Err(err).Msg("error setting component value")
+			cleanup()
+			return err
+		}
+	case "set":
+
+		if len(value.([]interface{})) == 0 {
+			return nil
+		}
+
+		for _, value := range value.([]interface{}) {
+			err = addToSetComponent(id, name, value)
+			if err != nil {
+				log.Error().Err(err).Msg("error setting component value")
+				cleanup()
+				return err
+			}
+		}
+
+		err := validateAndSetSetValueTypes(id, name, value.([]interface{}))
+
+		if err != nil {
+			log.Error().Err(err).Msg("error setting component value type")
+			cleanup()
+			return err
+		}
+
+	default:
+		err = engine.RedisSet(componentId(id, name), value).Err()
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = updatePreviousValueToCurrent(id, name)
 
 	if err != nil {
+		log.Error().Err(err).Msg("error setting previous value")
 		engine.RedisDel(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)))
+		engine.RedisDel(componentId(id, name))
 		return err
 	}
 
 	return nil
+}
+
+func validateAndSetSetValueTypes(id string, name string, values []interface{}) error {
+	err := validateSetValueTypes(id, name, values)
+
+	if err != nil {
+		return err
+	}
+
+	return setSetValueType(id, name, reflect.TypeOf(values[0]).Kind().String())
+}
+
+func validateSetValueTypes(id string, name string, values []interface{}) error {
+	baseType := reflect.TypeOf(values[0]).Kind().String()
+
+	for _, value := range values {
+		if reflect.TypeOf(value).Kind().String() != baseType {
+			return errors.SetValueTypeError{
+				ID:       id,
+				Name:     name,
+				Actual:   reflect.TypeOf(value).Kind().String(),
+				Expected: baseType,
+			}
+		}
+	}
+
+	return nil
+}
+
+func setSetValueType(id string, name string, t string) error {
+	return engine.RedisSet(
+		fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name)),
+		t,
+	).Err()
+}
+
+func setMapValueTypes(id string, name string, value map[string]interface{}) error {
+	for key, value := range value {
+		err := setMapValueType(id, name, key, reflect.TypeOf(value).Kind().String())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func setPreviousValue(id string, name string, value interface{}) error {
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	switch t {
+	case "map":
+		return engine.RedisHMSet(
+			fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name)),
+			value.(map[string]interface{}),
+		).Err()
+	case "set":
+		return engine.RedisSAdd(
+			fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name)),
+			value.([]interface{}),
+		).Err()
+	default:
+		return engine.RedisSet(
+			fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name)),
+			value,
+		).Err()
+	}
+}
+
+func getPreviousValue(id string, name string) (interface{}, error) {
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch t {
+	case "map":
+		return engine.RedisHGetAll(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name))).Result()
+	case "set":
+		return engine.RedisSMembers(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name))).Result()
+	default:
+		return engine.RedisGet(fmt.Sprintf("%s:%s", constants.PreviousValuePrefix, componentId(id, name))).Result()
+	}
+}
+
+func getCurrentValue(id string, name string) (interface{}, error) {
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch t {
+	case "map":
+		return engine.RedisHGetAll(componentId(id, name)).Result()
+	case "set":
+		return engine.RedisSMembers(componentId(id, name)).Result()
+	default:
+		return engine.RedisGet(componentId(id, name)).Result()
+	}
+}
+
+func updatePreviousValueToCurrent(id string, name string) error {
+	currentValue, err := getCurrentValue(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	switch t {
+	case "map":
+		m := make(map[string]interface{})
+
+		for key, value := range currentValue.(map[string]string) {
+			m[key] = value
+		}
+
+		return setPreviousValue(id, name, m)
+	case "set":
+		newSet := make([]interface{}, 0)
+
+		for _, value := range currentValue.([]string) {
+			newSet = append(newSet, value)
+		}
+
+		return setPreviousValue(id, name, newSet)
+	default:
+		return setPreviousValue(id, name, currentValue)
+	}
 }
 
 func addToMapComponent(id string, name string, mapKey string, value interface{}) error {
@@ -1038,13 +1197,13 @@ func addToMapComponent(id string, name string, mapKey string, value interface{})
 
 	log.Debug().Str("id", id).Str("name", name).Str("mapKey", mapKey).Msg("adding to map component")
 
-	err = setMapValueType(id, name, mapKey, value)
+	err = engine.RedisHSet(componentId(id, name), mapKey, value).Err()
 
 	if err != nil {
 		return err
 	}
 
-	err = engine.RedisHSet(componentId(id, name), mapKey, value).Err()
+	err = setMapValueType(id, name, mapKey, value)
 
 	if err != nil {
 		return err
@@ -1076,10 +1235,14 @@ func addToSetComponent(id string, name string, value interface{}) error {
 
 	// check the value type against the set value type
 	valueType := reflect.TypeOf(value).Kind().String()
-	setValueType := getSetValueType(id, name)
+	setValueType, err := getSetValueType(id, name)
 
-	if valueType != setValueType {
-		return errors.SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
+	if err != nil && err.Error() != "redis: nil" {
+		return err
+	} else if err == nil {
+		if valueType != setValueType {
+			return errors.SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
+		}
 	}
 
 	log.Debug().Str("id", id).Str("name", name).Msg("adding to set component")
@@ -1093,17 +1256,23 @@ func addToSetComponent(id string, name string, value interface{}) error {
 	return nil
 }
 
-func componentTypeMatch(id string, name string, value interface{}) bool {
-	return reflect.TypeOf(value).Kind().String() == getComponentType(id, name)
+func componentTypeMatch(id string, name string, value interface{}) (bool, error) {
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return false, err
+	}
+
+	return reflect.TypeOf(value).Kind().String() == t, nil
 }
 
 func getEntityType(id string) (string, error) {
 	return engine.RedisGet(entityTypeID(id)).Result()
 }
 
-func getSetValueType(id string, name string) string {
+func getSetValueType(id string, name string) (string, error) {
 	return engine.RedisGet(fmt.Sprintf("%s:%s", constants.SetTypePrefix, componentId(id, name))).
-		Val()
+		Result()
 }
 
 func getValueFromMapComponent(id string, name string, mapKey string) (interface{}, error) {
@@ -1127,8 +1296,14 @@ func getValueFromMapComponent(id string, name string, mapKey string) (interface{
 		return nil, errors.MissingComponentError{ID: id, Name: name}
 	}
 
-	if getComponentType(id, name) != "map" {
-		return nil, errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: getComponentType(id, name)}
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if t != "map" {
+		return nil, errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "map", Actual: t}
 	}
 
 	mhk, err := mapHasKey(id, name, mapKey)
@@ -1183,7 +1358,11 @@ func removeFromSetComponent(id string, name string, value interface{}) error {
 
 	// check the value type against the set value type
 	valueType := reflect.TypeOf(value).Kind().String()
-	setValueType := getSetValueType(id, name)
+	setValueType, err := getSetValueType(id, name)
+
+	if err != nil {
+		return err
+	}
 
 	if valueType != setValueType {
 		return errors.SetValueTypeError{ID: id, Name: name, Expected: valueType, Actual: setValueType}
@@ -1235,11 +1414,23 @@ func updateComponent(id string, name string, value interface{}) error {
 		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
-	if !componentTypeMatch(id, name, value) {
+	m, err := componentTypeMatch(id, name, value)
+
+	if err != nil {
+		return err
+	}
+
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if !m {
 		return errors.ComponentTypeMismatchError{
 			ID:       id,
 			Name:     name,
-			Expected: getComponentType(id, name),
+			Expected: t,
 			Actual:   reflect.TypeOf(value).Kind().String(),
 		}
 	}
@@ -1278,13 +1469,19 @@ func updateInMapComponent(id string, name string, mapKey string, value interface
 		return errors.MissingComponentError{ID: id, Name: name}
 	}
 
+	t, err := getComponentType(id, name)
+
+	if err != nil {
+		return err
+	}
+
 	// check if the component is of type 'map
-	if getComponentType(id, name) != "map" {
+	if t != "map" {
 		return errors.ComponentTypeMismatchError{
 			ID:       id,
 			Name:     name,
 			Expected: "map",
-			Actual:   getComponentType(id, name),
+			Actual:   t,
 		}
 	}
 
@@ -1342,8 +1539,8 @@ func setMapValueType(id string, name string, mapKey string, value interface{}) e
 		return err
 	}
 
-	if hasKey {
-		return errors.MapHasKeyError{ID: id, Name: name, Key: mapKey}
+	if !hasKey {
+		return errors.MapKeyMissingError{ID: id, Name: name, Key: mapKey}
 	}
 
 	log.Trace().Str("id", id).Str("name", name).Str("mapKey", mapKey).Msg("setting map component value type")
@@ -1379,39 +1576,12 @@ func setComponentsFromMap(id string, components map[string]interface{}) error {
 	errs := make([]error, 0)
 
 	for name, value := range components {
-		kind := reflect.TypeOf(value).Kind().String()
-		switch kind {
-		case "string":
-			err := AddStringComponent(id, name, value.(string))
-			if err != nil {
-				errs = append(errs, err)
-			}
-		case "bool":
-			err := AddBoolComponent(id, name, value.(bool))
-			if err != nil {
-				errs = append(errs, err)
-			}
-		case "int":
-			err := AddIntComponent(id, name, value.(int))
-			if err != nil {
-				errs = append(errs, err)
-			}
-		case "int64":
-			err := AddInt64Component(id, name, value.(int64))
-			if err != nil {
-				errs = append(errs, err)
-			}
-		case "map":
-			err := AddMapComponent(id, name, value.(map[string]interface{}))
-			if err != nil {
-				errs = append(errs, err)
-			}
-		case "slice":
-			err := AddSetComponent(id, name, value.([]interface{}))
-			if err != nil {
-				errs = append(errs, err)
-			}
+		err := addComponent(id, name, value)
+
+		if err != nil {
+			errs = append(errs, err)
 		}
+
 	}
 
 	if len(errs) > 0 {

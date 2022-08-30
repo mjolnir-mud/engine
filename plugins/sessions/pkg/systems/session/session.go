@@ -5,9 +5,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	"github.com/mjolnir-mud/engine/plugins/world/internal/controller_registry"
-	session2 "github.com/mjolnir-mud/engine/plugins/world/internal/session"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/controller"
 )
 
 type session struct{}
@@ -46,32 +43,8 @@ func (e session) MatchingComponentRemoved(_ string, _ string) error { return nil
 
 // Start starts the session with the given id. This calls the start method of the testController. If the session does not
 // exist, an error is returned.
-func Start(id string) error {
-	c, err := GetController(id)
-
-	if err != nil {
-		return err
-	}
-
-	return c.Start(id)
-}
-
-// GetController returns the Controller for the session. If the session does not exist, an error will be returned.
-// If the controller is not found, an error will be returned.
-func GetController(id string) (controller.Controller, error) {
-	c, err := GetStringFromStore(id, "controller")
-
-	if err != nil {
-		return nil, err
-	}
-
-	return controller_registry.Get(c)
-}
-
-// SetController sets the testController for the session. All input is passed through the session controller. If the
-// session does not exist, an error is returned.
-func SetController(id, controller string) error {
-	return SetStringInStore(id, "controller", controller)
+func Start(_ string) error {
+	return nil
 }
 
 // SetStringInStore sets a string value in the store, under the given key. If the session does not exist, an error is

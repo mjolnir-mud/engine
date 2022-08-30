@@ -144,4 +144,4 @@ package select_controller
 //	return db.Collection("characters")
 //}
 //
-//var Controller = selectCharacter{}
+//var Name = selectCharacter{}

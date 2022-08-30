@@ -80,6 +80,17 @@ func HSet(key string, mapKey string, value interface{}) *redis.IntCmd {
 	return client.HSet(context.Background(), key, mapKey, value)
 }
 
+func HMSet(key string, value map[string]interface{}) *redis.BoolCmd {
+	// create a slice of key/value pairs
+	var kv = make([]interface{}, len(value)*2)
+
+	for k, v := range value {
+		kv = append(kv, k, v)
+	}
+
+	return client.HMSet(context.Background(), key, kv...)
+}
+
 func HGetAll(key string) *redis.MapStringStringCmd {
 	return client.HGetAll(context.Background(), key)
 }

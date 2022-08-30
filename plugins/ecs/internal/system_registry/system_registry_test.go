@@ -1,27 +1,19 @@
 package system_registry
 
 import (
-	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
-	"testing"
-	"time"
-
 	"github.com/mjolnir-mud/engine"
+	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/test"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
-
-var testSystem = test.NewTestSystem()
 
 func setup() {
 	testing2.Setup()
 
 	entity_registry.Register(test.TestEntityType{})
-	Register(testSystem)
-
 	entity_registry.Start()
-
-	Start()
 
 	_ = engine.RedisFlushAll()
 }
@@ -33,112 +25,52 @@ func teardown() {
 	testing2.Teardown()
 }
 
-func waitUntilCalledWith(system test.TestSystem, function string, args map[string]interface{}) chan bool {
-	called := make(chan bool)
-
-	go func() {
-		for !system.HasBeenCalledWith(function, args) {
-			time.Sleep(time.Millisecond * 10)
-		}
-
-		called <- true
-	}()
-
-	return called
-}
-
 func Test_ComponentAddedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	called := waitUntilCalledWith(testSystem, "MatchingComponentAdded", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-		"value":    "test",
-	})
+	ts := test.NewTestSystem()
 
-	err := entity_registry.AddWithID("test", "test", map[string]interface{}{
+	Start()
+	Register(ts)
+
+	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
 		"testComponent": "test",
 	})
 
 	assert.NoError(t, err)
 
-	<-called
+	call := <-ts.ComponentAddedCalled
 
-	assert.True(t, testSystem.HasBeenCalledWith("MatchingComponentAdded", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-		"value":    "test",
-	}))
-
-	assert.True(t, testSystem.HasBeenCalledWith("ComponentAdded", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-		"value":    "test",
-	}))
+	assert.Equal(t, "test", call.EntityId)
 }
 
 func Test_ComponentUpdatedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	called := waitUntilCalledWith(testSystem, "MatchingComponentUpdated", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-		"oldValue": "test",
-		"newValue": "test2",
-	})
+	ts := test.NewTestSystem()
 
-	err := entity_registry.AddWithID("test", "test", map[string]interface{}{
+	Start()
+	Register(ts)
+
+	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
 		"testComponent": "test",
 	})
 
 	assert.NoError(t, err)
 
-	err = entity_registry.Update("test", map[string]interface{}{
-		"testComponent": "test2",
-	})
+	err = entity_registry.UpdateStringComponent("test", "testComponent", "test2")
 
 	assert.NoError(t, err)
 
-	<-called
+	call := <-ts.ComponentUpdatedCalled
 
-	assert.True(t, testSystem.HasBeenCalledWith("MatchingComponentUpdated", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-		"oldValue": "test",
-		"newValue": "test2",
-	}))
+	assert.Equal(t, "test", call.EntityId)
 }
 
 func Test_ComponentRemovedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	called := waitUntilCalledWith(testSystem, "MatchingComponentRemoved", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-	})
-
-	err := entity_registry.AddWithID("test", "test", map[string]interface{}{
-		"testComponent": "test",
-	})
-
-	assert.NoError(t, err)
-
-	err = entity_registry.RemoveComponent("test", "testComponent")
-
-	assert.NoError(t, err)
-
-	<-called
-
-	assert.True(t, testSystem.HasBeenCalledWith("MatchingComponentRemoved", map[string]interface{}{
-		"entityId": "test",
-		"key":      "testComponent",
-	}))
-
-	// ensure no meta keys exist
-	keys := engine.RedisKeys("__*:test:*").Val()
-
-	assert.Len(t, keys, 0)
 }
