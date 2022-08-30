@@ -1,10 +1,10 @@
 package registry
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
+	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/plugins/controllers/internal/logger"
-	"github.com/mjolnir-mud/plugins/controllers/pkg/controller"
-	"github.com/mjolnir-mud/plugins/controllers/pkg/errors"
 	"github.com/rs/zerolog"
 )
 

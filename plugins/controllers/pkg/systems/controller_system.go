@@ -1,8 +1,8 @@
 package systems
 
 import (
-	"github.com/mjolnir-mud/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/plugins/controllers/pkg/controller"
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
+	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
 )
 
 type controllerSystem struct{}

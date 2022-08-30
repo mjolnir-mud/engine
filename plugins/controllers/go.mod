@@ -1,4 +1,4 @@
-module github.com/mjolnir-mud/plugins/controllers
+module github.com/mjolnir-mud/engine/plugins/controllers
 
 go 1.17
 

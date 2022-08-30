@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
+	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/systems"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions"
-	"github.com/mjolnir-mud/plugins/controllers/internal/logger"
-	"github.com/mjolnir-mud/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/plugins/controllers/pkg/systems"
 )
 
 type plugin struct{}
@@ -35,3 +35,5 @@ func (p *plugin) Registered() error {
 
 	return nil
 }
+
+var Plugin = &plugin{}

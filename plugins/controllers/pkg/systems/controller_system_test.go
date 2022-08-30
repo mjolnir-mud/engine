@@ -1,7 +1,7 @@
 package systems
 
 import (
-	"github.com/mjolnir-mud/plugins/controllers/internal/registry"
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
