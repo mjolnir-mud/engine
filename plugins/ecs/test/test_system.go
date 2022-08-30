@@ -13,14 +13,22 @@ type ComponentUpdatedCall struct {
 	NewValue interface{}
 }
 
+type ComponentRemovedCall struct {
+	EntityId string
+	Key      string
+}
+
 type TestSystem struct {
 	ComponentAddedCalled   chan ComponentAddedCall
 	ComponentUpdatedCalled chan ComponentUpdatedCall
+	ComponentRemovedCalled chan ComponentRemovedCall
 }
 
 func NewTestSystem() *TestSystem {
 	return &TestSystem{
-		ComponentAddedCalled: make(chan ComponentAddedCall, 1),
+		ComponentAddedCalled:   make(chan ComponentAddedCall, 1),
+		ComponentUpdatedCalled: make(chan ComponentUpdatedCall, 1),
+		ComponentRemovedCalled: make(chan ComponentRemovedCall, 1),
 	}
 }
 
@@ -64,37 +72,48 @@ func (s TestSystem) ComponentUpdated(entityId string, key string, oldValue inter
 }
 
 func (s TestSystem) ComponentRemoved(entityId string, key string) error {
-	//s.appendCall("ComponentRemoved", map[string]interface{}{
-	//	"entityId": entityId,
-	//	"key":      key,
-	//})
+	go func() {
+		s.ComponentRemovedCalled <- ComponentRemovedCall{
+			EntityId: entityId,
+			Key:      key,
+		}
+	}()
 
 	return nil
 }
 
 func (s TestSystem) MatchingComponentAdded(entityId string, value interface{}) error {
-	//s.appendCall("MatchingComponentAdded", map[string]interface{}{
-	//	"entityId": entityId,
-	//	"value":    value,
-	//})
+	go func() {
+		s.ComponentAddedCalled <- ComponentAddedCall{
+			EntityId: entityId,
+			Key:      s.Component(),
+			Value:    value,
+		}
+	}()
 
 	return nil
 }
 
 func (s TestSystem) MatchingComponentUpdated(entityId string, oldValue interface{}, newValue interface{}) error {
-	//s.appendCall("MatchingComponentUpdated", map[string]interface{}{
-	//	"entityId": entityId,
-	//	"oldValue": oldValue,
-	//	"newValue": newValue,
-	//})
+	go func() {
+		s.ComponentUpdatedCalled <- ComponentUpdatedCall{
+			EntityId: entityId,
+			Key:      s.Component(),
+			OldValue: oldValue,
+			NewValue: newValue,
+		}
+	}()
 
 	return nil
 }
 
 func (s TestSystem) MatchingComponentRemoved(entityId string) error {
-	//s.appendCall("MatchingComponentRemoved", map[string]interface{}{
-	//	"entityId": entityId,
-	//})
+	go func() {
+		s.ComponentRemovedCalled <- ComponentRemovedCall{
+			EntityId: entityId,
+			Key:      s.Component(),
+		}
+	}()
 
 	return nil
 }

@@ -43,6 +43,8 @@ func Test_ComponentAddedEvents(t *testing.T) {
 	call := <-ts.ComponentAddedCalled
 
 	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testComponent", call.Key)
+	assert.Equal(t, "test", call.Value)
 }
 
 func Test_ComponentUpdatedEvents(t *testing.T) {
@@ -67,10 +69,104 @@ func Test_ComponentUpdatedEvents(t *testing.T) {
 	call := <-ts.ComponentUpdatedCalled
 
 	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testComponent", call.Key)
+	assert.Equal(t, "test", call.OldValue)
+	assert.Equal(t, "test2", call.NewValue)
 }
 
 func Test_ComponentRemovedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
+	ts := test.NewTestSystem()
+
+	Start()
+	Register(ts)
+
+	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.NoError(t, err)
+
+	err = entity_registry.RemoveComponent("test", "testComponent")
+
+	assert.NoError(t, err)
+
+	call := <-ts.ComponentRemovedCalled
+
+	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testComponent", call.Key)
+}
+
+func TestMatchingComponentAddedEvent(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ts := test.NewTestSystem()
+
+	Start()
+	Register(ts)
+
+	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.NoError(t, err)
+
+	call := <-ts.ComponentAddedCalled
+
+	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testComponent", call.Key)
+	assert.Equal(t, "test", call.Value)
+}
+
+func TestMatchingComponentUpdatedEvent(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ts := test.NewTestSystem()
+
+	Start()
+	Register(ts)
+
+	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.NoError(t, err)
+	err = entity_registry.UpdateStringComponent("test", "testComponent", "test2")
+
+	assert.NoError(t, err)
+
+	call := <-ts.ComponentUpdatedCalled
+
+	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testComponent", call.Key)
+	assert.Equal(t, "test", call.OldValue)
+	assert.Equal(t, "test2", call.NewValue)
+}
+
+func TestMatchingComponentRemovedEvent(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ts := test.NewTestSystem()
+
+	Start()
+	Register(ts)
+
+	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
+		"testComponent": "test",
+	})
+
+	assert.NoError(t, err)
+	err = entity_registry.RemoveComponent("test", "testComponent")
+
+	assert.NoError(t, err)
+
+	call := <-ts.ComponentRemovedCalled
+
+	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testComponent", call.Key)
 }
