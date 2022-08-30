@@ -1,19 +1,30 @@
 package registry
 
 import (
+	"github.com/mjolnir-mud/engine"
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/sessions"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func setup() {
+	engine.RegisterPlugin(ecs.Plugin)
+	engine.RegisterPlugin(sessions.Plugin)
+
+	engineTesting.Setup()
 	Start()
 }
 
 func teardown() {
 	Stop()
+	engineTesting.Teardown()
 }
 
-type testController struct{}
+type testController struct {
+	HandleInputCalled chan []string
+}
 
 func (c testController) Name() string {
 	return "test"
@@ -63,4 +74,23 @@ func TestGet(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.NotNil(t, c)
+}
+
+func TestHandleInput(t *testing.T) {
+	setup()
+	defer teardown()
+
+	tc := &testController{
+		HandleInputCalled: make(chan []string, 1),
+	}
+
+	Register(tc)
+
+	err := HandleInput("test", "test")
+
+	assert.Nil(t, err)
+
+	res := <-tc.HandleInputCalled
+
+	assert.Equal(t, []string{"test", "test"}, res)
 }

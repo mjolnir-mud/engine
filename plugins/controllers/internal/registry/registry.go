@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/plugins/controllers/internal/logger"
 	"github.com/mjolnir-mud/plugins/controllers/pkg/controller"
 	"github.com/mjolnir-mud/plugins/controllers/pkg/errors"
@@ -9,6 +10,34 @@ import (
 
 var controllers map[string]controller.Controller
 var log zerolog.Logger
+
+func HandleInput(entityId string, line string) error {
+	exists, err := ecs.EntityExists(entityId)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.SessionNotFoundError{
+			SessionId: entityId,
+		}
+	}
+
+	cName, err := ecs.GetStringComponent(entityId, "controller")
+
+	if err != nil {
+		return err
+	}
+
+	c, err := Get(cName)
+
+	if err != nil {
+		return err
+	}
+
+	return c.HandleInput(entityId, line)
+}
 
 func Start() {
 	log = logger.Instance.With().Str("service", "registry").Logger()
