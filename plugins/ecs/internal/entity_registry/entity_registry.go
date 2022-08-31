@@ -2,7 +2,7 @@ package entity_registry
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/rs/zerolog"
 	"reflect"
@@ -30,7 +30,7 @@ var log zerolog.Logger
 // Start starts the entity registry.
 func Start() {
 	log = logger.Instance.With().Str("component", "entity_registry").Logger()
-	log.Info().Msg("starting entity registry")
+	log.Info().Msg("starting")
 }
 
 // Stop stops the entity registry.

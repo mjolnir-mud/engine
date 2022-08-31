@@ -3,6 +3,7 @@ package ecs
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
@@ -16,6 +17,7 @@ func (p plugin) Name() string {
 
 func (p plugin) Registered() error {
 	engine.RegisterOnServiceStartCallback("world", func() {
+		logger.Start()
 		entity_registry.Start()
 		system_registry.Start()
 	})

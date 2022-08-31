@@ -2,7 +2,7 @@ package system_registry
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
 	"github.com/rs/zerolog"
 	"reflect"
 	"strings"
@@ -29,7 +29,8 @@ func (s *subscription) Stop() {
 // Start starts the registry.
 func Start() {
 	log = logger.Instance.With().Str("component", "system_registry").Logger()
-	log.Info().Msg("starting system registry")
+	log.Info().Msg("starting")
+
 	systems = make(map[string]system.System)
 	listeners = make(map[string]subscription)
 }
