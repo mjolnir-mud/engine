@@ -17,13 +17,15 @@ var beforeStopCallbacks = make([]func(), 0)
 var afterStopCallbacks = make([]func(), 0)
 var onServiceStartCallbacks = make(map[string][]func())
 var onServiceStopCallbacks = make(map[string][]func())
+var onEnvStartCallbacks = make(map[string][]func())
+var onEnvStopCallbacks = make(map[string][]func())
 var environment string
 var gameName string
 
 var Running chan bool
 
 func SetEnv(n string) {
-	setEnv(n)
+	environment = n
 }
 
 func GetEnv() string {
@@ -62,15 +64,30 @@ func RegisterOnServiceStopCallback(service string, f func()) {
 	onServiceStopCallbacks[service] = append(onServiceStopCallbacks[service], f)
 }
 
+func RegisterOnEnvStartCallback(env string, f func()) {
+	onEnvStartCallbacks[env] = append(onEnvStartCallbacks[env], f)
+}
+
+func RegisterOnEnvStopCallback(env string, f func()) {
+	onEnvStopCallbacks[env] = append(onEnvStopCallbacks[env], f)
+}
+
 func Start(n string) {
-	setEnv(n)
+	gameName = n
 
 	logger.Start()
 	fmt.Print("Mjolnir MUD Engine\n")
 	log = logger.Instance.With().Str("component", "engine").Logger()
 	log.Info().Msgf("running beforeStartCallbacks")
 	redis2.Start()
+
 	for _, f := range beforeStartCallbacks {
+		f()
+	}
+
+	env := GetEnv()
+
+	for _, f := range onEnvStartCallbacks[env] {
 		f()
 	}
 
@@ -113,6 +130,13 @@ func Stop() {
 	for _, f := range beforeStopCallbacks {
 		f()
 	}
+
+	env := GetEnv()
+
+	for _, f := range onEnvStopCallbacks[env] {
+		f()
+	}
+
 	plugin_registry.Stop()
 	redis2.Stop()
 
@@ -121,10 +145,4 @@ func Stop() {
 	}
 }
 
-var name string
 var log zerolog.Logger
-
-func setEnv(name string) {
-	environment = "dev"
-	gameName = name
-}

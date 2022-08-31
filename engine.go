@@ -188,6 +188,18 @@ func RegisterOnServiceStopCallback(service string, callback func()) {
 	instance.RegisterOnServiceStopCallback(service, callback)
 }
 
+// RegisterOnEnvStartCallback registers a callback function that is called when the engine is started with the given
+// environment.
+func RegisterOnEnvStartCallback(env string, callback func()) {
+	instance.RegisterOnEnvStartCallback(env, callback)
+}
+
+// RegisterOnEnvStopCallback registers a callback function that is called when the engine is stopped with the given
+// environment.
+func RegisterOnEnvStopCallback(env string, callback func()) {
+	instance.RegisterOnEnvStopCallback(env, callback)
+}
+
 // RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
 // after the engine is initialized. Plugins should conform to the plugin interface.
 func RegisterPlugin(plugin plugin.Plugin) {
