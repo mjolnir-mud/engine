@@ -13,3 +13,5 @@ func (p pluign) Start() error {
 func (p pluign) Stop() error {
 	return nil
 }
+
+var Plugin = &pluign{}

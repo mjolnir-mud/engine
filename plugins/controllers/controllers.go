@@ -17,9 +17,11 @@ func (p *plugin) Name() string {
 
 func (p *plugin) Registered() error {
 	engine.EnsureRegistered(ecs.Plugin.Name())
+	engine.EnsureRegistered(sessions.Plugin.Name())
 
 	engine.RegisterOnServiceStartCallback("world", func() {
-		logger.Instance.Info().Msg("started")
+		logger.Start()
+		registry.Start()
 
 		ecs.RegisterSystem(systems.ControllerSystem)
 
@@ -27,10 +29,12 @@ func (p *plugin) Registered() error {
 			return registry.HandleInput(entityId, line)
 		})
 
+		logger.Instance.Info().Msg("started")
 	})
 
 	engine.RegisterOnServiceStopCallback("world", func() {
-		logger.Instance.Info().Msg("stopping controllers")
+		logger.Instance.Info().Msg("stopping")
+		registry.Stop()
 	})
 
 	return nil

@@ -45,7 +45,9 @@ func Start() {
 	log.Info().Msg("started")
 }
 
-func Stop() {}
+func Stop() {
+	log.Info().Msg("stopped")
+}
 
 func Register(c controller.Controller) {
 	log.Info().Str("name", c.Name()).Msg("registering controller")
