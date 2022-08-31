@@ -1,7 +1,10 @@
 package systems
 
 import (
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,7 +20,9 @@ func (c testController) Name() string {
 }
 
 func (c testController) Start(entityId string) error {
-	go func() { c.StartCalled <- entityId }()
+	go func() {
+		c.StartCalled <- entityId
+	}()
 
 	return nil
 }
@@ -47,10 +52,18 @@ func setup() {
 
 	registry.Start()
 	registry.Register(tc)
+	ecsTesting.Setup()
+	engineTesting.Setup("world")
+
+	ecs.RegisterEntityType(ecsTesting.TestEntityType{})
+	ecs.RegisterSystem(ControllerSystem)
+
 }
 
 func teardown() {
 	registry.Stop()
+	ecsTesting.Teardown()
+	engineTesting.Teardown()
 }
 
 var tc *testController
@@ -99,6 +112,21 @@ func TestGetController(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, tc, c)
+}
+
+func TestSetController(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := ecs.AddEntityWithID("testing", "test", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	assert.Nil(t, SetController("test", "test"))
+
+	called := <-tc.StartCalled
+
+	assert.Equal(t, "test", called)
 }
 
 func TestHandleInput(t *testing.T) {

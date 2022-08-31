@@ -3,6 +3,7 @@ package systems
 import (
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
 
 type controllerSystem struct{}
@@ -68,6 +69,16 @@ var ControllerSystem = controllerSystem{}
 // GetController returns the Name for the session. If the session does not exist, an error will be returned.
 func GetController(name string) (controller.Controller, error) {
 	return registry.Get(name)
+}
+
+func SetController(entityId string, name string) error {
+	_, err := GetController(name)
+
+	if err != nil {
+		return err
+	}
+
+	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", name)
 }
 
 func HandleInput(entityId string, input string) error {
