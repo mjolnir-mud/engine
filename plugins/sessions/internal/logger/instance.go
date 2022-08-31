@@ -1,5 +1,12 @@
 package logger
 
-import "github.com/mjolnir-mud/engine/pkg/logger"
+import (
+	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/rs/zerolog"
+)
 
-var Instance = logger.Instance.With().Str("plugin", "sessions").Logger()
+var Instance zerolog.Logger
+
+func Start() {
+	Instance = logger.Instance.With().Str("plugin", "sessions").Logger()
+}

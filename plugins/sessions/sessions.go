@@ -3,6 +3,7 @@ package sessions
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
 )
 
@@ -14,6 +15,15 @@ func (p *plugin) Name() string {
 
 func (p *plugin) Registered() error {
 	engine.EnsureRegistered(ecs.Plugin.Name())
+
+	engine.RegisterOnServiceStartCallback("world", func() {
+		logger.Start()
+		registry.Start()
+	})
+
+	engine.RegisterOnServiceStopCallback("world", func() {
+		registry.Stop()
+	})
 
 	return nil
 }

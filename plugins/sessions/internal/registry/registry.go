@@ -29,7 +29,7 @@ func RegisterSessionStoppedHandler(f func(id string) error) {
 }
 
 func Start() {
-	log = logger.Instance.With().Str("service", "sessionRegistry").Logger()
+	log = logger.Instance.With().Str("component", "registry").Logger()
 	sessionHandlers = make(map[string]*sessionHandler, 0)
 	playerConnectedSubscription = engine.Subscribe(events.PlayerConnectedEvent{}, handlePlayerConnected)
 	lineHandlers = make([]func(id string, line string) error, 0)
