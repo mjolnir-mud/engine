@@ -1,4 +1,4 @@
-package test
+package testing
 
 type ComponentAddedCall struct {
 	EntityId string
@@ -33,7 +33,7 @@ func NewTestSystem() *TestSystem {
 }
 
 func (s TestSystem) Name() string {
-	return "test"
+	return "testing"
 }
 
 func (s TestSystem) Component() string {

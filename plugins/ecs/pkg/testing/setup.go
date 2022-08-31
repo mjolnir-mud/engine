@@ -7,4 +7,7 @@ import (
 
 func Setup() {
 	engine.RegisterPlugin(ecs.Plugin)
+	engine.RegisterOnEnvStartCallback("test", func() {
+		_ = engine.RedisFlushAll()
+	})
 }
