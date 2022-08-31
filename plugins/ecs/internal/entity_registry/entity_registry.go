@@ -887,7 +887,7 @@ func addOrUpdateToMapComponent(id string, name string, key string, value interfa
 		return err
 	}
 
-	// TODO add test for this
+	// TODO add testing for this
 	if !exists {
 		return errors.ComponentNotFoundError{
 			ID:   id,
@@ -1439,7 +1439,7 @@ func updateComponent(id string, name string, value interface{}) error {
 	}
 
 	if !exists {
-		return errors.EntityExistsError{ID: id}
+		return errors.EntityNotFoundError{ID: id}
 	}
 
 	componentExists, err := ComponentExists(id, name)

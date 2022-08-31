@@ -4,7 +4,8 @@ import (
 	"github.com/mjolnir-mud/engine"
 	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/test"
+	testing3 "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,7 +13,7 @@ import (
 func setup() {
 	testing2.Setup()
 
-	entity_registry.Register(test.TestEntityType{})
+	entity_registry.Register(testing3.TestEntityType{})
 	entity_registry.Start()
 
 	_ = engine.RedisFlushAll()
@@ -29,48 +30,48 @@ func Test_ComponentAddedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := test.NewTestSystem()
+	ts := testing3.NewTestSystem()
 
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
-		"testComponent": "test",
+	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.NoError(t, err)
 
 	call := <-ts.ComponentAddedCalled
 
-	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testing", call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
-	assert.Equal(t, "test", call.Value)
+	assert.Equal(t, "testing", call.Value)
 }
 
 func Test_ComponentUpdatedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := test.NewTestSystem()
+	ts := testing3.NewTestSystem()
 
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
-		"testComponent": "test",
+	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.NoError(t, err)
 
-	err = entity_registry.UpdateStringComponent("test", "testComponent", "test2")
+	err = entity_registry.UpdateStringComponent("testing", "testComponent", "test2")
 
 	assert.NoError(t, err)
 
 	call := <-ts.ComponentUpdatedCalled
 
-	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testing", call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
-	assert.Equal(t, "test", call.OldValue)
+	assert.Equal(t, "testing", call.OldValue)
 	assert.Equal(t, "test2", call.NewValue)
 }
 
@@ -78,24 +79,24 @@ func Test_ComponentRemovedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := test.NewTestSystem()
+	ts := testing3.NewTestSystem()
 
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
-		"testComponent": "test",
+	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.NoError(t, err)
 
-	err = entity_registry.RemoveComponent("test", "testComponent")
+	err = entity_registry.RemoveComponent("testing", "testComponent")
 
 	assert.NoError(t, err)
 
 	call := <-ts.ComponentRemovedCalled
 
-	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testing", call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
 }
 
@@ -103,47 +104,47 @@ func TestMatchingComponentAddedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := test.NewTestSystem()
+	ts := testing3.NewTestSystem()
 
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
-		"testComponent": "test",
+	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.NoError(t, err)
 
 	call := <-ts.ComponentAddedCalled
 
-	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testing", call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
-	assert.Equal(t, "test", call.Value)
+	assert.Equal(t, "testing", call.Value)
 }
 
 func TestMatchingComponentUpdatedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := test.NewTestSystem()
+	ts := testing3.NewTestSystem()
 
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
-		"testComponent": "test",
+	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.NoError(t, err)
-	err = entity_registry.UpdateStringComponent("test", "testComponent", "test2")
+	err = entity_registry.UpdateStringComponent("testing", "testComponent", "test2")
 
 	assert.NoError(t, err)
 
 	call := <-ts.ComponentUpdatedCalled
 
-	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testing", call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
-	assert.Equal(t, "test", call.OldValue)
+	assert.Equal(t, "testing", call.OldValue)
 	assert.Equal(t, "test2", call.NewValue)
 }
 
@@ -151,22 +152,22 @@ func TestMatchingComponentRemovedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := test.NewTestSystem()
+	ts := testing3.NewTestSystem()
 
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("test", "test", map[string]interface{}{
-		"testComponent": "test",
+	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.NoError(t, err)
-	err = entity_registry.RemoveComponent("test", "testComponent")
+	err = entity_registry.RemoveComponent("testing", "testComponent")
 
 	assert.NoError(t, err)
 
 	call := <-ts.ComponentRemovedCalled
 
-	assert.Equal(t, "test", call.EntityId)
+	assert.Equal(t, "testing", call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
 }

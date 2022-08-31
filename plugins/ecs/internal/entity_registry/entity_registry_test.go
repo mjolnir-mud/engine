@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/ecs/test"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/stretchr/testify/assert"
 )
 
 func setup() {
-	Register(test.TestEntityType{})
+	Register(ecsTesting.TestEntityType{})
 	engineTesting.Setup()
 	_ = engine.RedisFlushAll()
 	Start()
@@ -27,8 +27,8 @@ func TestAdd(t *testing.T) {
 	setup()
 	defer teardown()
 
-	// test happy path
-	id, err := Add("test", map[string]interface{}{})
+	// testing happy path
+	id, err := Add("testing", map[string]interface{}{})
 
 	assert.Nil(t, err)
 	assert.NotNil(t, id)
@@ -36,9 +36,9 @@ func TestAdd(t *testing.T) {
 	ty, err := getEntityType(id)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "test", ty)
+	assert.Equal(t, "testing", ty)
 
-	// test that an error is thrown if the entity type is not registered
+	// testing that an error is thrown if the entity type is not registered
 	_, err = Add("notRegistered", map[string]interface{}{})
 
 	assert.NotNil(t, err)
@@ -52,23 +52,23 @@ func TestAddWithID(t *testing.T) {
 	setup()
 	defer teardown()
 
-	// test happy path
-	err := AddWithId("test", "testId", map[string]interface{}{})
+	// testing happy path
+	err := AddWithId("testing", "testId", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
 	ty, err := getEntityType("testId")
 
 	assert.Nil(t, err)
-	assert.Equal(t, "test", ty)
+	assert.Equal(t, "testing", ty)
 
-	// test that an error is thrown if the entity type is not registered
+	// testing that an error is thrown if the entity type is not registered
 	err = AddWithId("notRegistered", "testId", map[string]interface{}{})
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the id is already in use
-	err = AddWithId("test", "testId", map[string]interface{}{})
+	// testing that an error is thrown if the id is already in use
+	err = AddWithId("testing", "testId", map[string]interface{}{})
 
 	assert.NotNil(t, err)
 	teardown()
@@ -81,11 +81,11 @@ func TestAddBoolComponent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddBoolComponent("testEntity", "otherTestComponent", true)
 
 	assert.Nil(t, err)
@@ -95,13 +95,13 @@ func TestAddBoolComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, true, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddBoolComponent("notRegistered", "otherTestComponent", true)
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddBoolComponent("test", "otherTestComponent", true)
+	// testing that an error is thrown if the component already exists
+	err = AddBoolComponent("testing", "otherTestComponent", true)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -110,13 +110,13 @@ func TestAddBoolComponent(t *testing.T) {
 func TestAddBoolToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddBoolToMapComponent("testEntity", "testComponent", "testKey", true)
 
 	assert.Nil(t, err)
@@ -126,13 +126,13 @@ func TestAddBoolToMapComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, true, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddBoolToMapComponent("notRegistered", "testComponent", "testKey", true)
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddBoolToMapComponent("test", "testComponent", "testKey", true)
+	// testing that an error is thrown if the component already exists
+	err = AddBoolToMapComponent("testing", "testComponent", "testKey", true)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -144,11 +144,11 @@ func TestAddBoolToMapComponent(t *testing.T) {
 func TestAddIntComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddIntComponent("testEntity", "otherTestComponent", 1)
 
 	assert.Nil(t, err)
@@ -158,13 +158,13 @@ func TestAddIntComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddIntComponent("notRegistered", "otherTestComponent", 1)
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddIntComponent("test", "otherTestComponent", 1)
+	// testing that an error is thrown if the component already exists
+	err = AddIntComponent("testing", "otherTestComponent", 1)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -173,13 +173,13 @@ func TestAddIntComponent(t *testing.T) {
 func TestAddIntToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddIntToMapComponent("testEntity", "testComponent", "testKey", 1)
 
 	assert.Nil(t, err)
@@ -189,18 +189,18 @@ func TestAddIntToMapComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddIntToMapComponent("notRegistered", "testComponent", "testKey", 1)
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	err = AddIntToMapComponent("test", "notRegistered", "testKey", 1)
+	// testing that an error is thrown if the component does not exist
+	err = AddIntToMapComponent("testing", "notRegistered", "testKey", 1)
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the key already exists
-	err = AddIntToMapComponent("test", "testComponent", "testKey", 1)
+	// testing that an error is thrown if the key already exists
+	err = AddIntToMapComponent("testing", "testComponent", "testKey", 1)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -209,11 +209,11 @@ func TestAddIntToMapComponent(t *testing.T) {
 func TestAddInt64Component(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddInt64Component("testEntity", "otherTestComponent", int64(1))
 
 	assert.Nil(t, err)
@@ -223,13 +223,13 @@ func TestAddInt64Component(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddInt64Component("notRegistered", "otherTestComponent", int64(1))
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddInt64Component("test", "otherTestComponent", int64(1))
+	// testing that an error is thrown if the component already exists
+	err = AddInt64Component("testing", "otherTestComponent", int64(1))
 
 	assert.NotNil(t, err)
 	teardown()
@@ -238,13 +238,13 @@ func TestAddInt64Component(t *testing.T) {
 func TestAddInt64ToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddInt64ToMapComponent("testEntity", "testComponent", "testKey", int64(1))
 
 	assert.Nil(t, err)
@@ -254,18 +254,18 @@ func TestAddInt64ToMapComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddInt64ToMapComponent("notRegistered", "testComponent", "testKey", int64(1))
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	err = AddInt64ToMapComponent("test", "notRegistered", "testKey", int64(1))
+	// testing that an error is thrown if the component does not exist
+	err = AddInt64ToMapComponent("testing", "notRegistered", "testKey", int64(1))
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the key already exists
-	err = AddInt64ToMapComponent("test", "testComponent", "testKey", int64(1))
+	// testing that an error is thrown if the key already exists
+	err = AddInt64ToMapComponent("testing", "testComponent", "testKey", int64(1))
 
 	assert.NotNil(t, err)
 	teardown()
@@ -274,11 +274,11 @@ func TestAddInt64ToMapComponent(t *testing.T) {
 func TestAddMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddMapComponent("testEntity", "otherTestComponent", map[string]interface{}{
 		"testKey": "testValue",
 	})
@@ -290,15 +290,15 @@ func TestAddMapComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddMapComponent("notRegistered", "otherTestComponent", map[string]interface{}{
 		"testKey": "testValue",
 	})
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddMapComponent("test", "otherTestComponent", map[string]interface{}{
+	// testing that an error is thrown if the component already exists
+	err = AddMapComponent("testing", "otherTestComponent", map[string]interface{}{
 		"testKey": "testValue",
 	})
 
@@ -309,11 +309,11 @@ func TestAddMapComponent(t *testing.T) {
 func TestAddSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddSetComponent("testEntity", "otherTestComponent", []interface{}{"testValue"})
 
 	assert.Nil(t, err)
@@ -323,13 +323,13 @@ func TestAddSetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"testValue"}, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddSetComponent("notRegistered", "otherTestComponent", []interface{}{"testValue"})
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddSetComponent("test", "otherTestComponent", []interface{}{"testValue"})
+	// testing that an error is thrown if the component already exists
+	err = AddSetComponent("testing", "otherTestComponent", []interface{}{"testValue"})
 
 	assert.NotNil(t, err)
 	teardown()
@@ -338,11 +338,11 @@ func TestAddSetComponent(t *testing.T) {
 func TestAddStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddStringComponent("testEntity", "otherTestComponent", "testValue")
 
 	assert.Nil(t, err)
@@ -352,13 +352,13 @@ func TestAddStringComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddStringComponent("notRegistered", "otherTestComponent", "testValue")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddStringComponent("test", "otherTestComponent", "testValue")
+	// testing that an error is thrown if the component already exists
+	err = AddStringComponent("testing", "otherTestComponent", "testValue")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -370,7 +370,7 @@ func TestAddStringComponent(t *testing.T) {
 func TestAddToStringSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{
 			"testValue",
 		},
@@ -378,7 +378,7 @@ func TestAddToStringSetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddToStringSetComponent("testEntity", "testComponent", "otherTestValue")
 
 	assert.Nil(t, err)
@@ -388,13 +388,13 @@ func TestAddToStringSetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Subset(t, []string{"testValue", "otherTestValue"}, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddToStringSetComponent("notRegistered", "testComponent", "testValue")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddToStringSetComponent("test", "testComponent", "testValue")
+	// testing that an error is thrown if the component already exists
+	err = AddToStringSetComponent("testing", "testComponent", "testValue")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -403,11 +403,11 @@ func TestAddToStringSetComponent(t *testing.T) {
 func TestAddOrUpdateStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{})
+	err := AddWithId("testing", "testEntity", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddOrUpdateStringComponent("testEntity", "testComponent", "testValue")
 
 	assert.Nil(t, err)
@@ -422,13 +422,13 @@ func TestAddOrUpdateStringComponent(t *testing.T) {
 func TestAddStringToMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddStringToMapComponent("testEntity", "testComponent", "testKey", "testValue")
 
 	assert.Nil(t, err)
@@ -438,18 +438,18 @@ func TestAddStringToMapComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddStringToMapComponent("notRegistered", "testComponent", "testKey", "testValue")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	err = AddStringToMapComponent("test", "notRegistered", "testKey", "testValue")
+	// testing that an error is thrown if the component does not exist
+	err = AddStringToMapComponent("testing", "notRegistered", "testKey", "testValue")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the key already exists
-	err = AddStringToMapComponent("test", "testComponent", "testKey", "testValue")
+	// testing that an error is thrown if the key already exists
+	err = AddStringToMapComponent("testing", "testComponent", "testKey", "testValue")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -458,7 +458,7 @@ func TestAddStringToMapComponent(t *testing.T) {
 func TestAddToIntSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{
 			1,
 		},
@@ -466,7 +466,7 @@ func TestAddToIntSetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddToIntSetComponent("testEntity", "testComponent", 2)
 
 	assert.Nil(t, err)
@@ -476,13 +476,13 @@ func TestAddToIntSetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Subset(t, []string{"1", "2"}, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddToIntSetComponent("notRegistered", "testComponent", 2)
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddToIntSetComponent("test", "testComponent", 2)
+	// testing that an error is thrown if the component already exists
+	err = AddToIntSetComponent("testing", "testComponent", 2)
 
 	assert.NotNil(t, err)
 	teardown()
@@ -491,7 +491,7 @@ func TestAddToIntSetComponent(t *testing.T) {
 func TestAddToInt64SetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{
 			int64(1),
 		},
@@ -499,7 +499,7 @@ func TestAddToInt64SetComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = AddToInt64SetComponent("testEntity", "testComponent", int64(2))
 
 	assert.Nil(t, err)
@@ -509,13 +509,13 @@ func TestAddToInt64SetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Subset(t, []string{"1", "2"}, componentValue)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddToInt64SetComponent("notRegistered", "testComponent", int64(2))
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component already exists
-	err = AddToInt64SetComponent("test", "testComponent", int64(2))
+	// testing that an error is thrown if the component already exists
+	err = AddToInt64SetComponent("testing", "testComponent", int64(2))
 
 	assert.NotNil(t, err)
 	teardown()
@@ -524,13 +524,13 @@ func TestAddToInt64SetComponent(t *testing.T) {
 func TestCreate(t *testing.T) {
 	setup()
 
-	// test happy path
-	entity, err := Create("test", map[string]interface{}{})
+	// testing happy path
+	entity, err := Create("testing", map[string]interface{}{})
 
 	assert.Nil(t, err)
-	assert.Equal(t, "test", entity["testComponent"])
+	assert.Equal(t, "testing", entity["testComponent"])
 
-	// test that an error is thrown if the entity type does not exist
+	// testing that an error is thrown if the entity type does not exist
 	_, err = Create("notRegistered", map[string]interface{}{
 		"testComponent": "testValue",
 	})
@@ -545,15 +545,15 @@ func TestCreate(t *testing.T) {
 func TestCreateAndAdd(t *testing.T) {
 	setup()
 
-	// test happy path
-	id, err := CreateAndAdd("test", map[string]interface{}{})
+	// testing happy path
+	id, err := CreateAndAdd("testing", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
 	v := engine.RedisGet(componentId(id, "testComponent")).Val()
-	assert.Equal(t, "test", v)
+	assert.Equal(t, "testing", v)
 
-	// test that an error is thrown if the entity type does not exist
+	// testing that an error is thrown if the entity type does not exist
 	_, err = CreateAndAdd("notRegistered", map[string]interface{}{
 		"testComponent": "testValue",
 	})
@@ -565,25 +565,25 @@ func TestCreateAndAdd(t *testing.T) {
 func TestGetBoolComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": true,
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetBoolComponent("testEntity", "testComponent")
 
 	assert.Nil(t, err)
 	assert.Equal(t, true, value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetBoolComponent("notRegistered", "testComponent")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetBoolComponent("test", "notRegistered")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetBoolComponent("testing", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -592,25 +592,25 @@ func TestGetBoolComponent(t *testing.T) {
 func TestGetIntComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": 1,
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetIntComponent("testEntity", "testComponent")
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1, value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetIntComponent("notRegistered", "testComponent")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetIntComponent("test", "notRegistered")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetIntComponent("testing", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -619,7 +619,7 @@ func TestGetIntComponent(t *testing.T) {
 func TestGetInt64FromMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": int64(1),
 		},
@@ -627,28 +627,28 @@ func TestGetInt64FromMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetInt64FromMapComponent("testEntity", "testComponent", "testKey")
 
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetInt64FromMapComponent("notRegistered", "testComponent", "testKey")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetInt64FromMapComponent("test", "notRegistered", "testKey")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetInt64FromMapComponent("testing", "notRegistered", "testKey")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the key does not exist
-	_, err = GetInt64FromMapComponent("test", "testComponent", "notRegistered")
+	// testing that an error is thrown if the key does not exist
+	_, err = GetInt64FromMapComponent("testing", "testComponent", "notRegistered")
 
 	assert.NotNil(t, err)
 
-	// test get when entity does not exist
+	// testing get when entity does not exist
 	_, err = GetInt64FromMapComponent("notRegistered", "testComponent", "testKey")
 
 	assert.NotNil(t, err)
@@ -660,7 +660,7 @@ func TestGetInt64FromMapComponent(t *testing.T) {
 func TestGetIntFromMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": 1,
 		},
@@ -668,24 +668,24 @@ func TestGetIntFromMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetIntFromMapComponent("testEntity", "testComponent", "testKey")
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1, value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetIntFromMapComponent("notRegistered", "testComponent", "testKey")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetIntFromMapComponent("test", "notRegistered", "testKey")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetIntFromMapComponent("testing", "notRegistered", "testKey")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the key does not exist
-	_, err = GetIntFromMapComponent("test", "testComponent", "notRegistered")
+	// testing that an error is thrown if the key does not exist
+	_, err = GetIntFromMapComponent("testing", "testComponent", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -694,7 +694,7 @@ func TestGetIntFromMapComponent(t *testing.T) {
 func TestGetMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -702,7 +702,7 @@ func TestGetMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetMapComponent("testEntity", "testComponent")
 
 	assert.Nil(t, err)
@@ -710,13 +710,13 @@ func TestGetMapComponent(t *testing.T) {
 		"testKey": "testValue",
 	}, value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetMapComponent("notRegistered", "testComponent")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetMapComponent("test", "notRegistered")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetMapComponent("testing", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -725,25 +725,25 @@ func TestGetMapComponent(t *testing.T) {
 func TestGetStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": "testValue",
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetStringComponent("testEntity", "testComponent")
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetStringComponent("notRegistered", "testComponent")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetStringComponent("test", "notRegistered")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetStringComponent("testing", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -752,7 +752,7 @@ func TestGetStringComponent(t *testing.T) {
 func TestGetStringFromMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -760,24 +760,24 @@ func TestGetStringFromMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	value, err := GetStringFromMapComponent("testEntity", "testComponent", "testKey")
 
 	assert.Nil(t, err)
 	assert.Equal(t, "testValue", value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	_, err = GetStringFromMapComponent("notRegistered", "testComponent", "testKey")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
-	_, err = GetStringFromMapComponent("test", "notRegistered", "testKey")
+	// testing that an error is thrown if the component does not exist
+	_, err = GetStringFromMapComponent("testing", "notRegistered", "testKey")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the key does not exist
-	_, err = GetStringFromMapComponent("test", "testComponent", "notRegistered")
+	// testing that an error is thrown if the key does not exist
+	_, err = GetStringFromMapComponent("testing", "testComponent", "notRegistered")
 
 	assert.NotNil(t, err)
 	teardown()
@@ -786,12 +786,12 @@ func TestGetStringFromMapComponent(t *testing.T) {
 func TestIsEntityTypeRegistered(t *testing.T) {
 	setup()
 
-	// test happy path
-	value := IsEntityTypeRegistered("test")
+	// testing happy path
+	value := IsEntityTypeRegistered("testing")
 
 	assert.True(t, value)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	value = IsEntityTypeRegistered("notRegistered")
 
 	assert.False(t, value)
@@ -804,7 +804,7 @@ func TestIsEntityTypeRegistered(t *testing.T) {
 func TestReplace(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -812,7 +812,7 @@ func TestReplace(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = Replace("testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue2",
@@ -821,7 +821,7 @@ func TestReplace(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = Replace("notRegistered", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue2",
@@ -835,7 +835,7 @@ func TestReplace(t *testing.T) {
 func TestRemove(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -843,7 +843,7 @@ func TestRemove(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = Remove("testEntity")
 
 	assert.Nil(t, err)
@@ -853,7 +853,7 @@ func TestRemove(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, exists)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = Remove("notRegistered")
 
 	assert.NotNil(t, err)
@@ -863,7 +863,7 @@ func TestRemove(t *testing.T) {
 func TestRemoveComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -871,7 +871,7 @@ func TestRemoveComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = RemoveComponent("testEntity", "testComponent")
 
 	assert.Nil(t, err)
@@ -881,12 +881,12 @@ func TestRemoveComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), e)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = RemoveComponent("notRegistered", "testComponent")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
+	// testing that an error is thrown if the component does not exist
 	err = RemoveComponent("testEntity", "notRegistered")
 
 	assert.NotNil(t, err)
@@ -896,13 +896,13 @@ func TestRemoveComponent(t *testing.T) {
 func TestRemoveFromStringSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{"testValue"},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = RemoveFromStringSetComponent("testEntity", "testComponent", "testValue")
 
 	assert.Nil(t, err)
@@ -911,12 +911,12 @@ func TestRemoveFromStringSetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, exists)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = RemoveFromStringSetComponent("notRegistered", "testComponent", "testValue")
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
+	// testing that an error is thrown if the component does not exist
 	err = RemoveFromStringSetComponent("testEntity", "notRegistered", "testValue")
 
 	assert.NotNil(t, err)
@@ -927,13 +927,13 @@ func TestRemoveFromStringSetComponent(t *testing.T) {
 func TestRemoveFromInt64SetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{int64(1)},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = RemoveFromInt64SetComponent("testEntity", "testComponent", int64(1))
 
 	assert.Nil(t, err)
@@ -942,12 +942,12 @@ func TestRemoveFromInt64SetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, exists)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = RemoveFromInt64SetComponent("notRegistered", "testComponent", int64(1))
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
+	// testing that an error is thrown if the component does not exist
 	err = RemoveFromInt64SetComponent("testEntity", "notRegistered", int64(1))
 
 	assert.NotNil(t, err)
@@ -957,13 +957,13 @@ func TestRemoveFromInt64SetComponent(t *testing.T) {
 func TestRemoveFromIntSetComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": []interface{}{int(1)},
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = RemoveFromIntSetComponent("testEntity", "testComponent", int(1))
 
 	assert.Nil(t, err)
@@ -972,12 +972,12 @@ func TestRemoveFromIntSetComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, exists)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = RemoveFromIntSetComponent("notRegistered", "testComponent", int(1))
 
 	assert.NotNil(t, err)
 
-	// test that an error is thrown if the component does not exist
+	// testing that an error is thrown if the component does not exist
 	err = RemoveFromIntSetComponent("testEntity", "notRegistered", int(1))
 
 	assert.NotNil(t, err)
@@ -987,20 +987,20 @@ func TestRemoveFromIntSetComponent(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": "testValue",
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = Update("testEntity", map[string]interface{}{
 		"testComponent": "testValue2",
 	})
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = Update("notRegistered", map[string]interface{}{
 		"testComponent": "testValue2",
 	})
@@ -1012,18 +1012,18 @@ func TestUpdate(t *testing.T) {
 func TestUpdateBoolComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": true,
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateBoolComponent("testEntity", "testComponent", false)
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateBoolComponent("notRegistered", "testComponent", false)
 
 	assert.NotNil(t, err)
@@ -1033,18 +1033,18 @@ func TestUpdateBoolComponent(t *testing.T) {
 func TestUpdateInt64Component(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": int64(1),
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateInt64Component("testEntity", "testComponent", int64(2))
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateInt64Component("notRegistered", "testComponent", int64(2))
 
 	assert.NotNil(t, err)
@@ -1054,18 +1054,18 @@ func TestUpdateInt64Component(t *testing.T) {
 func TestUpdateIntComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": int(1),
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateIntComponent("testEntity", "testComponent", int(2))
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateIntComponent("notRegistered", "testComponent", int(2))
 
 	assert.NotNil(t, err)
@@ -1075,7 +1075,7 @@ func TestUpdateIntComponent(t *testing.T) {
 func TestUpdateBoolInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": true,
 		},
@@ -1083,12 +1083,12 @@ func TestUpdateBoolInMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateBoolInMapComponent("testEntity", "testComponent", "testKey", false)
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateBoolInMapComponent("notRegistered", "testComponent", "testKey", false)
 
 	assert.NotNil(t, err)
@@ -1098,7 +1098,7 @@ func TestUpdateBoolInMapComponent(t *testing.T) {
 func TestUpdateInt64InMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": int64(1),
 		},
@@ -1106,12 +1106,12 @@ func TestUpdateInt64InMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateInt64InMapComponent("testEntity", "testComponent", "testKey", int64(2))
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateInt64InMapComponent("notRegistered", "testComponent", "testKey", int64(2))
 
 	assert.NotNil(t, err)
@@ -1121,7 +1121,7 @@ func TestUpdateInt64InMapComponent(t *testing.T) {
 func TestUpdateIntInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": int(1),
 		},
@@ -1129,12 +1129,12 @@ func TestUpdateIntInMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateIntInMapComponent("testEntity", "testComponent", "testKey", int(2))
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateIntInMapComponent("notRegistered", "testComponent", "testKey", int(2))
 
 	assert.NotNil(t, err)
@@ -1144,7 +1144,7 @@ func TestUpdateIntInMapComponent(t *testing.T) {
 func TestUpdateStringInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -1152,12 +1152,12 @@ func TestUpdateStringInMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue2")
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateStringInMapComponent("notRegistered", "testComponent", "testKey", "testValue2")
 
 	assert.NotNil(t, err)
@@ -1172,7 +1172,7 @@ func TestUpdateStringInMapComponent(t *testing.T) {
 func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": "testValue",
 		},
@@ -1180,23 +1180,23 @@ func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path for adding a new key
+	// testing happy path for adding a new key
 	err = AddOrUpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue2")
 
 	assert.Nil(t, err)
 
-	// test happy path for updating an existing key
+	// testing happy path for updating an existing key
 	err = AddOrUpdateStringInMapComponent("testEntity", "testComponent", "testKey", "testValue3")
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = AddOrUpdateStringInMapComponent("notRegistered", "testComponent", "testKey", "testValue3")
 
 	assert.NotNil(t, err)
 	assert.IsTypef(t, errors.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
 
-	// test that an error is thrown if the component does not exist
+	// testing that an error is thrown if the component does not exist
 	err = AddOrUpdateStringInMapComponent("testEntity", "notRegistered", "testKey", "testValue3")
 
 	assert.NotNil(t, err)
@@ -1208,7 +1208,7 @@ func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 func TestAddOrUpdateIntInMapComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": map[string]interface{}{
 			"testKey": 1,
 		},
@@ -1216,12 +1216,12 @@ func TestAddOrUpdateIntInMapComponent(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	// test happy path for adding a new key
+	// testing happy path for adding a new key
 	err = AddOrUpdateIntInMapComponent("testEntity", "testComponent", "testKey", 2)
 
 	assert.Nil(t, err)
 
-	// test happy path for updating an existing key
+	// testing happy path for updating an existing key
 	err = AddOrUpdateIntInMapComponent("testEntity", "testComponent", "testKey", 3)
 
 	assert.Nil(t, err)
@@ -1231,18 +1231,18 @@ func TestAddOrUpdateIntInMapComponent(t *testing.T) {
 func TestUpdateStringComponent(t *testing.T) {
 	setup()
 
-	err := AddWithId("test", "testEntity", map[string]interface{}{
+	err := AddWithId("testing", "testEntity", map[string]interface{}{
 		"testComponent": "testValue",
 	})
 
 	assert.Nil(t, err)
 
-	// test happy path
+	// testing happy path
 	err = UpdateStringComponent("testEntity", "testComponent", "testValue2")
 
 	assert.Nil(t, err)
 
-	// test that an error is thrown if the entity does not exist
+	// testing that an error is thrown if the entity does not exist
 	err = UpdateStringComponent("notRegistered", "testComponent", "testValue2")
 
 	assert.NotNil(t, err)
