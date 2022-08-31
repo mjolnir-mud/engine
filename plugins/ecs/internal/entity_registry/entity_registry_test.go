@@ -400,6 +400,25 @@ func TestAddToStringSetComponent(t *testing.T) {
 	teardown()
 }
 
+func TestAddOrUpdateStringComponent(t *testing.T) {
+	setup()
+
+	err := AddWithId("test", "testEntity", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	// test happy path
+	err = AddOrUpdateStringComponent("testEntity", "testComponent", "testValue")
+
+	assert.Nil(t, err)
+
+	componentValue, err := engine.RedisGet("testEntity:testComponent").Result()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "testValue", componentValue)
+	teardown()
+}
+
 func TestAddStringToMapComponent(t *testing.T) {
 	setup()
 

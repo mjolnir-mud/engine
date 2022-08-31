@@ -133,6 +133,13 @@ func AddStringComponentToEntity(id string, component string, value string) error
 	return entity_registry.AddStringComponent(id, component, value)
 }
 
+// AddOrUpdateStringComponentToEntity adds or updates a string component to an entity. It takes the entity ID,
+// component name, and the value of the component. If an entity with the same id does not exist an error will be thrown.
+// If a component with the same name already exists, it will be updated.
+func AddOrUpdateStringComponentToEntity(id string, component string, value string) error {
+	return entity_registry.AddOrUpdateStringComponent(id, component, value)
+}
+
 // AddStringToMapComponent adds a string component to a map component. It takes the entity ID, component name, the
 // key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
