@@ -9,7 +9,6 @@ import (
 	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
-	"github.com/spf13/viper"
 )
 
 // Subscription represents a pubsub to an event.
@@ -23,6 +22,26 @@ func Cli() {
 
 	err := ctx.Run()
 	ctx.FatalIfErrorf(err)
+}
+
+// SetEnv sets the environment for the engine. The environment defaults to "dev".
+func SetEnv(env string) {
+	instance.SetEnv(env)
+}
+
+// GetEnv returns the environment for the engine.
+func GetEnv() string {
+	return instance.GetEnv()
+}
+
+// GetGameName returns the name of the game.
+func GetGameName() string {
+	return instance.GetGameName()
+}
+
+// Running returns a channel that is closed when the engine is stopped.
+func Running() chan bool {
+	return instance.Running
 }
 
 // EnsureRegistered ensures that the plugin is registered with the engine. If the plugin is not registered, and the
@@ -192,10 +211,4 @@ func Stop() {
 // function, which simply subscribes to a channel on Redis, without wiring any of the underlying event handling.
 func Subscribe(e event.Event, cb func(event.EventPayload)) Subscription {
 	return redis.NewSubscription(e, cb)
-}
-
-// SetEnv sets the environment for the engine. Mjolnir recognizes three different environments by default, development
-// test, and production. The environment is set by setting the `MJOLNIR_ENV` environment variable.
-func SetEnv(env string) {
-	viper.Set("env", env)
 }

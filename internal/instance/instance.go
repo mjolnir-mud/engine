@@ -6,7 +6,9 @@ import (
 	redis2 "github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
-	"github.com/spf13/viper"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var beforeStartCallbacks = make([]func(), 0)
@@ -15,6 +17,22 @@ var beforeStopCallbacks = make([]func(), 0)
 var afterStopCallbacks = make([]func(), 0)
 var onServiceStartCallbacks = make(map[string][]func())
 var onServiceStopCallbacks = make(map[string][]func())
+var environment string
+var gameName string
+
+var Running chan bool
+
+func SetEnv(n string) {
+	setEnv(n)
+}
+
+func GetEnv() string {
+	return environment
+}
+
+func GetGameName() string {
+	return gameName
+}
 
 func IsRunning() bool {
 	return redis2.Ping() == nil
@@ -72,6 +90,19 @@ func StopService(service string) {
 
 func StartService(service string) {
 	log.Info().Str("service", service).Msg("starting service")
+
+	Running = make(chan bool)
+	sigs := make(chan os.Signal, 1)
+
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		StopService(service)
+		Stop()
+		Running <- true
+	}()
+
 	for _, f := range onServiceStartCallbacks[service] {
 		f()
 	}
@@ -94,20 +125,6 @@ var name string
 var log zerolog.Logger
 
 func setEnv(name string) {
-	viper.SetEnvPrefix("MJOLNIR")
-	err := viper.BindEnv("env")
-
-	if err != nil {
-		panic(err)
-	}
-
-	viper.SetDefault("env", "development")
-
-	err = viper.BindEnv("redis_url")
-
-	viper.Set("name", name)
-
-	if err != nil {
-		panic(err)
-	}
+	environment = "dev"
+	gameName = name
 }

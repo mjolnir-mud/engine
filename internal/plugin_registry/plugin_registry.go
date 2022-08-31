@@ -41,4 +41,7 @@ func Start() {
 
 func Stop() {
 	log.Info().Msg("stopping")
+	for _, p := range plugins {
+		log.Info().Str("plugin", p.Name()).Msg("stopping plugin")
+	}
 }
