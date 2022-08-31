@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
+	"github.com/rs/zerolog"
 
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
@@ -26,26 +27,25 @@ func (e MetadataTypeRequiredError) Error() string {
 	return fmt.Sprintf("data source %s does not return an entity with the type set in the metadata", e.ID)
 }
 
-var log = logger.Instance.
-	With().
-	Str("service", "registry").
-	Logger()
+var log zerolog.Logger
 
 type registry struct {
 	dataSources map[string]data_source.DataSource
 }
 
-func Start() error {
+func Start() {
+	log = logger.Instance.With().Str("component", "registry").Logger()
+
 	log.Info().Msg("starting")
+
 	for _, d := range r.dataSources {
 		log.Info().Msgf("starting data source %s", d.Name())
 		err := d.Start()
 		if err != nil {
-			return err
+			log.Error().Err(err).Msg("error starting data source")
+			panic(err)
 		}
 	}
-
-	return nil
 }
 
 func Stop() error {

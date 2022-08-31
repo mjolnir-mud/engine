@@ -2,6 +2,7 @@ package data_sources
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 )
@@ -13,11 +14,16 @@ func (p plugin) Name() string {
 }
 
 func (p plugin) Registered() error {
-	engine.RegisterAfterStartCallback(func() {
-		err := registry.Start()
+	engine.RegisterOnServiceStartCallback("world", func() {
+		logger.Start()
+		registry.Start()
+	})
+
+	engine.RegisterOnServiceStopCallback("world", func() {
+		err := registry.Stop()
 
 		if err != nil {
-			panic(err)
+			logger.Instance.Error().Err(err).Msg("error stopping data sources")
 		}
 	})
 
