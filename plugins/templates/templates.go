@@ -1,6 +1,8 @@
 package templates
 
 import (
+	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/templates/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/template_registry"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/theme_registry"
 	"github.com/mjolnir-mud/engine/plugins/templates/pkg/default_theme"
@@ -18,10 +20,20 @@ func (p templatePlugin) Name() string {
 }
 
 func (p templatePlugin) Registered() error {
-	theme_registry.Start()
-	template_registry.Start()
+	engine.RegisterOnServiceStartCallback("world", func() {
+		logger.Start()
+		theme_registry.Start()
+		template_registry.Start()
 
-	theme_registry.Register(default_theme.Theme)
+		theme_registry.Register(default_theme.Theme)
+
+	})
+
+	engine.RegisterOnServiceStopCallback("world", func() {
+		theme_registry.Stop()
+		template_registry.Stop()
+	})
+
 	return nil
 }
 

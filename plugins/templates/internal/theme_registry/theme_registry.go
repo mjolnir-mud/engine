@@ -11,7 +11,7 @@ var themes map[string]theme.Theme
 var log zerolog.Logger
 
 func Start() {
-	log = logger.Instance.With().Str("service", "theme_registry").Logger()
+	log = logger.Instance.With().Str("component", "theme_registry").Logger()
 	themes = map[string]theme.Theme{}
 	log.Info().Msg("starting theme registry")
 }

@@ -13,7 +13,7 @@ var log zerolog.Logger
 
 func Start() {
 	templates = make(map[string]template.Template)
-	log = logger.Instance.With().Str("service", "template_registry").Logger()
+	log = logger.Instance.With().Str("component", "template_registry").Logger()
 	log.Info().Msg("starting template registry")
 }
 
