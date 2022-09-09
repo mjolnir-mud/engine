@@ -15,16 +15,46 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package plugin
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
+	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
+	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/systems"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/sessions"
 )
 
-var Plugin = plugin.Plugin
+type plugin struct{}
 
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddStringComponentToEntity(entityId, "controller", controllerName)
+var Plugin = &plugin{}
+
+func (p *plugin) Name() string {
+	return "controllers"
+}
+
+func (p *plugin) Registered() error {
+	engine.EnsureRegistered(ecs.Plugin.Name())
+	engine.EnsureRegistered(sessions.Plugin.Name())
+
+	engine.RegisterBeforeServiceStartCallback("world", func() {
+		logger.Start()
+		registry.Start()
+
+		ecs.RegisterSystem(systems.ControllerSystem)
+
+		sessions.RegisterLineHandler(func(entityId string, line string) error {
+			return registry.HandleInput(entityId, line)
+		})
+
+		logger.Instance.Info().Msg("started")
+	})
+
+	engine.RegisterBeforeServiceStopCallback("world", func() {
+		logger.Instance.Info().Msg("stopping")
+		registry.Stop()
+	})
+
+	return nil
 }

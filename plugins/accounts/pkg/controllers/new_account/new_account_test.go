@@ -12,7 +12,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	"github.com/mjolnir-mud/engine/plugins/world"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
