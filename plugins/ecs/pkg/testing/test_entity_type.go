@@ -1,7 +1,6 @@
 package testing
 
-type TestEntityType struct {
-}
+type TestEntityType struct{}
 
 func (t TestEntityType) Name() string {
 	return "testing"

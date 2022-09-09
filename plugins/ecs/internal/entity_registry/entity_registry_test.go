@@ -3,10 +3,10 @@ package entity_registry
 import (
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/stretchr/testify/assert"
 )
 

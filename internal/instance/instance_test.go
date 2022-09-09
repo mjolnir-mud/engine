@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package instance
 
 import (
@@ -6,22 +23,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setup() {
-	Start("test")
+func TestInitialize(t *testing.T) {
+	setup()
+	defer teardown()
+
+	assert.Equal(t, "test", GetEnv())
+	assert.NotNil(t, log)
 }
 
-func teardown() {
-	Stop()
+func TestGetGameName(t *testing.T) {
+	setup()
+	defer teardown()
+
+	assert.Equal(t, "test", GetGameName())
+}
+
+func TestGetEnv(t *testing.T) {
+	setup()
+	defer teardown()
+
+	assert.Equal(t, "test", GetEnv())
 }
 
 func TestStart(t *testing.T) {
+	setup()
+	defer teardown()
 
 	beforeStartCalled := make(chan bool)
 	afterStartCalled := make(chan bool)
+	beforeStartCallbacksForEnvCalled := make(chan bool)
+	afterStartCallbacksForEnvCalled := make(chan bool)
 
 	RegisterBeforeStartCallback(func() {
 		go func() {
 			beforeStartCalled <- true
+		}()
+	})
+
+	RegisterBeforeStartCallbackForEnv("test", func() {
+		go func() {
+			beforeStartCallbacksForEnvCalled <- true
 		}()
 	})
 
@@ -31,18 +72,30 @@ func TestStart(t *testing.T) {
 		}()
 	})
 
-	Start("test")
+	RegisterAfterStartCallbackForEnv("test", func() {
+		go func() {
+			afterStartCallbacksForEnvCalled <- true
+		}()
+	})
+
+	Start()
 	defer Stop()
 
 	<-beforeStartCalled
 	<-afterStartCalled
+	<-beforeStartCallbacksForEnvCalled
+	<-afterStartCallbacksForEnvCalled
 
-	assert.True(t, IsRunning())
+	assert.True(t, true)
 }
 
 func TestStop(t *testing.T) {
+	setup()
+	defer teardown()
+
 	beforeStopCalled := make(chan bool)
 	afterStopCalled := make(chan bool)
+	beforeStopCallbacksForEnvCalled := make(chan bool)
 
 	RegisterBeforeStopCallback(func() {
 		go func() {
@@ -56,11 +109,18 @@ func TestStop(t *testing.T) {
 		}()
 	})
 
-	Start("test")
+	RegisterBeforeStopCallbackForEnv("test", func() {
+		go func() {
+			beforeStopCallbacksForEnvCalled <- true
+		}()
+	})
+
+	Start()
 
 	Stop()
 	<-beforeStopCalled
 	<-afterStopCalled
+	<-beforeStopCallbacksForEnvCalled
 	assert.True(t, true)
 }
 
@@ -68,17 +128,92 @@ func TestStartService(t *testing.T) {
 	setup()
 	defer teardown()
 
-	onStartCalled := make(chan bool)
+	beforeStartCalled := make(chan bool)
+	beforeStartCalledForEnv := make(chan bool)
+	afterStartCalled := make(chan bool)
+	afterStartCalledForEnv := make(chan bool)
 
-	RegisterOnServiceStartCallback("test", func() {
+	RegisterBeforeServiceStartCallback("test", func() {
 		go func() {
-			onStartCalled <- true
+			beforeStartCalled <- true
 		}()
 	})
 
+	RegisterBeforeServiceStartCallbackForEnv("test", "test", func() {
+		go func() {
+			beforeStartCalledForEnv <- true
+		}()
+	})
+
+	RegisterAfterServiceStartCallback("test", func() {
+		go func() {
+			afterStartCalled <- true
+		}()
+	})
+
+	RegisterAfterServiceStartCallbackForEnv("test", "test", func() {
+		go func() {
+			afterStartCalledForEnv <- true
+		}()
+	})
+
+	Start()
+
 	StartService("test")
 	defer StopService("test")
+	defer Stop()
 
-	<-onStartCalled
+	<-beforeStartCalled
+	<-beforeStartCalledForEnv
+	<-afterStartCalled
+	<-afterStartCalledForEnv
+
+	assert.True(t, true)
+}
+
+func TestStopService(t *testing.T) {
+	setup()
+	defer teardown()
+
+	beforeStopCalled := make(chan bool)
+	beforeStopCalledForEnv := make(chan bool)
+	afterStopCalled := make(chan bool)
+	afterStopCalledForEnv := make(chan bool)
+
+	RegisterBeforeServiceStopCallback("test", func() {
+		go func() {
+			beforeStopCalled <- true
+		}()
+	})
+
+	RegisterBeforeServiceStopCallbackForEnv("test", "test", func() {
+		go func() {
+			beforeStopCalledForEnv <- true
+		}()
+	})
+
+	RegisterAfterServiceStopCallback("test", func() {
+		go func() {
+			afterStopCalled <- true
+		}()
+	})
+
+	RegisterAfterServiceStopCallbackForEnv("test", "test", func() {
+		go func() {
+			afterStopCalledForEnv <- true
+		}()
+	})
+
+	Start()
+
+	StartService("test")
+	StopService("test")
+	defer Stop()
+
+	<-beforeStopCalled
+	<-beforeStopCalledForEnv
+	<-afterStopCalled
+	<-afterStopCalledForEnv
+
 	assert.True(t, true)
 }
