@@ -18,9 +18,9 @@
 package registry
 
 import (
-	"github.com/mjolnir-mud/engine"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -28,9 +28,10 @@ import (
 
 func setup() {
 	engineTesting.Setup("world", func() {
-		engine.RegisterPlugin(ecs.Plugin)
+		ecsTesting.Setup()
 		sessionsTesting.Setup()
 	})
+
 	Start()
 }
 
@@ -60,6 +61,8 @@ func (c testController) Stop(_ string) error {
 }
 
 func (c testController) HandleInput(_ string, _ string) error {
+	go func() { c.HandleInputCalled <- []string{"test", "test"} }()
+
 	return nil
 }
 
@@ -104,6 +107,10 @@ func TestHandleInput(t *testing.T) {
 	Register(tc)
 
 	err := ecs.AddEntityWithID("session", "test", map[string]interface{}{})
+
+	assert.Nil(t, err)
+
+	err = ecs.AddStringComponentToEntity("test", "controller", "test")
 
 	assert.Nil(t, err)
 
