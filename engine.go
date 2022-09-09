@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package engine
 
 import (
@@ -163,9 +180,21 @@ func RegisterAfterStartCallback(callback func()) {
 	instance.RegisterAfterStartCallback(callback)
 }
 
+// RegisterAfterStartCallbackForEnv registers a callback function that is called after the engine is started, but only
+// if the engine is running in the provided environment.
+func RegisterAfterStartCallbackForEnv(env string, callback func()) {
+	instance.RegisterAfterStartCallbackForEnv(env, callback)
+}
+
 // RegisterAfterStopCallback registers a callback function that is called after the engine is stopped.
 func RegisterAfterStopCallback(callback func()) {
 	instance.RegisterAfterStopCallback(callback)
+}
+
+// RegisterAfterStopCallbackForEnv registers a callback function that is called after the engine is stopped, but only
+// if the engine is running in the provided environment.
+func RegisterAfterStopCallbackForEnv(env string, callback func()) {
+	instance.RegisterAfterStopCallbackForEnv(env, callback)
 }
 
 // RegisterBeforeStartCallback registers a callback function that is called before the engine is started.
@@ -173,31 +202,43 @@ func RegisterBeforeStartCallback(callback func()) {
 	instance.RegisterBeforeStartCallback(callback)
 }
 
+// RegisterBeforeStartCallbackForEnv registers a callback function that is called before the engine is started, but only
+// if the provided environment matches the current environment.
+func RegisterBeforeStartCallbackForEnv(env string, callback func()) {
+	instance.RegisterBeforeStartCallbackForEnv(env, callback)
+}
+
 // RegisterBeforeStopCallback registers a callback function that is called before the engine is stopped.
 func RegisterBeforeStopCallback(callback func()) {
 	instance.RegisterBeforeStopCallback(callback)
 }
 
-// RegisterOnServiceStartCallback registers a callback function that is called when the engine is started.
-func RegisterOnServiceStartCallback(service string, callback func()) {
-	instance.RegisterOnServiceStartCallback(service, callback)
+// RegisterBeforeStopCallbackForEnv registers a callback function that is called before the engine is stopped, but only
+// if the provided environment matches the current environment.
+func RegisterBeforeStopCallbackForEnv(env string, callback func()) {
+	instance.RegisterBeforeStopCallbackForEnv(env, callback)
 }
 
-// RegisterOnServiceStopCallback registers a callback function that is called when the engine is stopped.
-func RegisterOnServiceStopCallback(service string, callback func()) {
-	instance.RegisterOnServiceStopCallback(service, callback)
+// RegisterBeforeServiceStartCallback registers a callback function that is called when the engine is started.
+func RegisterBeforeServiceStartCallback(service string, callback func()) {
+	instance.RegisterBeforeServiceStartCallback(service, callback)
 }
 
-// RegisterOnEnvStartCallback registers a callback function that is called when the engine is started with the given
-// environment.
-func RegisterOnEnvStartCallback(env string, callback func()) {
-	instance.RegisterOnEnvStartCallback(env, callback)
+// RegisterBeforeServiceStartCallbackForEnv registers a callback function that is called when the engine is started, but
+// only if the provided environment matches the current environment.
+func RegisterBeforeServiceStartCallbackForEnv(service string, env string, callback func()) {
+	instance.RegisterBeforeServiceStartCallbackForEnv(service, env, callback)
 }
 
-// RegisterOnEnvStopCallback registers a callback function that is called when the engine is stopped with the given
-// environment.
-func RegisterOnEnvStopCallback(env string, callback func()) {
-	instance.RegisterOnEnvStopCallback(env, callback)
+// RegisterBeforeServiceStopCallback registers a callback function that is called when the engine is stopped.
+func RegisterBeforeServiceStopCallback(service string, callback func()) {
+	instance.RegisterBeforeServiceStopCallback(service, callback)
+}
+
+// RegisterBeforeServiceStopCallbackForEnv registers a callback function that is called when the engine is stopped, but
+// only if the provided environment matches the current environment.
+func RegisterBeforeServiceStopCallbackForEnv(service string, env string, callback func()) {
+	instance.RegisterBeforeServiceStopCallbackForEnv(service, env, callback)
 }
 
 // RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
@@ -206,9 +247,15 @@ func RegisterPlugin(plugin plugin.Plugin) {
 	plugin_registry.Register(plugin)
 }
 
-// Start starts with the provided game name.
-func Start(gameName string) {
-	instance.Start(gameName)
+// Initialize is the first function called when the engine is started. It initializes the engine, and should be called
+// before any other engine functions.
+func Initialize(gameName string, env string) {
+	instance.Initialize(gameName, env)
+}
+
+// Start starts the engine. It should be called after the engine is initialized, and after all plugins are registered.
+func Start() {
+	instance.Start()
 }
 
 // Stop	stops the engine.

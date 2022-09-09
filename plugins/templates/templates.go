@@ -20,7 +20,7 @@ func (p templatePlugin) Name() string {
 }
 
 func (p templatePlugin) Registered() error {
-	engine.RegisterOnServiceStartCallback("world", func() {
+	engine.RegisterBeforeServiceStartCallback("world", func() {
 		logger.Start()
 		theme_registry.Start()
 		template_registry.Start()
@@ -29,7 +29,7 @@ func (p templatePlugin) Registered() error {
 
 	})
 
-	engine.RegisterOnServiceStopCallback("world", func() {
+	engine.RegisterBeforeServiceStopCallback("world", func() {
 		theme_registry.Stop()
 		template_registry.Stop()
 	})

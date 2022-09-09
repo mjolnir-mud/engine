@@ -41,7 +41,7 @@ func (p *plugin) Name() string {
 }
 
 func (p *plugin) Registered() error {
-	engine.RegisterOnServiceStartCallback("world", func() {
+	engine.RegisterBeforeServiceStartCallback("world", func() {
 		logger.Start()
 		log = logger.Instance
 		env := engine.GetEnv()

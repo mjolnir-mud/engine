@@ -1,25 +1,58 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/internal/instance"
+	"reflect"
 )
 
-func Setup(services ...string) chan bool {
-	engine.SetEnv("test")
+func Setup(args ...interface{}) chan bool {
+	engine.Initialize("test", "test")
 	ch := make(chan bool)
 	engine.RegisterAfterStartCallback(func() {
 		go func() { ch <- true }()
 	})
-	engine.Start("test")
 
-	if len(services) > 0 {
-		for _, service := range services {
-			instance.StartService(service)
-		}
+	for _, arg := range args {
+		callBeforeStartCallbackIfFunc(arg)
+	}
+
+	engine.Start()
+
+	for _, arg := range args {
+		startServiceIfString(arg)
 	}
 
 	return ch
+}
+
+func callBeforeStartCallbackIfFunc(arg interface{}) {
+	if reflect.TypeOf(arg).Kind() == reflect.Func {
+		arg.(func())()
+	}
+}
+
+func startServiceIfString(arg interface{}) {
+	if reflect.TypeOf(arg).Kind() == reflect.String {
+		instance.StartService(arg.(string))
+	}
 }
 
 func Teardown() {

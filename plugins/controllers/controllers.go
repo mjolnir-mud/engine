@@ -19,7 +19,7 @@ func (p *plugin) Registered() error {
 	engine.EnsureRegistered(ecs.Plugin.Name())
 	engine.EnsureRegistered(sessions.Plugin.Name())
 
-	engine.RegisterOnServiceStartCallback("world", func() {
+	engine.RegisterBeforeServiceStartCallback("world", func() {
 		logger.Start()
 		registry.Start()
 
@@ -32,7 +32,7 @@ func (p *plugin) Registered() error {
 		logger.Instance.Info().Msg("started")
 	})
 
-	engine.RegisterOnServiceStopCallback("world", func() {
+	engine.RegisterBeforeServiceStopCallback("world", func() {
 		logger.Instance.Info().Msg("stopping")
 		registry.Stop()
 	})
