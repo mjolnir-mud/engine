@@ -1,34 +1,27 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package data_sources
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 )
-
-type plugin struct{}
-
-func (p plugin) Name() string {
-	return "data_sources"
-}
-
-func (p plugin) Registered() error {
-	engine.RegisterBeforeServiceStartCallback("world", func() {
-		logger.Start()
-		registry.Start()
-	})
-
-	engine.RegisterBeforeServiceStopCallback("world", func() {
-		err := registry.Stop()
-
-		if err != nil {
-			logger.Instance.Error().Err(err).Msg("error stopping data sources")
-		}
-	})
-
-	return nil
-}
 
 // Register registers a data source with the registry. If a data source with the same name is already registered,
 //i it will be overwritten.
@@ -78,4 +71,4 @@ func Save(source string, entityId string, entity map[string]interface{}) error {
 	return registry.Save(source, entityId, entity)
 }
 
-var Plugin = plugin{}
+var Plugin = plugin.Plugin
