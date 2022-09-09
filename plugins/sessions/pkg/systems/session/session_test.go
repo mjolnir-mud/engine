@@ -1,13 +1,28 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package session
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/internal/redis"
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	session2 "github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
-	"github.com/mjolnir-mud/engine/plugins/templates"
-	testing2 "github.com/mjolnir-mud/engine/plugins/world/pkg/testing"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
+	sessionEntity "github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,20 +32,6 @@ var ch = make(chan inputArgs)
 type inputArgs struct {
 	Id    string
 	Input string
-}
-
-type testTemplate struct{}
-
-func (t testTemplate) Render(args interface{}) (string, error) {
-	return "test", nil
-}
-
-func (t testTemplate) Name() string {
-	return "test"
-}
-
-func (t testTemplate) Style() string {
-	return "default"
 }
 
 // testController is the login testController, responsible handling user logins.
@@ -81,14 +82,13 @@ func (a altController) HandleInput(_ string, _ string) error {
 }
 
 func setup() {
-	ecs.RegisterEntityType(session2.Type)
-	controller_registry.Register(testController{})
-	controller_registry.Register(altController{})
-	controller_registry.Start()
-	engine.RegisterPlugin(templates.Plugin)
-	testing2.Setup()
-	session3.StartRegistry()
-	_ = engine.RedisFlushAll()
+	engineTesting.Setup(func() {
+		ecsTesting.Setup()
+
+		ecs.RegisterEntityType(sessionEntity.Type)
+	})
+
+	registry.Start()
 
 	ent, err := ecs.CreateEntity("session", map[string]interface{}{})
 
@@ -104,9 +104,9 @@ func setup() {
 }
 
 func teardown() {
-	_ = redis.FlushAll()
-	session3.StopRegistry()
-	testing2.Teardown()
+	ecsTesting.Teardown()
+	registry.Stop()
+	engineTesting.Teardown()
 }
 
 func TestStart(t *testing.T) {
@@ -116,76 +116,6 @@ func TestStart(t *testing.T) {
 	err := Start("test")
 
 	assert.NoError(t, err)
-}
-
-func TestGetController(t *testing.T) {
-	setup()
-	defer teardown()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	c, err := GetController("test")
-
-	assert.NoError(t, err)
-
-	assert.Equal(t, "login", c.Name())
-}
-
-func TestSetController(t *testing.T) {
-	setup()
-	defer teardown()
-
-	err := SetController("test", "alt")
-
-	assert.NoError(t, err)
-
-	c, err := GetController("test")
-
-	assert.NoError(t, err)
-	assert.Equal(t, "alt", c.Name())
-}
-
-func TestHandleInput(t *testing.T) {
-	setup()
-	defer teardown()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	err = HandleInput("test", "test")
-
-	assert.NoError(t, err)
-
-	i := <-ch
-	assert.Equal(t, "test", i.Input)
-	assert.Equal(t, "test", i.Id)
-}
-
-func TestSendLine(t *testing.T) {
-	setup()
-	defer teardown()
-	ch := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "test", func(e interface{}) {
-		go func() { ch <- e.(*events.PlayerOutputEvent).Line }()
-	})
-
-	defer sub.Stop()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	err = SendLine("test", "test")
-
-	assert.NoError(t, err)
-
-	line := <-ch
-
-	assert.Equal(t, "test", line)
 }
 
 func TestGetIntFromStore(t *testing.T) {
@@ -284,56 +214,4 @@ func TestGetStringFromFlash(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "test", s)
-}
-
-func TestRenderTemplate(t *testing.T) {
-	setup()
-	defer teardown()
-
-	ch := make(chan string)
-
-	templates.RegisterTemplate(testTemplate{})
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "test", func(e interface{}) {
-		go func() { ch <- e.(*events.PlayerOutputEvent).Line }()
-	})
-
-	defer sub.Stop()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	err = RenderTemplate("test", "test", "test")
-
-	assert.NoError(t, err)
-
-	line := <-ch
-
-	assert.Equal(t, "test", line)
-}
-
-func TestSendLineF(t *testing.T) {
-	setup()
-	defer teardown()
-
-	ch := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "test", func(e interface{}) {
-		go func() { ch <- e.(*events.PlayerOutputEvent).Line }()
-	})
-
-	defer sub.Stop()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	err = SendLineF("test", "test%s", "test")
-
-	assert.NoError(t, err)
-
-	line := <-ch
-
-	assert.Equal(t, "testtest", line)
 }

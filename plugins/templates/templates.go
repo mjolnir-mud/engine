@@ -1,41 +1,12 @@
 package templates
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/templates/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/templates/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/template_registry"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/theme_registry"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/default_theme"
 	"github.com/mjolnir-mud/engine/plugins/templates/pkg/template"
 	"github.com/mjolnir-mud/engine/plugins/templates/pkg/theme"
 )
-
-type templatePlugin struct {
-	themes    map[string]theme.Theme
-	templates map[string]template.Template
-}
-
-func (p templatePlugin) Name() string {
-	return "templates"
-}
-
-func (p templatePlugin) Registered() error {
-	engine.RegisterBeforeServiceStartCallback("world", func() {
-		logger.Start()
-		theme_registry.Start()
-		template_registry.Start()
-
-		theme_registry.Register(default_theme.Theme)
-
-	})
-
-	engine.RegisterBeforeServiceStopCallback("world", func() {
-		theme_registry.Stop()
-		template_registry.Stop()
-	})
-
-	return nil
-}
 
 // RegisterTheme registers a theme with the theme registry.
 func RegisterTheme(t theme.Theme) {
@@ -58,4 +29,4 @@ func RenderTemplate(name string, ctx interface{}) (string, error) {
 	return template_registry.Render(name, ctx)
 }
 
-var Plugin = &templatePlugin{}
+var Plugin = plugin.Plugin

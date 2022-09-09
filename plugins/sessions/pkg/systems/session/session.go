@@ -1,10 +1,25 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package session
 
 import (
-	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
-	"github.com/mjolnir-mud/engine/plugins/templates"
 )
 
 type session struct{}
@@ -51,41 +66,6 @@ func Start(_ string) error {
 // returned.
 func SetStringInStore(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
-}
-
-// SendLine sends a line to the session's connection. If the session does not exist, an error is returned.
-func SendLine(id, line string) error {
-	exists, err := ecs.EntityExists(id)
-
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return errors.EntityNotFoundError{
-			ID: id,
-		}
-	}
-
-	session2.SendLine(id, line)
-
-	return nil
-}
-
-// SendLineF sends a line to the session's connection. If the session does not exist, an error is returned.
-func SendLineF(id string, format string, args ...interface{}) error {
-	return SendLine(id, fmt.Sprintf(format, args...))
-}
-
-// HandleInput passes the input to the session controller. If the session does not exist, an error is returned.
-func HandleInput(id, input string) error {
-	c, err := GetController(id)
-
-	if err != nil {
-		return err
-	}
-
-	return c.HandleInput(id, input)
 }
 
 // SetIntInStore sets an int value in the store, under the given key. If the session does not exist, an error is
@@ -146,17 +126,3 @@ func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
 
 	return i, nil
 }
-
-// RenderTemplate renders the template  with the given name and data. If the session does not exist, an error is
-// returned.
-func RenderTemplate(id, template string, data interface{}) error {
-	rendered, err := templates.RenderTemplate(template, data)
-
-	if err != nil {
-		return err
-	}
-
-	return SendLine(id, rendered)
-}
-
-var System = session{}

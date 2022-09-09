@@ -25,3 +25,5 @@ func (s sessionType) Create(args map[string]interface{}) map[string]interface{} 
 
 	return args
 }
+
+var Type = sessionType{}

@@ -1,32 +1,9 @@
 package sessions
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/sessions/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
 )
-
-type plugin struct{}
-
-func (p *plugin) Name() string {
-	return "sessions"
-}
-
-func (p *plugin) Registered() error {
-	engine.EnsureRegistered(ecs.Plugin.Name())
-
-	engine.RegisterBeforeServiceStartCallback("world", func() {
-		logger.Start()
-		registry.Start()
-	})
-
-	engine.RegisterBeforeServiceStopCallback("world", func() {
-		registry.Stop()
-	})
-
-	return nil
-}
 
 // RegisterSessionStartedHandler registers a handler that is called when a session is started.
 func RegisterSessionStartedHandler(h func(id string) error) {
@@ -53,4 +30,4 @@ func StartSessionRegistry() {
 	registry.Start()
 }
 
-var Plugin = &plugin{}
+var Plugin = plugin.Plugin
