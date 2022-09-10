@@ -2,6 +2,7 @@ package login_controller
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
+	"github.com/mjolnir-mud/engine/plugins/controllers"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
 )
@@ -10,7 +11,7 @@ import (
 type controller struct{}
 
 var AfterLoginCallback = func(id string) error {
-	err := session.SetController(id, "game")
+	err := controllers.Set(id, "game")
 
 	if err != nil {
 		return err
@@ -73,7 +74,7 @@ func handleInput(id string, input string) error {
 
 func handleUsername(id string, input string) error {
 	if input == "create" {
-		err := session.SetController(id, "new_account")
+		err := controllers.Set(id, "new_account")
 
 		if err != nil {
 			return err

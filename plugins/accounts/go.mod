@@ -2,28 +2,31 @@ module github.com/mjolnir-mud/engine/plugins/accounts
 
 replace (
 	github.com/mjolnir-mud/engine => ../../
+	github.com/mjolnir-mud/engine/plugins/controllers => ../controllers/
 	github.com/mjolnir-mud/engine/plugins/data_sources => ../data_sources
 	github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
 	github.com/mjolnir-mud/engine/plugins/mongo_data_source => ../mongo_data_source
+	github.com/mjolnir-mud/engine/plugins/sessions => ../sessions
 	github.com/mjolnir-mud/engine/plugins/templates => ../templates/
-	github.com/mjolnir-mud/engine/plugins/world => ../world
 )
 
 go 1.17
 
 require (
 	github.com/mjolnir-mud/engine v0.1.1-0.20220805131021-389d2f8111fa
+	github.com/mjolnir-mud/engine/plugins/controllers v0.0.0-00010101000000-000000000000
 	github.com/mjolnir-mud/engine/plugins/data_sources v0.0.0-20220805131021-389d2f8111fa
 	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220805131021-389d2f8111fa
 	github.com/mjolnir-mud/engine/plugins/mongo_data_source v0.0.0-00010101000000-000000000000
+	github.com/mjolnir-mud/engine/plugins/sessions v0.0.0-00010101000000-000000000000
 	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000
-	github.com/mjolnir-mud/engine/plugins/world v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.0
 	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 )
 
 require (
+	github.com/alecthomas/kong v0.6.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/charmbracelet/lipgloss v0.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -33,7 +36,6 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
@@ -52,7 +54,6 @@ require (
 	github.com/rs/zerolog v1.27.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/cobra v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.12.0 // indirect

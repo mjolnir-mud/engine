@@ -18,8 +18,11 @@
 package session
 
 import (
+	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
+	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
+	"strings"
 )
 
 type session struct{}
@@ -125,4 +128,35 @@ func GetIntFromFlashWithDefault(id, key string, defaultValue int) (int, error) {
 	}
 
 	return i, nil
+}
+
+// SendLine sends a line to the session. If the session does not exist, an error is returned.
+func SendLine(id, line string) error {
+	return registry.SendLine(id, line)
+}
+
+// SendLines sends a slice of lines to the session. If the session does not exist, an error is returned.
+func SendLines(id string, lines []string) error {
+	for _, line := range lines {
+		if err := SendLine(id, line); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SendLinef sends a formatted line to the session. If the session does not exist, an error is returned.
+func SendLinef(id, format string, args ...interface{}) error {
+	return SendLine(id, fmt.Sprintf(format, args...))
+}
+
+// Send breaks up a string into lines and calles SendLines. If the session does not exist, an error is returned.
+func Send(id, text string) error {
+	return SendLines(id, strings.Split(text, "\n"))
+}
+
+// Sendf breaks up a string into lines and calles SendLines. If the session does not exist, an error is returned.
+func Sendf(id, format string, args ...interface{}) error {
+	return Send(id, fmt.Sprintf(format, args...))
 }

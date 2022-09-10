@@ -1,36 +1,56 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package login_controller
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/pkg/testing"
+	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/pkg/redis"
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
-	templates2 "github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
+	"github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
+	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
+	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
-	"github.com/mjolnir-mud/engine/plugins/templates"
-	"github.com/mjolnir-mud/engine/plugins/world"
+	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	testing2 "testing"
+	"testing"
 )
 
 func setup() {
-	engine.RegisterPlugin(ecs.Plugin)
-	engine.RegisterPlugin(templates.Plugin)
-	engine.RegisterPlugin(world.Plugin)
-	engine.RegisterPlugin(data_sources.Plugin)
-	engine.RegisterPlugin(mongo_data_source.Plugin)
-	ecs.RegisterEntityType(account.Type)
+	engineTesting.Setup(func() {
+		ecsTesting.Setup()
+		templatesTesting.Setup()
+		dataSourcesTesting.Setup()
+		mongoDataSourceTesting.Setup()
+		controllersTesting.Setup()
 
-	data_sources.Register(data_source.Create())
-
-	testing.Setup()
-	templates2.RegisterAll()
-	_ = engine.RedisFlushAll()
+		templates.RegisterAll()
+		ecs.RegisterEntityType(account.Type)
+		data_sources.Register(data_source.Create())
+	})
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
@@ -53,11 +73,14 @@ func setup() {
 }
 
 func teardown() {
-	_ = engine.RedisFlushAll()
-	testing.Teardown()
+	ecsTesting.Teardown()
+	templatesTesting.Teardown()
+	mongoDataSourceTesting.Teardown()
+	dataSourcesTesting.Teardown()
+	engineTesting.Teardown()
 }
 
-func TestController_Name(t *testing2.T) {
+func TestController_Name(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -66,15 +89,13 @@ func TestController_Name(t *testing2.T) {
 	assert.Equal(t, "login", c.Name())
 }
 
-func TestController_Start(t *testing2.T) {
+func TestController_Start(t *testing.T) {
 	setup()
 	defer teardown()
 
 	receivedLine := make(chan string)
 
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	sub := createReceiveLineSubscription()
 
 	defer sub.Stop()
 
@@ -95,15 +116,13 @@ func TestController_Start(t *testing2.T) {
 	assert.Equal(t, "Enter your username, or type '\u001B[1mcreate\u001B[0m' to create a new account:", line)
 }
 
-func TestControllerHandlesInvalidLogin(t *testing2.T) {
+func TestControllerHandlesInvalidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
 	receivedLine := make(chan string)
 
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	sub := createReceiveLineSubscription()
 
 	defer sub.Stop()
 
@@ -138,15 +157,13 @@ func TestControllerHandlesInvalidLogin(t *testing2.T) {
 	assert.Equal(t, "An account with that username and password combination was not found.", line)
 }
 
-func TestControllerHandlesValidLogin(t *testing2.T) {
+func TestControllerHandlesValidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
 	receivedLine := make(chan string)
 
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	sub := createReceiveLineSubscription()
 
 	defer sub.Stop()
 	c := controller{}
@@ -174,7 +191,7 @@ func TestControllerHandlesValidLogin(t *testing2.T) {
 	assert.Equal(t, "game", controller)
 }
 
-func TestControllerHandleUsernameCreate(t *testing2.T) {
+func TestControllerHandleUsernameCreate(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -192,4 +209,22 @@ func TestControllerHandleUsernameCreate(t *testing2.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "new_account", i)
+}
+
+func createReceiveLineSubscription() redis.Subscription {
+	receivedLine := make(chan string)
+
+	return engine.Subscribe(events.PlayerOutputEvent{}, func(e event.EventPayload) {
+		go func() {
+			poe := &events.PlayerOutputEvent{}
+
+			err := e.Unmarshal(poe)
+
+			if err != nil {
+				panic(err)
+			}
+
+			receivedLine <- poe.Line
+		}()
+	})
 }
