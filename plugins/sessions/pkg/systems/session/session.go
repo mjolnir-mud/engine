@@ -22,6 +22,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
+	"github.com/mjolnir-mud/engine/plugins/templates"
 	"strings"
 )
 
@@ -159,4 +160,17 @@ func Send(id, text string) error {
 // Sendf breaks up a string into lines and calles SendLines. If the session does not exist, an error is returned.
 func Sendf(id, format string, args ...interface{}) error {
 	return Send(id, fmt.Sprintf(format, args...))
+}
+
+// Render renders a template to the session. If the session does not exist, an error is returned. If the template does
+// not exist, an error is returned.
+func Render(id, template string, data interface{}) error {
+	content, err := templates.RenderTemplate(template, data)
+
+	if err != nil {
+		return err
+	}
+
+	return Send(id, content)
+
 }
