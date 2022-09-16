@@ -67,7 +67,6 @@ func NewSessionHandler(id string) *sessionHandler {
 
 func (h *sessionHandler) SendLine(line string) error {
 	return engine.Publish(events.PlayerOutputEvent{Id: h.Id, Line: line})
-
 }
 
 func (h *sessionHandler) Start() {
@@ -99,12 +98,25 @@ func (h *sessionHandler) Stop() {
 }
 
 func (h *sessionHandler) receiveLine(line string) {
-	for _, handler := range lineHandlers {
+	for _, handler := range receiveLineHandlers {
 		err := handler(h.Id, line)
 
 		if err != nil {
 			h.logger.Error().Err(err).Msg("error handling line")
 			h.Stop()
+			return
+		}
+	}
+}
+
+func (h *sessionHandler) sendLine(line string) {
+	for _, handler := range sendLineHandlers {
+		err := handler(h.Id, line)
+
+		if err != nil {
+			h.logger.Error().Err(err).Msg("error handling line")
+			h.Stop()
+
 			return
 		}
 	}

@@ -91,11 +91,11 @@ func TestRegisterLineHandler(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterLineHandler(func(id string, line string) error {
+	RegisterReceiveLineHandler(func(id string, line string) error {
 		return nil
 	})
 
-	assert.Len(t, lineHandlers, 1)
+	assert.Len(t, receiveLineHandlers, 1)
 }
 
 func TestSendLine(t *testing.T) {
@@ -121,4 +121,15 @@ func TestSendLine(t *testing.T) {
 	assert.NoError(t, err)
 
 	<-ch
+}
+
+func BenchmarkRegisterReceiveLineHandler(b *testing.B) {
+	setup()
+	defer teardown()
+
+	RegisterReceiveLineHandler(func(id string, line string) error {
+		return nil
+	})
+
+	assert.Len(b, receiveLineHandlers, 1)
 }

@@ -30,13 +30,18 @@ import (
 
 var sessionHandlers map[string]*sessionHandler
 var playerConnectedSubscription engine.Subscription
-var lineHandlers []func(id string, line string) error
+var receiveLineHandlers []func(id string, line string) error
+var sendLineHandlers []func(id string, line string) error
 var sessionStartedHandlers []func(id string) error
 var sessionStoppedHandlers []func(id string) error
 var log zerolog.Logger
 
-func RegisterLineHandler(f func(id string, line string) error) {
-	lineHandlers = append(lineHandlers, f)
+func RegisterReceiveLineHandler(f func(id string, line string) error) {
+	receiveLineHandlers = append(receiveLineHandlers, f)
+}
+
+func RegisterSendLineHandler(f func(id string, line string) error) {
+	sendLineHandlers = append(sendLineHandlers, f)
 }
 
 func RegisterSessionStartedHandler(f func(id string) error) {
@@ -51,7 +56,8 @@ func Start() {
 	log = logger.Instance.With().Str("component", "registry").Logger()
 	sessionHandlers = make(map[string]*sessionHandler, 0)
 	playerConnectedSubscription = engine.Subscribe(events.PlayerConnectedEvent{}, handlePlayerConnected)
-	lineHandlers = make([]func(id string, line string) error, 0)
+	receiveLineHandlers = make([]func(id string, line string) error, 0)
+	sendLineHandlers = make([]func(id string, line string) error, 0)
 	sessionStartedHandlers = make([]func(id string) error, 0)
 	sessionStoppedHandlers = make([]func(id string) error, 0)
 

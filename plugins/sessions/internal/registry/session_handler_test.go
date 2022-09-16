@@ -90,7 +90,7 @@ func TestLineHandler(t *testing.T) {
 
 	ch := make(chan string)
 
-	RegisterLineHandler(func(id string, line string) error {
+	RegisterReceiveLineHandler(func(id string, line string) error {
 		go func() { ch <- line }()
 		return nil
 	})
