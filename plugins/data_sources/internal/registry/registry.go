@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2022 eightfivefour llc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package registry
 
 import (
@@ -28,18 +45,19 @@ func (e MetadataTypeRequiredError) Error() string {
 }
 
 var log zerolog.Logger
-
-type registry struct {
-	dataSources map[string]data_source.DataSource
-}
+var dataSources map[string]data_source.DataSource
 
 func Start() {
 	log = logger.Instance.With().Str("component", "registry").Logger()
-
 	log.Info().Msg("starting")
 
-	for _, d := range r.dataSources {
-		log.Info().Msgf("starting data source %s", d.Name())
+	dataSources = make(map[string]data_source.DataSource)
+}
+
+func StartDataSources() {
+	log.Info().Msgf("%d", len(dataSources))
+	for _, d := range dataSources {
+		//log.Info().Msgf("starting data source %s", d.Name())
 		err := d.Start()
 		if err != nil {
 			log.Error().Err(err).Msg("error starting data source")
@@ -50,7 +68,7 @@ func Start() {
 
 func Stop() error {
 	log.Info().Msg("stopping")
-	for _, d := range r.dataSources {
+	for _, d := range dataSources {
 		log.Info().Msgf("stopping data source %s", d.Name())
 		err := d.Stop()
 		if err != nil {
@@ -63,13 +81,13 @@ func Stop() error {
 
 func Register(dataSource data_source.DataSource) {
 	log.Info().Msgf("registering data source %s", dataSource.Name())
-	r.dataSources[dataSource.Name()] = dataSource
+	dataSources[dataSource.Name()] = dataSource
 }
 
 // All loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
 // for each entity, and return a map of entities keyed by their ids.
 func All(source string) (map[string]map[string]interface{}, error) {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		entities, err := d.All()
 
 		if err != nil {
@@ -87,7 +105,7 @@ func All(source string) (map[string]map[string]interface{}, error) {
 // or that metadata does not define the entity type, an error is thrown. If the data source does not exist, an error
 // will be thrown.
 func Find(source string, search map[string]interface{}) (map[string]map[string]interface{}, error) {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		entities, err := d.Find(search)
 
 		if err != nil {
@@ -101,7 +119,7 @@ func Find(source string, search map[string]interface{}) (map[string]map[string]i
 }
 
 func FindOne(source string, search map[string]interface{}) (string, map[string]interface{}, error) {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		id, entity, err := d.FindOne(search)
 
 		if err != nil {
@@ -121,7 +139,7 @@ func FindOne(source string, search map[string]interface{}) (string, map[string]i
 }
 
 func Delete(source string, entityId string) error {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		return d.Delete(entityId)
 	} else {
 		return InvalidDataSourceError{Source: source}
@@ -129,7 +147,7 @@ func Delete(source string, entityId string) error {
 }
 
 func FindAndDelete(source string, search map[string]interface{}) error {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		return d.FindAndDelete(search)
 	} else {
 		return InvalidDataSourceError{Source: source}
@@ -140,7 +158,7 @@ func FindAndDelete(source string, search map[string]interface{}) error {
 // be thrown. If the data source does not exist, an error will be thrown. If the metadata field does not have a type
 // set, an error will be thrown. If the entity exists in the data source, it will be overwritten.
 func Save(source string, entityId string, entity map[string]interface{}) error {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 		if !ok {
@@ -160,7 +178,7 @@ func Save(source string, entityId string, entity map[string]interface{}) error {
 }
 
 func Count(source string, search map[string]interface{}) (int64, error) {
-	if d, ok := r.dataSources[source]; ok {
+	if d, ok := dataSources[source]; ok {
 		return d.Count(search)
 	} else {
 		return 0, InvalidDataSourceError{Source: source}
@@ -206,8 +224,4 @@ func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
 	}
 
 	return ecs.CreateEntity(entityType, entity)
-}
-
-var r = &registry{
-	dataSources: make(map[string]data_source.DataSource),
 }

@@ -123,13 +123,13 @@ func TestSendLine(t *testing.T) {
 	<-ch
 }
 
-func BenchmarkRegisterReceiveLineHandler(b *testing.B) {
+func TestRegisterSendLineHandler(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterReceiveLineHandler(func(id string, line string) error {
+	RegisterSendLineHandler(func(id string, line string) error {
 		return nil
 	})
 
-	assert.Len(b, receiveLineHandlers, 1)
+	assert.Len(t, sendLineHandlers, 1)
 }
