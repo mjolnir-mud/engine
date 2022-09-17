@@ -197,6 +197,11 @@ func RegisterAfterStopCallbackForEnv(env string, callback func()) {
 	instance.RegisterAfterStopCallbackForEnv(env, callback)
 }
 
+// RegisterAfterServiceStartCallback registers a callback function that is called after the service is started.
+func RegisterAfterServiceStartCallback(service string, callback func()) {
+	instance.RegisterAfterServiceStartCallback(service, callback)
+}
+
 // RegisterBeforeStartCallback registers a callback function that is called before the engine is started.
 func RegisterBeforeStartCallback(callback func()) {
 	instance.RegisterBeforeStartCallback(callback)
