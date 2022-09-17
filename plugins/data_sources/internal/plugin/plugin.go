@@ -35,6 +35,10 @@ func (p plugin) Registered() error {
 		registry.Start()
 	})
 
+	engine.RegisterAfterServiceStartCallback("world", func() {
+		registry.StartDataSources()
+	})
+
 	engine.RegisterBeforeServiceStopCallback("world", func() {
 		err := registry.Stop()
 

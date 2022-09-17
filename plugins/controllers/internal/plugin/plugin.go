@@ -44,7 +44,7 @@ func (p *plugin) Registered() error {
 
 		ecs.RegisterSystem(systems.ControllerSystem)
 
-		sessions.RegisterLineHandler(func(entityId string, line string) error {
+		sessions.RegisterReceiveLineHandler(func(entityId string, line string) error {
 			return registry.HandleInput(entityId, line)
 		})
 

@@ -57,7 +57,17 @@ func (p *plugin) Registered() error {
 		logger.Start()
 		log = logger.Instance
 		env := engine.GetEnv()
+
+		if env == "" {
+			panic("environment not set")
+		}
+
 		defaultConfig := Configs["default"](&Configuration{})
+
+		if defaultConfig == nil {
+			panic("unable to load configuration for environment: " + env)
+		}
+
 		config := Configs[env](defaultConfig)
 
 		if config == nil {
@@ -110,4 +120,8 @@ func (p *plugin) Drop() {
 
 func (p *plugin) Collection(name string) *mongo.Collection {
 	return p.database.Collection(name)
+}
+
+func ConfigureForEnv(env string, cb func(c *Configuration) *Configuration) {
+	Configs[env] = cb
 }
