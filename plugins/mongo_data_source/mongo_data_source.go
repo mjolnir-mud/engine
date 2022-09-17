@@ -21,11 +21,11 @@ import (
 	"context"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
 	constants2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/constants"
 	errors2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/errors"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -40,13 +40,13 @@ type MongoDataSource struct {
 func New(collection string) *MongoDataSource {
 	return &MongoDataSource{
 		collectionName: collection,
-		logger:         log.With().Str("collection", collection).Logger(),
+		logger:         logger.Instance.With().Str("collection", collection).Logger(),
 	}
 }
 
 // ConfigureForEnv sets the config for the plugin for the specified environment.
 func ConfigureForEnv(env string, cb func(c *plugin.Configuration) *plugin.Configuration) {
-	plugin.Configs[env] = cb
+	plugin.ConfigureForEnv(env, cb)
 }
 
 func (m *MongoDataSource) Name() string {
