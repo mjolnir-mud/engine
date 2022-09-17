@@ -18,6 +18,19 @@ func (a accountType) Name() string {
 }
 
 func (a accountType) Create(args map[string]interface{}) map[string]interface{} {
+	password, ok := args["password"].(string)
+
+	if ok {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+		if err != nil {
+			panic(err)
+		}
+
+		args["hashedPassword"] = string(hashedPassword)
+		delete(args, "password")
+	}
+
 	return args
 }
 
