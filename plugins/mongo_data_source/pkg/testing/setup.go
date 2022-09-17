@@ -23,5 +23,12 @@ import (
 )
 
 func Setup() {
+	plugin.ConfigureForEnv("test", func(c *plugin.Configuration) *plugin.Configuration {
+		c.MongoURL = "mongodb://localhost:27017"
+		c.Database = "mjolnir_test"
+
+		return c
+	})
+
 	engine.RegisterPlugin(plugin.Plugin)
 }
