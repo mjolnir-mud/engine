@@ -6,6 +6,7 @@ replace (
 	github.com/mjolnir-mud/engine => ../../
 	github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
 	github.com/mjolnir-mud/engine/plugins/sessions => ../sessions
+	github.com/mjolnir-mud/engine/plugins/templates => ../templates
 )
 
 require (
