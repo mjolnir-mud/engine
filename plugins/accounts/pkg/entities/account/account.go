@@ -46,7 +46,7 @@ func ValidateAccount(args Credentials) (string, error) {
 		return "", errors.AccountNotFoundError{}
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(r["password"].(string)), []byte(args.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(r["hashedPassword"].(string)), []byte(args.Password))
 
 	if err != nil {
 		return "", errors.AccountNotFoundError{}

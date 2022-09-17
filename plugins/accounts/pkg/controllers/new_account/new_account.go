@@ -250,9 +250,9 @@ func handlePasswordConfirmation(id string, input string) error {
 	userId := strings.ToLower(username)
 
 	err = data_sources.Save("accounts", userId, map[string]interface{}{
-		"username": username,
-		"email":    email,
-		"password": hashedPassword,
+		"username":       username,
+		"email":          email,
+		"hashedPassword": hashedPassword,
 	})
 
 	return AfterCreateCallback(id, userId)
