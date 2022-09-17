@@ -19,19 +19,17 @@ package login_controller
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/pkg/event"
-	"github.com/mjolnir-mud/engine/pkg/redis"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
+	"github.com/mjolnir-mud/engine/plugins/controllers"
 	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/pkg/testing"
 	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
@@ -48,7 +46,9 @@ func setup() {
 		mongoDataSourceTesting.Setup()
 		sessionsTesting.Setup()
 		controllersTesting.Setup()
+
 		engine.RegisterBeforeServiceStartCallback("world", func() {
+			controllers.Register(controllersTesting.CreateMockController("new_account"))
 			data_sources.Register(data_source.Create())
 		})
 
@@ -101,7 +101,7 @@ func TestController_Start(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := createReceiveLineSubscription()
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
@@ -130,7 +130,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := createReceiveLineSubscription()
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
@@ -173,7 +173,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := createReceiveLineSubscription()
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 	c := controller{}
@@ -218,28 +218,8 @@ func TestControllerHandleUsernameCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	i, err := session.GetStringFromStore("sess", "controller")
+	i, err := ecs.GetStringComponent("sess", "controller")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "new_account", i)
-}
-
-func createReceiveLineSubscription() (chan string, redis.Subscription) {
-	receivedLine := make(chan string)
-
-	return receivedLine, engine.Subscribe(events.PlayerOutputEvent{
-		Id: "sess",
-	}, func(e event.EventPayload) {
-		go func() {
-			poe := &events.PlayerOutputEvent{}
-
-			err := e.Unmarshal(poe)
-
-			if err != nil {
-				panic(err)
-			}
-
-			go func() { receivedLine <- poe.Line }()
-		}()
-	})
 }

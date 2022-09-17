@@ -15,24 +15,40 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package testing
 
-import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-)
+import "github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
 
-var Plugin = plugin.Plugin
-
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddStringComponentToEntity(entityId, "controller", controllerName)
+type mockController struct {
+	ControllerName    string
+	HandleInputCalled chan []string
 }
 
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller controller.Controller) {
-	registry.Register(controller)
+func (c mockController) Name() string {
+	return c.ControllerName
+}
+
+func (c mockController) Start(_ string) error {
+	return nil
+}
+
+func (c mockController) Resume(_ string) error {
+	return nil
+}
+
+func (c mockController) Stop(_ string) error {
+	return nil
+}
+
+func (c mockController) HandleInput(_ string, _ string) error {
+	go func() { c.HandleInputCalled <- []string{"test", "test"} }()
+
+	return nil
+}
+
+func CreateMockController(name string) controller.Controller {
+	return mockController{
+		ControllerName:    name,
+		HandleInputCalled: make(chan []string),
+	}
 }

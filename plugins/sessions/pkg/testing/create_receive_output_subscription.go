@@ -15,24 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package testing
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 )
 
-var Plugin = plugin.Plugin
+func CreateReceiveOutputSubscription() (chan string, engine.Subscription) {
+	receivedOutput := make(chan string)
 
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddStringComponentToEntity(entityId, "controller", controllerName)
-}
+	return receivedOutput, engine.Subscribe(events.PlayerOutputEvent{
+		Id: "sess",
+	}, func(e event.EventPayload) {
+		go func() {
+			poe := &events.PlayerOutputEvent{}
 
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller controller.Controller) {
-	registry.Register(controller)
+			err := e.Unmarshal(poe)
+
+			if err != nil {
+				panic(err)
+			}
+
+			go func() { receivedOutput <- poe.Line }()
+		}()
+	})
 }

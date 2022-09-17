@@ -141,7 +141,7 @@ func handleEmail(id string, input string) error {
 	_, err := mail.ParseAddress(input)
 
 	if err != nil {
-		err := session.RenderTemplate(id, "email_invalid", input)
+		err := session.Render(id, "email_invalid", input)
 
 		if err != nil {
 			return err
@@ -159,7 +159,7 @@ func handleEmail(id string, input string) error {
 	}
 
 	if count > 0 {
-		err := session.RenderTemplate(id, "email_taken", input)
+		err := session.Render(id, "email_taken", input)
 
 		if err != nil {
 			return err
@@ -187,7 +187,7 @@ func handleUsername(id, input string) error {
 	}
 
 	if count > int64(0) {
-		err := session.RenderTemplate(id, "username_taken", input)
+		err := session.Render(id, "username_taken", input)
 
 		if err != nil {
 			return err
@@ -221,7 +221,7 @@ func handlePasswordConfirmation(id string, input string) error {
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(input))
 
 	if err != nil {
-		err := session.RenderTemplate(id, "password_match_fail", nil)
+		err := session.Render(id, "password_match_fail", nil)
 
 		if err != nil {
 			return err
@@ -265,7 +265,7 @@ func promptNewUsername(id string) error {
 		return err
 	}
 
-	return session.RenderTemplate(id, "prompt_new_username", nil)
+	return session.Render(id, "prompt_new_username", nil)
 }
 
 func promptNewEmail(id string) error {
@@ -275,7 +275,7 @@ func promptNewEmail(id string) error {
 		return err
 	}
 
-	err = session.RenderTemplate(id, "prompt_new_email", nil)
+	err = session.Render(id, "prompt_new_email", nil)
 
 	if err != nil {
 		return err
@@ -291,7 +291,7 @@ func promptNewPassword(id string) error {
 		return err
 	}
 
-	err = session.RenderTemplate(id, "prompt_new_password", nil)
+	err = session.Render(id, "prompt_new_password", nil)
 
 	if err != nil {
 		return err
@@ -307,7 +307,7 @@ func promptPasswordConfirmation(id string) error {
 		return err
 	}
 
-	err = session.RenderTemplate(id, "prompt_password_confirmation", nil)
+	err = session.Render(id, "prompt_password_confirmation", nil)
 
 	if err != nil {
 		return err

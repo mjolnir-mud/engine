@@ -2,60 +2,67 @@ package new_account
 
 import (
 	"github.com/mjolnir-mud/engine"
-	testing2 "github.com/mjolnir-mud/engine/pkg/testing"
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
-	templates2 "github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
+	"github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
+	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
+	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
-	"github.com/mjolnir-mud/engine/plugins/templates"
+	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/pkg/testing"
+	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 )
 
 func setup() {
-	engine.RegisterPlugin(ecs.Plugin)
-	engine.RegisterPlugin(templates.Plugin)
-	engine.RegisterPlugin(world.Plugin)
-	engine.RegisterPlugin(data_sources.Plugin)
-	engine.RegisterPlugin(mongo_data_source.Plugin)
-	ecs.RegisterEntityType(account.Type)
-
-	data_sources.Register(data_source.Create())
-
-	testing2.Setup()
-	templates2.RegisterAll()
-	_ = engine.RedisFlushAll()
-
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
-
-	err := data_sources.Save(
-		"accounts",
-		"testaccount",
-		map[string]interface{}{
-			"username": "testaccount",
-			"email":    "test@test.com",
-			"password": string(hashedPassword),
-			"__metadata": map[string]interface{}{
-				"entityType": "account",
-				"collection": "accounts",
-			},
+	engineTesting.Setup("world", func() {
+		ecsTesting.Setup()
+		templatesTesting.Setup()
+		dataSourcesTesting.Setup()
+		mongoDataSourceTesting.Setup()
+		sessionsTesting.Setup()
+		controllersTesting.Setup()
+		engine.RegisterBeforeServiceStartCallback("world", func() {
+			data_sources.Register(data_source.Create())
 		})
 
-	if err != nil {
-		panic(err)
-	}
+		engine.RegisterAfterServiceStartCallback("world", func() {
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
+
+			err := data_sources.Save(
+				"accounts",
+				"testaccount",
+				map[string]interface{}{
+					"username":       "testaccount",
+					"hashedPassword": string(hashedPassword),
+					"__metadata": map[string]interface{}{
+						"entityType": "account",
+						"collection": "accounts",
+					},
+				})
+
+			if err != nil {
+				panic(err)
+			}
+		})
+
+		ecs.RegisterEntityType(account.Type)
+	})
+
+	templates.RegisterAll()
 }
 
 func teardown() {
 	_ = engine.RedisFlushAll()
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
-	testing2.Teardown()
+	engineTesting.Teardown()
 }
 
 func TestController_Name(t *testing.T) {
@@ -69,15 +76,15 @@ func TestSignupHappyPath(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	err = sessionsTesting.RegisterSession("sess")
+
+	assert.NoError(t, err)
 
 	assert.NoError(t, err)
 
@@ -116,15 +123,15 @@ func TestUsernameTooShort(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	assert.NoError(t, err)
+
+	err = sessionsTesting.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -145,15 +152,15 @@ func TestUsernameTooLong(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	assert.NoError(t, err)
+
+	err = sessionsTesting.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -178,15 +185,15 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	assert.NoError(t, err)
+
+	err = sessionsTesting.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -211,15 +218,15 @@ func TestInvalidEmail(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	assert.NoError(t, err)
+
+	err = sessionsTesting.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -238,15 +245,15 @@ func TestPasswordTooShort(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine := make(chan string)
-
-	sub := engine.Subscribe(events.PlayerOutputEvent{}, "sess", func(e interface{}) {
-		go func() { receivedLine <- e.(*events.PlayerOutputEvent).Line }()
-	})
+	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+
+	assert.NoError(t, err)
+
+	err = sessionsTesting.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
