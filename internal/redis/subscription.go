@@ -55,6 +55,7 @@ func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(paylo
 	}
 
 	go func() {
+		s.logger.Debug().Msg("starting subscription")
 		for {
 			select {
 			case <-s.stop:
