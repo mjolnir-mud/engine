@@ -97,7 +97,7 @@ func SendLine(id string, line string) error {
 		StopSession(id)
 	}
 
-	if !exists {
+	if !exists || !ok {
 		return errors.SessionNotFoundError{SessionId: id}
 	}
 
