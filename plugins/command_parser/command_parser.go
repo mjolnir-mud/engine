@@ -11,7 +11,7 @@ func (p plugin) Name() string {
 	return "command_parser"
 }
 
-func (p plugin) Start() error {
+func (p plugin) Registered() error {
 	return nil
 }
 
