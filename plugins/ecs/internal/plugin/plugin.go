@@ -33,7 +33,7 @@ func (p plugin) Name() string {
 }
 
 func (p plugin) Registered() error {
-	engine.RegisterBeforeServiceStartCallback("world", func() {
+	engine.RegisterAfterServiceStartCallback("world", func() {
 		logger.Start()
 		entity_registry.Start()
 		system_registry.Start()

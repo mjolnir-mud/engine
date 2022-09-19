@@ -18,17 +18,20 @@
 package instance
 
 import (
-	"github.com/mjolnir-mud/engine/internal/plugin_registry"
-	engineRedis "github.com/mjolnir-mud/engine/internal/redis"
-	"github.com/mjolnir-mud/engine/pkg/logger"
-	"github.com/rs/zerolog"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/mjolnir-mud/engine/internal/plugin_registry"
+	engineRedis "github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/pkg/config"
+	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/rs/zerolog"
 )
 
 var environment string
 var gameName string
+var cfg *config.Configuration
 var Running chan bool
 
 func SetEnv(n string) {
@@ -51,6 +54,8 @@ func Initialize(name string, env string) {
 	environment = env
 	gameName = name
 
+	initializeConfigurations()
+
 	initializeBeforeStartCallbacks()
 	initializeAfterStartCallbacks()
 	initializeBeforeStopCallbacks()
@@ -61,15 +66,17 @@ func Initialize(name string, env string) {
 
 func Start() {
 	log = logger.Instance.With().Str("component", "engine").Logger()
-	engineRedis.Start()
-
 	callBeforeStartCallbacks()
 
 	env := GetEnv()
 
 	callBeforeStartCallbacksForEnv(env)
 
+	cfg = callConfigureForEnv(env)
+	engineRedis.Start(cfg.Redis.Host, cfg.Redis.Port, cfg.Redis.Db)
+
 	plugin_registry.Start()
+
 	callAfterStartCallbacks()
 	callAfterStartCallbacksForEnv(env)
 }

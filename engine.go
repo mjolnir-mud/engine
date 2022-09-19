@@ -24,6 +24,7 @@ import (
 	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
 	"github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/pkg/config"
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/plugin"
 )
@@ -39,6 +40,11 @@ func Cli() {
 
 	err := ctx.Run()
 	ctx.FatalIfErrorf(err)
+}
+
+// ConfigureForEnv configures the engine for the provided environment.
+func ConfigureForEnv(env string, cb func(cfg *config.Configuration) *config.Configuration) {
+	instance.ConfigureForEnv(env, cb)
 }
 
 // SetEnv sets the environment for the engine. The environment defaults to "dev".

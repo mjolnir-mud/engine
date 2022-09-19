@@ -15,36 +15,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package plugin
+package instance
 
-import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
-)
+import "github.com/mjolnir-mud/engine/pkg/config"
 
-type plugin struct{}
+var Configs map[string]func(configuration *config.Configuration) *config.Configuration
 
-func (p *plugin) Name() string {
-	return "sessions"
+func initializeConfigurations() {
+	Configs = map[string]func(configuration *config.Configuration) *config.Configuration{
+		"default": func(*config.Configuration) *config.Configuration {
+			return &config.Configuration{
+				Redis: config.RedisConfiguration{
+					Host: "localhost",
+					Port: 6379,
+					Db:   0,
+				},
+			}
+		},
+	}
 }
 
-func (p *plugin) Registered() error {
-	engine.EnsureRegistered(ecs.Plugin.Name())
+func callConfigureForEnv(env string) *config.Configuration {
+	defaultConfig := Configs["default"](&config.Configuration{})
+	configForEnv, ok := Configs[env]
 
-	engine.RegisterAfterServiceStartCallback("world", func() {
-		logger.Start()
-		registry.Start()
-		ecs.RegisterEntityType(session.Type)
-	})
+	if !ok {
+		panic("No configuration found for environment: " + env)
+	}
 
-	engine.RegisterBeforeServiceStopCallback("world", func() {
-		registry.Stop()
-	})
-
-	return nil
+	return configForEnv(defaultConfig)
 }
 
-var Plugin = &plugin{}
+func ConfigureForEnv(env string, cb func(config *config.Configuration) *config.Configuration) {
+	Configs[env] = cb
+}

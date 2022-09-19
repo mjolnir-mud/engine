@@ -15,36 +15,25 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package plugin
+package instance
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
+	"testing"
+
+	"github.com/mjolnir-mud/engine/pkg/config"
+	"github.com/stretchr/testify/assert"
 )
 
-type plugin struct{}
-
-func (p *plugin) Name() string {
-	return "sessions"
-}
-
-func (p *plugin) Registered() error {
-	engine.EnsureRegistered(ecs.Plugin.Name())
-
-	engine.RegisterAfterServiceStartCallback("world", func() {
-		logger.Start()
-		registry.Start()
-		ecs.RegisterEntityType(session.Type)
+func TestConfigureForEnv(t *testing.T) {
+	ConfigureForEnv("test", func(configuration *config.Configuration) *config.Configuration {
+		return &config.Configuration{
+			Redis: config.RedisConfiguration{
+				Host: "localhost",
+				Port: 6379,
+				Db:   0,
+			},
+		}
 	})
 
-	engine.RegisterBeforeServiceStopCallback("world", func() {
-		registry.Stop()
-	})
-
-	return nil
+	assert.NotNil(t, Configs["test"])
 }
-
-var Plugin = &plugin{}

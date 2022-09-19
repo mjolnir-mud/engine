@@ -38,7 +38,7 @@ func (p *plugin) Registered() error {
 	engine.EnsureRegistered(ecs.Plugin.Name())
 	engine.EnsureRegistered(sessions.Plugin.Name())
 
-	engine.RegisterBeforeServiceStartCallback("world", func() {
+	engine.RegisterAfterServiceStartCallback("world", func() {
 		logger.Start()
 		registry.Start()
 

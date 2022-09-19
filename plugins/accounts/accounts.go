@@ -25,7 +25,7 @@ func (p plugin) Registered() error {
 	engine.EnsureRegistered(ecs.Plugin.Name())
 	engine.EnsureRegistered(templates.Plugin.Name())
 
-	engine.RegisterBeforeStartCallback(func() {
+	engine.RegisterAfterServiceStartCallback("world", func() {
 		templates2.RegisterAll()
 
 		data_sources.Register(data_source.Create())

@@ -15,36 +15,20 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package plugin
+package config
 
-import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
-)
-
-type plugin struct{}
-
-func (p *plugin) Name() string {
-	return "sessions"
+// RedisConfiguration represents the Redis configuration for the Mjolnir engine.
+type RedisConfiguration struct {
+	Host string
+	Port int
+	Db   int
 }
 
-func (p *plugin) Registered() error {
-	engine.EnsureRegistered(ecs.Plugin.Name())
-
-	engine.RegisterAfterServiceStartCallback("world", func() {
-		logger.Start()
-		registry.Start()
-		ecs.RegisterEntityType(session.Type)
-	})
-
-	engine.RegisterBeforeServiceStopCallback("world", func() {
-		registry.Stop()
-	})
-
-	return nil
+func (r *RedisConfiguration) Configure(cfg func(r *RedisConfiguration)) {
+	cfg(r)
 }
 
-var Plugin = &plugin{}
+// Configuration represents the Mjolnir configuration
+type Configuration struct {
+	Redis RedisConfiguration
+}
