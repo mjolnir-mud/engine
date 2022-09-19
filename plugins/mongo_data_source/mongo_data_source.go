@@ -19,10 +19,12 @@ package mongo_data_source
 
 import (
 	"context"
+
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/config"
 	constants2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/constants"
 	errors2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/errors"
 	"github.com/rs/zerolog"
@@ -45,7 +47,7 @@ func New(collection string) *MongoDataSource {
 }
 
 // ConfigureForEnv sets the config for the plugin for the specified environment.
-func ConfigureForEnv(env string, cb func(c *plugin.Configuration) *plugin.Configuration) {
+func ConfigureForEnv(env string, cb func(c *config.Configuration) *config.Configuration) {
 	plugin.ConfigureForEnv(env, cb)
 }
 

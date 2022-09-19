@@ -19,20 +19,17 @@ package plugin
 
 import (
 	"context"
+
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/config"
 	"github.com/rs/zerolog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Configuration struct {
-	MongoURL string
-	Database string
-}
-
-var Configs = map[string]func(c *Configuration) *Configuration{
-	"default": func(c *Configuration) *Configuration {
+var Configs = map[string]func(c *config.Configuration) *config.Configuration{
+	"default": func(c *config.Configuration) *config.Configuration {
 		c.MongoURL = "mongodb://localhost:27017"
 		c.Database = "mjolnir_dev"
 
@@ -62,15 +59,15 @@ func (p *plugin) Registered() error {
 			panic("environment not set")
 		}
 
-		defaultConfig := Configs["default"](&Configuration{})
+		defaultConfig := Configs["default"](&config.Configuration{})
 
 		if defaultConfig == nil {
 			panic("unable to load configuration for environment: " + env)
 		}
 
-		config := Configs[env](defaultConfig)
+		cfg := Configs[env](defaultConfig)
 
-		if config == nil {
+		if cfg == nil {
 			log.Fatal().Msg("no config for environment")
 			panic("no config for environment")
 		}
@@ -78,12 +75,12 @@ func (p *plugin) Registered() error {
 		log = logger.
 			Instance.
 			With().
-			Str("mongo_url", config.MongoURL).
-			Str("database", config.Database).
+			Str("mongo_url", cfg.MongoURL).
+			Str("database", cfg.Database).
 			Logger()
 
 		log.Info().Msg("starting mongo connection")
-		c, err := mongo.NewClient(options.Client().ApplyURI(config.MongoURL))
+		c, err := mongo.NewClient(options.Client().ApplyURI(cfg.MongoURL))
 
 		if err != nil {
 			log.Fatal().Err(err).Msg("error connecting to mongo")
@@ -97,7 +94,7 @@ func (p *plugin) Registered() error {
 			panic(err)
 		}
 
-		p.database = c.Database(config.Database)
+		p.database = c.Database(cfg.Database)
 
 		log.Info().Msg("mongo connection started")
 	})
@@ -122,6 +119,6 @@ func (p *plugin) Collection(name string) *mongo.Collection {
 	return p.database.Collection(name)
 }
 
-func ConfigureForEnv(env string, cb func(c *Configuration) *Configuration) {
+func ConfigureForEnv(env string, cb func(c *config.Configuration) *config.Configuration) {
 	Configs[env] = cb
 }
