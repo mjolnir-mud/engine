@@ -19,12 +19,13 @@ package entity_registry
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
-	"github.com/rs/zerolog"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
+	"github.com/rs/zerolog"
 
 	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
@@ -969,7 +970,7 @@ func addComponent(id string, name string, value interface{}) error {
 		return fmt.Errorf("component %s already exists", name)
 	}
 
-	log.Debug().Str("id", id).Str("name", name).Msg("adding component")
+	log.Trace().Str("id", id).Str("name", name).Msg("adding component")
 
 	valueType := reflect.TypeOf(value).Kind().String()
 

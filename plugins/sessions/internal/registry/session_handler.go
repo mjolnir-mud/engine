@@ -72,14 +72,28 @@ func (h *sessionHandler) SendLine(line string) error {
 
 func (h *sessionHandler) Start() {
 	h.logger.Debug().Msg("starting")
-	err := ecs.AddEntityWithID("session", h.Id, map[string]interface{}{})
+	exists, err := ecs.EntityExists(h.Id)
 
 	if err != nil {
-		h.logger.Error().Err(err).Msg("error creating session entity")
+		h.logger.Error().Err(err).Msg("error checking if entity exists")
+		Stop()
+
 		return
 	}
 
-	for _, handler := range sessionStartedHandlers {
+	if !exists {
+		err := ecs.AddEntityWithID("session", h.Id, map[string]interface{}{})
+		if err != nil {
+			h.logger.Error().Err(err).Msg("error creating session entity")
+			return
+		}
+	} else {
+		h.logger.Trace().Msg("entity already exists, forgoing creation")
+	}
+
+	h.logger.Trace().Msgf("executing %d start handlers", len(sessionStartedHandlers))
+	for idx, handler := range sessionStartedHandlers {
+		h.logger.Trace().Msgf("executing start handler %d", idx)
 		err := handler(h.Id)
 
 		if err != nil {
