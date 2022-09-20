@@ -3,83 +3,66 @@ package server
 import (
 	"fmt"
 	"net"
-	"os"
 
-	"github.com/mjolnir-mud/engine/plugins/telnet_portal/internal/logger"
+	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/plugins/telnet_portal/pkg/config"
+	"github.com/rs/zerolog"
 )
 
-type server struct {
-	listener        net.Listener
-	startedHandlers []func()
-	connections     map[string]*connection
-}
+var log zerolog.Logger
+var stop = make(chan bool)
+var connections = map[string]*connection{}
 
-var log = logger.Logger.
-	With().
-	Str("plugin", "telnet_portal").
-	Str("service", "server").
-	Logger()
+func Start(cfg *config.Configuration) {
+	log = logger.Instance.With().
+		Str("component", "server").
+		Str("host", cfg.Host).
+		Int("port", cfg.Port).
+		Logger()
 
-// New creates a new Telnet server.
-func New() *server {
-	return &server{
-		startedHandlers: make([]func(), 0),
-		connections:     make(map[string]*connection),
-	}
-}
-
-func (s *server) Start() {
 	log.Info().Msg("starting server")
-	listener, err := net.Listen("tcp", "localhost:2323")
-
-	s.listener = listener
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Host, cfg.Port))
 
 	if err != nil {
-		fmt.Print(fmt.Errorf("error listening: %v", err))
-		os.Exit(2)
-	}
-
-	defer s.Stop()
-
-	log.Trace().Msg("calling started handlers")
-	for _, handler := range s.startedHandlers {
-		handler()
+		panic(err)
 	}
 
 	log.Trace().Msg("starting server loop")
-	for {
-		log.Trace().Msg("waiting for connection")
-		conn, err := listener.Accept()
 
-		if err != nil {
-			fmt.Println("Error accepting: ", err.Error())
-			os.Exit(1)
+	go func() {
+		for {
+			log.Trace().Msg("waiting for connection")
+			conn, err := listener.Accept()
+
+			if err != nil {
+				panic(err)
+			}
+
+			select {
+			case <-stop:
+				_ = listener.Close()
+				break
+			default:
+				handleConnection(conn)
+			}
 		}
-
-		log.Trace().Msg("handling new connection")
-		go s.handleConnection(conn)
-	}
+	}()
 }
 
-func (s *server) Stop() {
+func Stop() {
 	log.Info().Msg("stopping server")
-	for _, connection := range s.connections {
-		log.Debug().Msgf("stopping connection: %s", connection.uuid)
-		connection.Stop()
+
+	for _, c := range connections {
+		c.Stop()
 	}
 
-	_ = s.listener.Close()
+	stop <- true
 }
 
-func (s *server) WhenStarted(f func()) {
-	s.startedHandlers = append(s.startedHandlers, f)
-}
+func handleConnection(conn net.Conn) {
+	log.Trace().Msg("handling new connection")
+	c := newConnection(conn)
+	connections[c.uuid] = c
 
-func (s *server) handleConnection(conn net.Conn) {
-	log.Trace().Msg("creating new connection")
-	connection := newConnection(conn)
-	s.connections[connection.uuid] = connection
-
-	log.Debug().Msg("starting connection")
-	go connection.Start()
+	go c.Start()
 }

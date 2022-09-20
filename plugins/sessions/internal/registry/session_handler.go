@@ -20,6 +20,7 @@ package registry
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 	"github.com/rs/zerolog"
 )
@@ -66,11 +67,18 @@ func NewSessionHandler(id string) *sessionHandler {
 }
 
 func (h *sessionHandler) SendLine(line string) error {
-	return engine.Publish(events.PlayerOutputEvent{Id: h.Id, Line: line})
+	return engine.Publish(events.PlayerOutputEvent{Id: h.Id, Line: line + "\r\n"})
 }
 
 func (h *sessionHandler) Start() {
 	h.logger.Debug().Msg("starting")
+	err := ecs.AddEntityWithID("session", h.Id, map[string]interface{}{})
+
+	if err != nil {
+		h.logger.Error().Err(err).Msg("error creating session entity")
+		return
+	}
+
 	for _, handler := range sessionStartedHandlers {
 		err := handler(h.Id)
 

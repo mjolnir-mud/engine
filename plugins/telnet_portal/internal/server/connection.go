@@ -9,10 +9,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
-	events2 "github.com/mjolnir-mud/engine/pkg/events"
-	"github.com/mjolnir-mud/engine/plugins/telnet_portal/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/world/pkg/events"
-	"github.com/nats-io/nats.go"
+	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 	"github.com/rs/zerolog"
 )
 
@@ -24,8 +23,8 @@ type connection struct {
 	connectedAt           int64
 	lastInputAt           int64
 	remoteAddr            string
-	sessManagerStartedSub *nats.Subscription
-	connectionReaderSub   *nats.Subscription
+	sessManagerStartedSub engine.Subscription
+	connectionReaderSub   engine.Subscription
 }
 
 func newConnection(conn net.Conn) *connection {
@@ -35,9 +34,9 @@ func newConnection(conn net.Conn) *connection {
 		uuid: uid,
 		conn: conn,
 		stop: make(chan bool),
-		logger: logger.Logger.
+		logger: logger.Instance.
 			With().
-			Str("service", "server").
+			Str("component", "connection").
 			Str("uuid", uid).
 			Logger(),
 		connectedAt: time.Now().UTC().Unix(),
@@ -53,6 +52,7 @@ func (c *connection) Start() {
 
 	if err != nil {
 		c.logger.Error().Err(err).Msg("error occurred writing")
+		c.Stop()
 	}
 
 	go func() {
@@ -70,13 +70,13 @@ func (c *connection) Start() {
 			}
 
 			trimmed := bytes.Trim(buf, "\x00")
-
 			lines := strings.Split(string(trimmed), "\r\n")
 
 			// send each line to the world
 			for _, line := range lines {
 				if len(line) > 0 {
-					err = engine.PublishEvent(events2.SendToWorldTopic(c.uuid), &events2.SendToWorld{
+					err = engine.Publish(events.PlayerInputEvent{
+						Id:   c.uuid,
 						Line: line,
 					})
 
@@ -87,33 +87,25 @@ func (c *connection) Start() {
 					}
 				}
 			}
-
-			if err != nil {
-				fmt.Println("Error writing:", err.Error())
-				c.Stop()
-
-				break
-			}
 		}
 	}()
 
-	sub, err := engine.SubscribeToEvent(events.SessionManagerStartedTopic(), func(_ *events.SessionManagerStarted) {
+	sub := engine.Subscribe(events.SessionRegistryStartedEvent{}, func(_ event.EventPayload) {
 		c.logger.Debug().Msg("handling session manager started event")
 		c.assertSession()
 
 	})
 
-	if err != nil {
-		c.logger.Error().Err(err).Msg("error subscribing to event")
-		c.Stop()
-		return
-	}
+	defer sub.Stop()
 
-	c.sessManagerStartedSub = sub
+	sub = engine.Subscribe(events.PlayerOutputEvent{
+		Id: c.uuid,
+	}, func(e event.EventPayload) {
+		ev := &events.PlayerOutputEvent{}
+		err := e.Unmarshal(ev)
 
-	sub, err = engine.SubscribeToEvent(events2.WriteToConnectionTopic(c.uuid), func(event *events2.WriteToConnection) {
 		c.logger.Debug().Msg("handling write to connection event")
-		_, err := c.conn.Write([]byte(event.Line))
+		_, err = c.conn.Write([]byte(ev.Line))
 
 		if err != nil {
 			c.logger.Error().Err(err).Msg("error writing to connection")
@@ -140,8 +132,6 @@ func (c *connection) Start() {
 func (c *connection) Stop() {
 	c.logger.Debug().Msg("stopping connection")
 	_ = c.conn.Close()
-	_ = c.sessManagerStartedSub.Unsubscribe()
-	_ = c.connectionReaderSub.Unsubscribe()
 
 	c.stop <- true
 }
@@ -149,11 +139,8 @@ func (c *connection) Stop() {
 func (c *connection) assertSession() {
 	c.logger.Trace().Msg("asserting session")
 
-	err := engine.PublishEvent(events.AssertSessionTopic(), &events.AssertSession{
-		UUID:        c.uuid,
-		ConnectedAt: c.connectedAt,
-		LastInputAt: c.lastInputAt,
-		RemoteAddr:  c.remoteAddr,
+	err := engine.Publish(events.PlayerConnectedEvent{
+		Id: c.uuid,
 	})
 
 	if err != nil {

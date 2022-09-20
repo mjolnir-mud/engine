@@ -1,14 +1,15 @@
-package new_account
+package new_account_controller
 
 import (
 	"fmt"
+	"net/mail"
+	"regexp"
+	"strings"
+
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	passwordvalidator "github.com/wagslane/go-password-validator"
-	"net/mail"
-	"regexp"
-	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -78,7 +79,7 @@ var AfterCreateCallback = func(sessId string, entityId string) error {
 }
 
 func (n controller) Name() string {
-	return "new_account"
+	return "new_account_controller"
 }
 
 func (n controller) Start(id string) error {
@@ -254,6 +255,10 @@ func handlePasswordConfirmation(id string, input string) error {
 		"email":          email,
 		"hashedPassword": hashedPassword,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	return AfterCreateCallback(id, userId)
 }

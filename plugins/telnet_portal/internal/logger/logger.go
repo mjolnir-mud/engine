@@ -1,8 +1,7 @@
 package logger
 
-import "github.com/rs/zerolog/log"
+import "github.com/mjolnir-mud/engine/pkg/logger"
 
-var Logger = log.
-	With().
+var Intsance = logger.Instance.With().
 	Str("plugin", "telnet_portal").
 	Logger()

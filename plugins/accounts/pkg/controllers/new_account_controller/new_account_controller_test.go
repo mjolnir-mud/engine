@@ -1,6 +1,8 @@
-package new_account
+package new_account_controller
 
 import (
+	"testing"
+
 	"github.com/mjolnir-mud/engine"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
@@ -17,7 +19,6 @@ import (
 	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"testing"
 )
 
 func setup() {
@@ -69,7 +70,7 @@ func TestController_Name(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Equal(t, Controller.Name(), "new_account")
+	assert.Equal(t, Controller.Name(), "new_account_controller")
 }
 
 func TestSignupHappyPath(t *testing.T) {
@@ -100,7 +101,7 @@ func TestSignupHappyPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Enter an email:", <-receivedLine)
 
-	err = Controller.HandleInput("sess", "new_account@test.com")
+	err = Controller.HandleInput("sess", "new_account_controller@test.com")
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)

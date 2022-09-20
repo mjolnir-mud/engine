@@ -18,6 +18,8 @@
 package login_controller
 
 import (
+	"testing"
+
 	"github.com/mjolnir-mud/engine"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
@@ -35,7 +37,6 @@ import (
 	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"testing"
 )
 
 func setup() {
@@ -48,7 +49,7 @@ func setup() {
 		controllersTesting.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
-			controllers.Register(controllersTesting.CreateMockController("new_account"))
+			controllers.Register(controllersTesting.CreateMockController("new_account_controller"))
 			data_sources.Register(data_source.Create())
 		})
 
@@ -221,5 +222,5 @@ func TestControllerHandleUsernameCreate(t *testing.T) {
 	i, err := ecs.GetStringComponent("sess", "controller")
 
 	assert.NoError(t, err)
-	assert.Equal(t, "new_account", i)
+	assert.Equal(t, "new_account_controller", i)
 }

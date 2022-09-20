@@ -2,10 +2,13 @@
 
 Mjolnir is a [MUD](https://en.wikipedia.org/wiki/MUD) engine written in [Go](https://golang.org/),
 with a goal of providing a flexible and extensible framework for writing MUDs. This repository
-contains the core engine, responsible for loading and managing the game plugins, and facilitating
-communication between components.
+contains the core engine and plugins. For a quick start, see the [Mjolnir MUD Engine Template](https://github.com/mjolnir-mud/template).
 
-# Contributing
+## Documentation
+
+The engine documentation can be found within the Wiki for this repository.
+
+## Contributing
 
 When contributing to this repository, please first discuss the change you wish to make via issue,
 email, or any other method with the owners of this repository before making a change.

@@ -27,6 +27,8 @@ import (
 // controller is the login controller, responsible handling user logins.
 type controller struct{}
 
+var Controller = controller{}
+
 var AfterLoginCallback = func(id string) error {
 	err := controllers.Set(id, "game")
 
@@ -91,7 +93,7 @@ func handleInput(id string, input string) error {
 
 func handleUsername(id string, input string) error {
 	if input == "create" {
-		err := controllers.Set(id, "new_account")
+		err := controllers.Set(id, "new_account_controller")
 
 		if err != nil {
 			return err

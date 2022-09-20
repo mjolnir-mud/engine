@@ -19,6 +19,7 @@ package registry
 
 import (
 	"fmt"
+
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
 	"github.com/rs/zerolog"
 
@@ -57,7 +58,7 @@ func Start() {
 func StartDataSources() {
 	log.Info().Msgf("%d", len(dataSources))
 	for _, d := range dataSources {
-		//log.Info().Msgf("starting data source %s", d.Name())
+		log.Info().Msgf("starting data source %s", d.Name())
 		err := d.Start()
 		if err != nil {
 			log.Error().Err(err).Msg("error starting data source")
