@@ -28,7 +28,7 @@ var Plugin = plugin.Plugin
 
 // Set sets the controller for the provided entity
 func Set(entityId string, controllerName string) error {
-	return ecs.AddStringComponentToEntity(entityId, "controller", controllerName)
+	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", controllerName)
 }
 
 // Register registers a controller with the registry. If a controller with the same name already exists, it will be

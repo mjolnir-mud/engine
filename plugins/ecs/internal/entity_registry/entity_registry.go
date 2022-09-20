@@ -248,6 +248,7 @@ func AddSetComponent(id string, name string, value []interface{}) error {
 // value of the component. If an entity with the same id does not exist an error will be thrown. If a component with the
 // same name already exists, an error will be thrown.
 func AddStringComponent(id string, name string, value string) error {
+	log.Trace().Str("id", id).Str("name", name).Msg("AddStringComponent")
 	return addComponent(id, name, value)
 }
 
@@ -255,11 +256,14 @@ func AddStringComponent(id string, name string, value string) error {
 // and the value of the component. If an entity with the same id does not exist an error will be thrown. If a component
 // with the same name already exists, it will be updated.
 func AddOrUpdateStringComponent(id string, name string, value string) error {
+	log.Trace().Str("id", id).Str("name", name).Msg("AddOrUpdateStringComponent")
 	_, err := getCurrentValue(id, name)
 
 	if err != nil {
+		log.Trace().Str("id", id).Str("name", name).Msg("adding new string component")
 		return addComponent(id, name, value)
 	} else {
+		log.Trace().Str("id", id).Str("name", name).Msg("Updating existing string component")
 		return updateComponent(id, name, value)
 	}
 }
