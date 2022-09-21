@@ -111,6 +111,7 @@ func add(s *sessionHandler) {
 
 func remove(id string) {
 	delete(sessionHandlers, id)
+	_ = ecs.RemoveEntity(id)
 }
 
 func handlePlayerConnected(payload event.EventPayload) {

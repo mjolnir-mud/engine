@@ -33,7 +33,7 @@ type sessionHandler struct {
 }
 
 func NewSessionHandler(id string) *sessionHandler {
-	ds := engine.Subscribe(events.PlayerDisconnectedEvent{Id: id}, func(e event.EventPayload) {
+	ds := engine.Subscribe(events.PlayerDisconnectedEvent{Id: id}, func(_ event.EventPayload) {
 		StopSession(id)
 	})
 
@@ -105,7 +105,10 @@ func (h *sessionHandler) Start() {
 }
 
 func (h *sessionHandler) Stop() {
-	for _, handler := range sessionStoppedHandlers {
+	h.logger.Debug().Msg("Stop")
+	h.logger.Trace().Msg("calling session stop handlers")
+	for id, handler := range sessionStoppedHandlers {
+		h.logger.Trace().Msgf("calling session stop handler %d", id)
 		err := handler(h.Id)
 
 		if err != nil {
@@ -114,9 +117,17 @@ func (h *sessionHandler) Stop() {
 		}
 	}
 
-	h.disconnectedSubscription.Stop()
-	h.lineSubscription.Stop()
+	h.logger.Trace().Msg("removing session from registry")
 	remove(h.Id)
+
+	h.logger.Trace().Msg("unsubscribing from events")
+
+	h.logger.Trace().Msg("unsubscribing from disconnect events")
+	h.disconnectedSubscription.Stop()
+
+	h.logger.Trace().Msg("unsubscribing from line events")
+	h.lineSubscription.Stop()
+
 }
 
 func (h *sessionHandler) receiveLine(line string) {
