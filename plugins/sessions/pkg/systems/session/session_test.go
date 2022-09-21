@@ -18,13 +18,14 @@
 package session
 
 import (
+	"testing"
+
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
 	sessionEntity "github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var ch = make(chan inputArgs)
@@ -118,24 +119,6 @@ func TestStart(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGetIntFromStore(t *testing.T) {
-	setup()
-	defer teardown()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	err = SetIntInStore("test", "test", 1)
-
-	assert.NoError(t, err)
-
-	i, err := GetIntFromStore("test", "test")
-
-	assert.NoError(t, err)
-	assert.Equal(t, 1, i)
-}
-
 func TestGetIntFromFlash(t *testing.T) {
 	setup()
 	defer teardown()
@@ -179,24 +162,6 @@ func TestGetIntFromFlashWithDefault(t *testing.T) {
 	i, err = GetIntFromFlashWithDefault("test3", "test2", 3)
 
 	assert.Error(t, err)
-}
-
-func TestGetStringFromStore(t *testing.T) {
-	setup()
-	defer teardown()
-
-	err := Start("test")
-
-	assert.NoError(t, err)
-
-	err = SetStringInStore("test", "test", "test")
-
-	assert.NoError(t, err)
-
-	s, err := GetStringFromStore("test", "test")
-
-	assert.NoError(t, err)
-	assert.Equal(t, "test", s)
 }
 
 func TestGetStringFromFlash(t *testing.T) {

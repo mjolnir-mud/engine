@@ -19,11 +19,12 @@ package session
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	"strings"
 )
 
 type session struct{}
@@ -66,12 +67,6 @@ func Start(_ string) error {
 	return nil
 }
 
-// SetStringInStore sets a string value in the store, under the given key. If the session does not exist, an error is
-// returned.
-func SetStringInStore(id, key string, value string) error {
-	return ecs.AddOrUpdateStringInMapComponent(id, "store", key, value)
-}
-
 // SetIntInStore sets an int value in the store, under the given key. If the session does not exist, an error is
 // returned.
 func SetIntInStore(id, key string, value int) error {
@@ -90,22 +85,10 @@ func SetStringInFlash(id, key string, value string) error {
 	return ecs.AddOrUpdateStringInMapComponent(id, "flash", key, value)
 }
 
-// GetIntFromStore gets an int value from the store, under the given key. If the session does not exist, an error is
-// returned.
-func GetIntFromStore(id, key string) (int, error) {
-	return ecs.GetIntFromMapComponent(id, "store", key)
-}
-
 // GetIntFromFlash gets a string value from the store, under the given key. If the session does not exist, an error
 // is returned.
 func GetIntFromFlash(id, key string) (int, error) {
 	return ecs.GetIntFromMapComponent(id, "flash", key)
-}
-
-// GetStringFromStore gets a string value from the store, under the given key. If the session does not exist, an error
-// is returned.
-func GetStringFromStore(id, key string) (string, error) {
-	return ecs.GetStringFromMapComponent(id, "store", key)
 }
 
 // GetStringFromFlash gets a string value from the store, under the given key. If the session does not exist, an error

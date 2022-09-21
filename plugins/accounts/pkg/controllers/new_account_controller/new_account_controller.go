@@ -8,6 +8,8 @@ import (
 
 	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 
@@ -250,11 +252,22 @@ func handlePasswordConfirmation(id string, input string) error {
 	// the downcased username is used as the account's id
 	userId := strings.ToLower(username)
 
-	err = data_sources.Save("accounts", userId, map[string]interface{}{
+	account, err := ecs.CreateEntity("account", map[string]interface{}{
 		"username":       username,
 		"email":          email,
 		"hashedPassword": hashedPassword,
 	})
+
+	account[constants.MetadataKey] = map[string]interface{}{
+		constants.MetadataTypeKey: "account",
+		"collection":              "accounts",
+	}
+
+	if err != nil {
+		return err
+	}
+
+	err = data_sources.Save("accounts", userId, account)
 
 	if err != nil {
 		return err

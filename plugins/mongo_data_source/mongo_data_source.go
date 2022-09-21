@@ -178,19 +178,21 @@ func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
 }
 
 func (m MongoDataSource) Save(entityId string, entity map[string]interface{}) error {
+	m.logger.Debug().Str("id", entityId).Interface("entity", entity).Msg("saving entity")
 	metadata, ok := entity[constants.MetadataKey]
 
 	if !ok {
 		return errors.MetadataRequiredError{ID: entityId}
 	}
 
+	m.logger.Trace().Interface("metadata", metadata).Bool("ok", ok).Msg("checking metadata")
 	collection, ok := metadata.(map[string]interface{})[constants2.MetadataCollectionKey]
 
 	if !ok {
 		return errors2.CollectionMetadataRequiredError{ID: entityId}
 	}
 
-	m.logger.Debug().Interface("entity", entity).Msg("saving entity")
+	m.logger.Debug().Str("collection", collection.(string)).Interface("entity", entity).Msg("saving entity")
 
 	if collection != m.collectionName {
 		return errors2.CollectionMismatchError{

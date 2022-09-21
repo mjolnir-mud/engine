@@ -195,7 +195,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	s, err := session.GetStringFromStore("sess", "accountId")
+	s, err := ecs.GetStringComponent("sess", "accountId")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "testaccount", s)

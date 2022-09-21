@@ -42,7 +42,7 @@ type MetadataTypeRequiredError struct {
 }
 
 func (e MetadataTypeRequiredError) Error() string {
-	return fmt.Sprintf("data source %s does not return an entity with the type set in the metadata", e.ID)
+	return fmt.Sprintf("entity %s does not return an entity with the type set in the metadata", e.ID)
 }
 
 var log zerolog.Logger
@@ -159,19 +159,26 @@ func FindAndDelete(source string, search map[string]interface{}) error {
 // be thrown. If the data source does not exist, an error will be thrown. If the metadata field does not have a type
 // set, an error will be thrown. If the entity exists in the data source, it will be overwritten.
 func Save(source string, entityId string, entity map[string]interface{}) error {
+	log.Trace().Str("source", source).Str("entityId", entityId).Msg("Save")
+
 	if d, ok := dataSources[source]; ok {
+		log.Trace().Str("source", source).Str("entityId", entityId).Msg("data source found")
+
+		log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for metadata")
 		metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 		if !ok {
 			return errors.MetadataRequiredError{ID: entityId}
 		}
 
+		log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for type")
 		_, ok = metadata[constants.MetadataTypeKey].(string)
 
 		if !ok {
 			return MetadataTypeRequiredError{ID: entityId}
 		}
 
+		log.Trace().Str("source", source).Str("entityId", entityId).Msg("saving entity")
 		return d.Save(entityId, entity)
 	} else {
 		return InvalidDataSourceError{Source: source}
