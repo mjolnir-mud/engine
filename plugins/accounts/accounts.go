@@ -36,7 +36,6 @@ func (p plugin) Registered() error {
 		controllers.Register(login_controller.Controller)
 		controllers.Register(new_account_controller.Controller)
 
-		data_sources.Register(data_source.Create())
 		ecs.RegisterEntityType(account.Type)
 	})
 
