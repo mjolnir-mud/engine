@@ -61,12 +61,9 @@ func (l controller) HandleInput(id string, input string) error {
 }
 
 func Login(id string, accountId string) error {
-	err := ecs.AddStringComponentToEntity(id, "accountId", accountId)
+	_ = ecs.AddStringComponentToEntity(id, "accountId", accountId)
 
-	if err != nil {
-		return err
-	}
-	err = AfterLoginCallback(id)
+	err := AfterLoginCallback(id)
 
 	if err != nil {
 		return err

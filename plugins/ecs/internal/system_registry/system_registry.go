@@ -19,10 +19,11 @@ package system_registry
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
-	"github.com/rs/zerolog"
 	"reflect"
 	"strings"
+
+	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
+	"github.com/rs/zerolog"
 
 	redis2 "github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine"
@@ -218,7 +219,7 @@ func callDelCallbacks(s system.System, id string, key string) {
 		}
 	}
 
-	metaKeys := engine.RedisKeys(fmt.Sprintf("__*:%s", k)).Val()
+	metaKeys := engine.RedisKeys(fmt.Sprintf("__*:%s:%s", id, k)).Val()
 
 	for _, metaKey := range metaKeys {
 		engine.RedisDel(metaKey)

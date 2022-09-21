@@ -574,7 +574,9 @@ func GetMapComponent(id string, name string) (map[string]interface{}, error) {
 // entity does not exist or the component does not exist, an error will be thrown. If the component is not a string,
 // an error will be thrown.
 func GetStringComponent(id string, name string) (string, error) {
+	log.Trace().Str("id", id).Str("name", name).Msg("GetStringComponent")
 
+	log.Trace().Str("id", id).Str("name", name).Msg("checking if the entity exists")
 	exists, err := Exists(id)
 
 	if err != nil {
@@ -585,6 +587,7 @@ func GetStringComponent(id string, name string) (string, error) {
 		return "", errors.EntityNotFoundError{ID: id}
 	}
 
+	log.Trace().Str("id", id).Str("name", name).Msg("checking if the component exists")
 	componentExists, err := ComponentExists(id, name)
 
 	if err != nil {
@@ -595,6 +598,7 @@ func GetStringComponent(id string, name string) (string, error) {
 		return "", errors.ComponentNotFoundError{ID: id, Name: name}
 	}
 
+	log.Trace().Str("id", id).Str("name", name).Msg("getting the component type")
 	t, err := getComponentType(id, name)
 
 	if err != nil {
@@ -605,6 +609,7 @@ func GetStringComponent(id string, name string) (string, error) {
 		return "", errors.ComponentTypeMismatchError{ID: id, Name: name, Expected: "string", Actual: t}
 	}
 
+	log.Trace().Str("id", id).Str("name", name).Msg("getting the component value")
 	return engine.RedisGet(componentId(id, name)).Result()
 }
 
@@ -688,6 +693,9 @@ func Replace(id string, components map[string]interface{}) error {
 // Remove removes an entity from the entity registry. It takes the entity type and id. If an entity with the same
 // id does not exist an error will be thrown.
 func Remove(id string) error {
+	log.Trace().Str("id", id).Msg("Remove")
+
+	log.Trace().Str("id", id).Msg("checking if the entity exists")
 	exists, err := Exists(id)
 
 	if err != nil {
@@ -701,6 +709,8 @@ func Remove(id string) error {
 	log.Debug().Str("id", id).Msg("removing entity")
 	// grab all the entities components
 	components := AllComponents(id)
+
+	log.Trace().Str("id", id).Interface("components", components).Msg("removing all components")
 
 	for name := range components {
 		err := RemoveComponent(id, name)
@@ -776,8 +786,9 @@ func EntitiesWithComponentValue(name string, value interface{}) ([]string, error
 		switch t {
 		case "string":
 			v, err := GetStringComponent(id, name)
+
 			if err != nil {
-				return nil, err
+				continue
 			}
 
 			if v == value {
@@ -786,7 +797,7 @@ func EntitiesWithComponentValue(name string, value interface{}) ([]string, error
 		case "int":
 			v, err := GetIntComponent(id, name)
 			if err != nil {
-				return nil, err
+				continue
 			}
 
 			if v == value {
@@ -796,7 +807,7 @@ func EntitiesWithComponentValue(name string, value interface{}) ([]string, error
 		case "int64":
 			v, err := GetInt64Component(id, name)
 			if err != nil {
-				return nil, err
+				continue
 			}
 
 			if v == value {
@@ -1053,6 +1064,7 @@ func addComponent(id string, name string, value interface{}) error {
 	}
 
 	cleanup := func() {
+		log.Trace().Str("id", id).Str("name", name).Msg("cleaning up component")
 		engine.RedisDel(fmt.Sprintf("%s:%s", constants.ComponentTypePrefix, componentId(id, name)))
 		engine.RedisDel(componentId(id, name))
 		removeMetadata(id)
@@ -1453,6 +1465,7 @@ func mapValueMatch(id string, name string, mapKey string, value interface{}) boo
 func removeMetadata(id string) {
 	keys := engine.RedisKeys(fmt.Sprintf("__*:%s*", id)).Val()
 
+	log.Trace().Str("id", id).Interface("keys", keys).Msg("removing metadata")
 	for _, key := range keys {
 		engine.RedisDel(key)
 	}

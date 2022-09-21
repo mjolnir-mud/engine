@@ -136,7 +136,7 @@ func (h *sessionHandler) receiveLine(line string) {
 
 		if err != nil {
 			h.logger.Error().Err(err).Msg("error handling line")
-			h.Stop()
+			h.sendLine("You encountered a bug! Please contact an admin.")
 			return
 		}
 	}
