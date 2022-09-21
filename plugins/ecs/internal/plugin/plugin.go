@@ -192,16 +192,20 @@ func ComponentExists(id string, component string) (bool, error) {
 	return entity_registry.ComponentExists(id, component)
 }
 
-// CreateEntity will create an entity of the given entity type, without adding it to the entity registry. it takes the
-// entity type and a map of components. It will merge the provided components with the default components for the
-// entity type returning the merged components as a map.
 func CreateEntity(entityType string, args map[string]interface{}) (map[string]interface{}, error) {
 	return entity_registry.Create(entityType, args)
 }
 
-// EntityExists checks if an entity with the given id exists. It takes the entity id and returns a boolean.
 func EntityExists(id string) (bool, error) {
 	return entity_registry.Exists(id)
+}
+
+func EntitiesWithComponent(component string) ([]string, error) {
+	return entity_registry.EntitiesWithComponent(component)
+}
+
+func EntitiesWithComponentValue(component string, value interface{}) ([]string, error) {
+	return entity_registry.EntitiesWithComponentValue(component, value)
 }
 
 // GetBoolComponent returns a boolean component from an entity. It takes the entity ID and component name. If the

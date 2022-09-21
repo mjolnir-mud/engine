@@ -181,6 +181,17 @@ func EntityExists(id string) (bool, error) {
 	return plugin.EntityExists(id)
 }
 
+// EntitiesWithComponent returns a list of entities that have the given component. It takes the component name.
+func EntitiesWithComponent(component string) ([]string, error) {
+	return plugin.EntitiesWithComponent(component)
+}
+
+// EntitiesWithComponentValue returns a list of entities that have the given component and value. It takes the
+// component name and the value.
+func EntitiesWithComponentValue(component string, value interface{}) ([]string, error) {
+	return plugin.EntitiesWithComponentValue(component, value)
+}
+
 // GetBoolComponent returns a boolean component from an entity. It takes the entity ID and component name. If the
 // entity does not exist or the component does not exist, an error will be thrown. If the component is not a boolean,
 // an error will be thrown.

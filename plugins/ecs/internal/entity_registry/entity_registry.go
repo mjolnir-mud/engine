@@ -745,6 +745,69 @@ func RemoveComponent(id string, name string) error {
 	return nil
 }
 
+func EntitiesWithComponent(name string) ([]string, error) {
+	keys, err := engine.RedisKeys(fmt.Sprintf("__type:*:%s", name)).Result()
+
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, len(keys))
+
+	for i, key := range keys {
+		ids[i] = strings.Split(key, ":")[1]
+	}
+
+	return ids, nil
+}
+
+func EntitiesWithComponentValue(name string, value interface{}) ([]string, error) {
+	ids, err := EntitiesWithComponent(name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	matches := make([]string, 0)
+	t := reflect.TypeOf(value).Kind().String()
+
+	for _, id := range ids {
+
+		switch t {
+		case "string":
+			v, err := GetStringComponent(id, name)
+			if err != nil {
+				return nil, err
+			}
+
+			if v == value {
+				matches = append(matches, id)
+			}
+		case "int":
+			v, err := GetIntComponent(id, name)
+			if err != nil {
+				return nil, err
+			}
+
+			if v == value {
+				matches = append(matches, id)
+			}
+
+		case "int64":
+			v, err := GetInt64Component(id, name)
+			if err != nil {
+				return nil, err
+			}
+
+			if v == value {
+				matches = append(matches, id)
+			}
+		}
+	}
+
+	return matches, nil
+}
+
 // RemoveFromStringSetComponent removes a string value from a set component. It takes the entity ID, component name, and
 // the value to remove from the set. If an entity with the same id does not exist an error will be thrown. If a component
 // with the same name does not exist, an error will be thrown. If the value type is not a string, an error will be thrown.
