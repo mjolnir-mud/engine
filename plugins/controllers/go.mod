@@ -3,9 +3,6 @@ module github.com/mjolnir-mud/engine/plugins/controllers
 go 1.17
 
 require (
-	github.com/mjolnir-mud/engine v0.2.0
-	github.com/mjolnir-mud/engine/plugins/ecs v0.2.0
-	github.com/mjolnir-mud/engine/plugins/sessions v0.2.0
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.0
 )
@@ -23,6 +20,8 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mjolnir-mud/engine v0.2.0 // indirect
+	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220921040852-4d3fcc4b916f // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

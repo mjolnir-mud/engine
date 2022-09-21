@@ -153,6 +153,10 @@ github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
+github.com/mjolnir-mud/engine v0.2.0 h1:tGkAWUOFi3+LmLNKoFj7lkJbrfucz/KerIHxRy6SA1A=
+github.com/mjolnir-mud/engine v0.2.0/go.mod h1:jHL+UmX/nhnLtoVukXCqofBVX4HFjjiqMnQwGAmvka8=
+github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220921040852-4d3fcc4b916f h1:CWgNeOYEHTn7s1zxipVo+RJV8mvoC2lR8ex6ZNyfN8c=
+github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220921040852-4d3fcc4b916f/go.mod h1:qCdQ2y+tXNh8q3758Q/t9F1VXPqag3GOhcUqAubFP8o=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/onsi/ginkgo v1.16.5 h1:8xi0RTUf59SOSfEtZMvwTvXYMzG4gV23XVHOZiXNtnE=
 github.com/onsi/gomega v1.19.0 h1:4ieX6qQjPP/BfC3mpsAtIGGlxTWPeA3Inl/7DtXw1tw=
