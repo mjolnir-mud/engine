@@ -81,7 +81,7 @@ func (c *connection) Start() {
 					})
 
 					if err != nil {
-						c.logger.Error().Err(err).Msg("error publishing SendToWorld event")
+						c.logger.Error().Err(err).Msg("error publishing PlayerInput event")
 						c.Stop()
 						break
 					}
@@ -132,6 +132,10 @@ func (c *connection) Start() {
 func (c *connection) Stop() {
 	c.logger.Debug().Msg("stopping connection")
 	_ = c.conn.Close()
+
+	_ = engine.Publish(events.PlayerDisconnectedEvent{
+		Id: c.uuid,
+	})
 
 	c.stop <- true
 }
