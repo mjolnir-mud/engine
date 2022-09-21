@@ -1,25 +1,15 @@
 module github.com/mjolnir-mud/engine/plugins/accounts
 
-replace (
-	github.com/mjolnir-mud/engine => ../../
-	github.com/mjolnir-mud/engine/plugins/controllers => ../controllers/
-	github.com/mjolnir-mud/engine/plugins/data_sources => ../data_sources
-	github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
-	github.com/mjolnir-mud/engine/plugins/mongo_data_source => ../mongo_data_source
-	github.com/mjolnir-mud/engine/plugins/sessions => ../sessions
-	github.com/mjolnir-mud/engine/plugins/templates => ../templates/
-)
-
 go 1.17
 
 require (
-	github.com/mjolnir-mud/engine v0.1.1-0.20220805131021-389d2f8111fa
-	github.com/mjolnir-mud/engine/plugins/controllers v0.0.0-00010101000000-000000000000
-	github.com/mjolnir-mud/engine/plugins/data_sources v0.0.0-20220805131021-389d2f8111fa
-	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220805131021-389d2f8111fa
-	github.com/mjolnir-mud/engine/plugins/mongo_data_source v0.0.0-00010101000000-000000000000
-	github.com/mjolnir-mud/engine/plugins/sessions v0.0.0-00010101000000-000000000000
-	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000
+	github.com/mjolnir-mud/engine v0.2.0
+	github.com/mjolnir-mud/engine/plugins/controllers v0.2.0
+	github.com/mjolnir-mud/engine/plugins/data_sources v0.2.0
+	github.com/mjolnir-mud/engine/plugins/ecs v0.2.0
+	github.com/mjolnir-mud/engine/plugins/mongo_data_source v0.2.0
+	github.com/mjolnir-mud/engine/plugins/sessions v0.2.0
+	github.com/mjolnir-mud/engine/plugins/templates v0.2.0
 	github.com/stretchr/testify v1.8.0
 	github.com/wagslane/go-password-validator v0.3.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d

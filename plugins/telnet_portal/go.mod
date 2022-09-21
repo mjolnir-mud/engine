@@ -3,7 +3,7 @@ module github.com/mjolnir-mud/engine/plugins/telnet_portal
 go 1.17
 
 require (
-	github.com/mjolnir-mud/engine v0.1.1
+	github.com/mjolnir-mud/engine v0.2.0
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.7.5
@@ -37,5 +37,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/mjolnir-mud/engine => ../../

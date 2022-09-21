@@ -2,17 +2,10 @@ module github.com/mjolnir-mud/engine/plugins/mongo_data_source
 
 go 1.17
 
-replace (
-	github.com/mjolnir-mud/engine => ../../
-	github.com/mjolnir-mud/engine/plugins/data_sources => ../data_sources
-	github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
-)
-
 require (
-	github.com/mjolnir-mud/engine v0.1.1-0.20220805131021-389d2f8111fa
-	github.com/mjolnir-mud/engine/plugins/data_sources v0.0.0-20220805131021-389d2f8111fa
+	github.com/mjolnir-mud/engine v0.2.0
+	github.com/mjolnir-mud/engine/plugins/data_sources v0.2.0
 	github.com/rs/zerolog v1.27.0
-	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
 	go.mongodb.org/mongo-driver v1.10.1
 )
@@ -32,7 +25,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-20220805131021-389d2f8111fa // indirect
+	github.com/mjolnir-mud/engine/plugins/ecs v0.2.0
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect

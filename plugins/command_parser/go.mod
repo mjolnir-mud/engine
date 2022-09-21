@@ -2,17 +2,9 @@ module github.com/mjolnir-mud/engine/plugins/command_parser
 
 go 1.17
 
-replace (
-	github.com/mjolnir-mud/engine => ../../
-	github.com/mjolnir-mud/engine/plugins/controllers => ../controllers
-	github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
-	github.com/mjolnir-mud/engine/plugins/sessions => ../sessions
-	github.com/mjolnir-mud/engine/plugins/templates => ../templates
-)
-
 require (
 	github.com/alecthomas/kong v0.6.1
-	github.com/mjolnir-mud/engine/plugins/sessions v0.0.0-00010101000000-000000000000
+	github.com/mjolnir-mud/engine/plugins/sessions v0.2.0
 )
 
 require (
@@ -29,10 +21,10 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mjolnir-mud/engine v0.1.0 // indirect
-	github.com/mjolnir-mud/engine/plugins/controllers v0.0.0-00010101000000-000000000000 // indirect
-	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-00010101000000-000000000000 // indirect
-	github.com/mjolnir-mud/engine/plugins/templates v0.0.0-00010101000000-000000000000 // indirect
+	github.com/mjolnir-mud/engine v0.2.0 // indirect
+	github.com/mjolnir-mud/engine/plugins/controllers v0.2.0
+	github.com/mjolnir-mud/engine/plugins/ecs v0.2.0
+	github.com/mjolnir-mud/engine/plugins/templates v0.2.0
 	github.com/muesli/reflow v0.2.1-0.20210115123740-9e1d0d53df68 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect

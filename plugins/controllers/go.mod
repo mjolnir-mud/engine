@@ -2,17 +2,10 @@ module github.com/mjolnir-mud/engine/plugins/controllers
 
 go 1.17
 
-replace (
-	github.com/mjolnir-mud/engine => ../../
-	github.com/mjolnir-mud/engine/plugins/ecs => ../ecs
-	github.com/mjolnir-mud/engine/plugins/sessions => ../sessions
-	github.com/mjolnir-mud/engine/plugins/templates => ../templates
-)
-
 require (
-	github.com/mjolnir-mud/engine v0.1.0
-	github.com/mjolnir-mud/engine/plugins/ecs v0.0.0-00010101000000-000000000000
-	github.com/mjolnir-mud/engine/plugins/sessions v0.0.0-00010101000000-000000000000
+	github.com/mjolnir-mud/engine v0.2.0
+	github.com/mjolnir-mud/engine/plugins/ecs v0.2.0
+	github.com/mjolnir-mud/engine/plugins/sessions v0.2.0
 	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.0
 )
