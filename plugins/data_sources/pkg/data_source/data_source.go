@@ -6,8 +6,8 @@ type DataSource interface {
 	// All loads all entities from the data source returning a map of entity ID to entities.
 	All() (map[string]map[string]interface{}, error)
 
-	// AppendMetadata appends metadata to the entity, returning the entity with the metadata appended.
-	AppendMetadata(entity map[string]interface{}) map[string]interface{}
+	// AppendMetadata appends metadata to the entity, returning the  metadata appended.
+	AppendMetadata(metadata map[string]interface{}) map[string]interface{}
 
 	// Count returns the number of entities in the data source using the provided map.
 	Count(map[string]interface{}) (int64, error)

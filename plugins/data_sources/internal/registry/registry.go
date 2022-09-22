@@ -83,12 +83,14 @@ func CreateEntity(dataSource string, entityType string, data map[string]interfac
 
 		l.Trace().Msg("entity created, saving")
 
-		entity[constants.MetadataKey] = map[string]interface{}{
+		metadata := map[string]interface{}{
 			constants.MetadataTypeKey: entityType,
 		}
 
 		l.Trace().Msg("appending metadata from data source")
-		entity = d.AppendMetadata(entity)
+		metadata = d.AppendMetadata(metadata)
+
+		entity[constants.MetadataKey] = metadata
 
 		l.Trace().Msg("saving entity")
 		id, err := d.Save(entity)
@@ -146,6 +148,7 @@ func Delete(source string, entityId string) error {
 }
 
 func FindAndDelete(source string, search map[string]interface{}) error {
+	log.Debug().Str("source", source).Msg("finding and deleting")
 	if d, ok := dataSources[source]; ok {
 		return d.FindAndDelete(search)
 	} else {
@@ -182,6 +185,33 @@ func SaveWithId(source string, entityId string, entity map[string]interface{}) e
 		return d.SaveWithId(entityId, entity)
 	} else {
 		return InvalidDataSourceError{Source: source}
+	}
+}
+
+func Save(source string, entity map[string]interface{}) (string, error) {
+	log.Trace().Str("source", source).Msg("Save")
+
+	if d, ok := dataSources[source]; ok {
+		log.Trace().Str("source", source).Msg("data source found")
+
+		log.Trace().Str("source", source).Msg("checking for metadata")
+		metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
+
+		if !ok {
+			return "", errors.MetadataRequiredError{}
+		}
+
+		log.Trace().Str("source", source).Msg("checking for type")
+		_, ok = metadata[constants.MetadataTypeKey].(string)
+
+		if !ok {
+			return "", MetadataTypeRequiredError{}
+		}
+
+		log.Trace().Str("source", source).Msg("saving entity")
+		return d.Save(entity)
+	} else {
+		return "", InvalidDataSourceError{Source: source}
 	}
 }
 
@@ -241,7 +271,6 @@ func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
 	if !ok {
 		return nil, errors.MetadataRequiredError{ID: entity["id"].(string)}
 	}
-	delete(entity, constants.MetadataKey)
 	delete(entity, "id")
 
 	entityType, ok := metadata[constants.MetadataTypeKey].(string)

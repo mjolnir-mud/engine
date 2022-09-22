@@ -36,7 +36,12 @@ func (f fakeDataSource) AppendMetadata(metadata map[string]interface{}) map[stri
 }
 
 func (f fakeDataSource) Count(filter map[string]interface{}) (int64, error) {
-	return int64(len(f.entities)), nil
+	entities, err := f.Find(filter)
+
+	if err != nil {
+		return 0, err
+	}
+	return int64(len(entities)), nil
 }
 
 func (f fakeDataSource) Delete(entityId string) error {
@@ -47,25 +52,28 @@ func (f fakeDataSource) Delete(entityId string) error {
 
 func (f fakeDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
 	entities, _ := f.All()
+	response := make(map[string]map[string]interface{})
 
 	if search["id"] != nil {
-		if entity, ok := f.entities[search["id"].(string)]; ok {
+		if entity, ok := entities[search["id"].(string)]; ok {
 			entity["id"] = search["id"]
-			entities[search["id"].(string)] = entity
+			response[search["id"].(string)] = entity
 		}
+
+		return response, nil
 	}
 
-	for id, entity := range f.entities {
+	for id, entity := range entities {
 		for key, value := range search {
 			if entity[key] != value {
 				continue
 			}
 
-			entities[id] = entity
+			response[id] = entity
 		}
 	}
 
-	return entities, nil
+	return response, nil
 }
 
 func (f fakeDataSource) FindAndDelete(search map[string]interface{}) error {
@@ -92,16 +100,11 @@ func (t fakeDataSource) FindOne(search map[string]interface{}) (string, map[stri
 		return "", nil, err
 	}
 
-	for _, entity := range entities {
-		return "", entity, nil
+	for id, entity := range entities {
+		return id, entity, nil
 	}
 
 	return "", nil, nil
-}
-
-func (f fakeDataSource) SaveWithId(entityId string, entity map[string]interface{}) error {
-	f.entities[entityId] = entity
-	return nil
 }
 
 func (f fakeDataSource) Save(entity map[string]interface{}) (string, error) {
@@ -115,6 +118,11 @@ func (f fakeDataSource) Save(entity map[string]interface{}) (string, error) {
 	}
 
 	return uidStr, nil
+}
+
+func (f fakeDataSource) SaveWithId(entityId string, entity map[string]interface{}) error {
+	f.entities[entityId] = entity
+	return nil
 }
 
 func (f fakeDataSource) Start() error {
@@ -132,13 +140,15 @@ var FakeDataSource = func() data_source.DataSource {
 				"__metadata": map[string]interface{}{
 					"entityType": "fake",
 				},
-				"testComponent": "test1",
+				"testComponent":  "test1",
+				"otherComponent": "other",
 			},
 			"test2": map[string]interface{}{
 				"__metadata": map[string]interface{}{
 					"entityType": "fake",
 				},
-				"testComponent": "test2",
+				"testComponent":  "test2",
+				"otherComponent": "other",
 			},
 		},
 	}
