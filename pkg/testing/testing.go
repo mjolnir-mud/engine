@@ -20,11 +20,17 @@ package testing
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/internal/instance"
+	"github.com/mjolnir-mud/engine/pkg/config"
 	"reflect"
 )
 
 func Setup(args ...interface{}) chan bool {
 	engine.Initialize("test", "test")
+
+	engine.ConfigureForEnv("test", func(cfg *config.Configuration) *config.Configuration {
+		return cfg
+	})
+
 	ch := make(chan bool)
 	engine.RegisterAfterStartCallback(func() {
 		go func() { ch <- true }()

@@ -1,6 +1,7 @@
 package registry
 
 import (
+	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -10,24 +11,32 @@ import (
 )
 
 func setup() {
-	engine.RegisterPlugin(ecs.Plugin)
-	ecs.RegisterEntityType(test.FakeEntityType)
-	Register(test.FakeDataSource())
-	_ = Start()
-	engine.Start("test")
+	engineTesting.Setup("world", func() {
+		engine.RegisterPlugin(ecs.Plugin)
+
+		engine.RegisterBeforeServiceStartCallback("world", func() {
+			Start()
+			Register(test.FakeDataSource())
+		})
+
+		engine.RegisterAfterServiceStartCallback("world", func() {
+			ecs.RegisterEntityType(test.FakeEntityType)
+		})
+	})
 }
 
 func teardown() {
-	_ = Stop()
-	engine.Stop()
+	Stop()
+	engineTesting.Teardown()
 }
 
 func TestRegister(t *testing.T) {
 	setup()
 	defer teardown()
-	if _, ok := r.dataSources["fake"]; !ok {
-		t.Errorf("Expected registry.dataSources to contain fake data source")
-	}
+
+	_, ok := dataSources["fake"]
+
+	assert.True(t, ok)
 }
 
 func TestFindOne(t *testing.T) {

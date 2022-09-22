@@ -177,7 +177,7 @@ func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (m MongoDataSource) Save(entityId string, entity map[string]interface{}) error {
+func (m MongoDataSource) SaveWithId(entityId string, entity map[string]interface{}) error {
 	m.logger.Debug().Str("id", entityId).Interface("entity", entity).Msg("saving entity")
 	metadata, ok := entity[constants.MetadataKey]
 

@@ -74,7 +74,7 @@ func TestMongoDataSource_Save(t *testing.T) {
 	dataSource := New("entities")
 	_ = dataSource.Start()
 
-	err := dataSource.Save("entity_3", map[string]interface{}{
+	err := dataSource.SaveWithId("entity_3", map[string]interface{}{
 		"__metadata": map[string]interface{}{
 			"collection": "entities",
 			"type":       "fake",

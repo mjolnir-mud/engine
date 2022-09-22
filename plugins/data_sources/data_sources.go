@@ -23,6 +23,13 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 )
 
+// CreateEntity creates a new entity in a data source. If the data source does not exist, an error will be thrown. If the
+// entityType does not exist, an error will be thrown. It returns the id map representing the entities components as
+// well as the entity metadata.
+func CreateEntity(dataSource string, entityType string, data map[string]interface{}) (string, map[string]interface{}, error) {
+	return registry.CreateEntity(dataSource, entityType, data)
+}
+
 // Register registers a data source with the registry. If a data source with the same name is already registered,
 //i it will be overwritten.
 func Register(source data_source.DataSource) {
@@ -68,7 +75,7 @@ func Count(source string, filter map[string]interface{}) (int64, error) {
 // be thrown. If the data source does not exist, an error will be thrown. If the metadata field does not have a type
 // set, an error will be thrown. If the entity exists in the data source, it will be overwritten.
 func Save(source string, entityId string, entity map[string]interface{}) error {
-	return registry.Save(source, entityId, entity)
+	return registry.SaveWithId(source, entityId, entity)
 }
 
 var Plugin = plugin.Plugin

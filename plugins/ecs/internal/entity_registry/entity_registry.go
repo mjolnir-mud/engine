@@ -1009,7 +1009,13 @@ func componentId(id string, key string) string {
 }
 
 func generateID() string {
-	return uuid.NewString()
+	str, err := uuid.NewUUID()
+
+	if err != nil {
+		panic(err)
+	}
+
+	return str.String()
 }
 
 func getComponentType(id string, key string) (string, error) {
