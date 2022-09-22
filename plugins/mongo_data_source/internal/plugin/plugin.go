@@ -35,6 +35,12 @@ var Configs = map[string]func(c *config.Configuration) *config.Configuration{
 
 		return c
 	},
+	"test": func(c *config.Configuration) *config.Configuration {
+		c.MongoURL = "mongodb://localhost:27017"
+		c.Database = "mjolnir_test"
+
+		return c
+	},
 }
 
 var Plugin = &plugin{}

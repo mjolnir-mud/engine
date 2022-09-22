@@ -19,7 +19,8 @@ package mongo_data_source
 
 import (
 	"context"
-
+	"crypto/sha256"
+	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
@@ -29,6 +30,7 @@ import (
 	constants2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/constants"
 	errors2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/errors"
 	"github.com/rs/zerolog"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -51,18 +53,6 @@ func ConfigureForEnv(env string, cb func(c *config.Configuration) *config.Config
 	plugin.ConfigureForEnv(env, cb)
 }
 
-func (m MongoDataSource) Name() string {
-	return m.collectionName
-}
-
-func (m MongoDataSource) Start() error {
-	return nil
-}
-
-func (m MongoDataSource) Stop() error {
-	return nil
-}
-
 func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Msg("loading all entities")
 
@@ -82,7 +72,7 @@ func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
 	entities := make(map[string]map[string]interface{})
 
 	for _, entity := range results {
-		id := entity["_id"].(string)
+		id := entity["_id"].(primitive.ObjectID).Hex()
 		cleanId(entity)
 		entities[id] = entity
 	}
@@ -90,10 +80,38 @@ func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
 	return entities, nil
 }
 
+func (m MongoDataSource) AppendMetadata(metadata map[string]interface{}) map[string]interface{} {
+	metadata["collection"] = m.collectionName
+
+	return metadata
+}
+
+func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
+	m.logger.Debug().Interface("search", search).Msg("counting entities")
+	search = parseSearch(search)
+
+	count, err := m.getCollection().CountDocuments(context.Background(), search)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (m MongoDataSource) Delete(id string) error {
+	m.logger.Debug().Str("id", id).Msg("deleting entity")
+	oid := sanitizeId(id)
+
+	_ = m.getCollection().FindOneAndDelete(context.Background(), map[string]interface{}{"_id": oid})
+
+	return nil
+}
+
 func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching entities")
 
-	cursor, err := m.getCollection().Find(context.Background(), search)
+	cursor, err := m.getCollection().Find(context.Background(), parseSearch(search))
 
 	if err != nil {
 		return nil, err
@@ -109,7 +127,7 @@ func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[str
 	entities := make(map[string]map[string]interface{})
 
 	for _, entity := range results {
-		id := entity["_id"].(string)
+		id := entity["_id"].(primitive.ObjectID).Hex()
 		cleanId(entity)
 		entities[id] = entity
 	}
@@ -122,7 +140,7 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[str
 
 	result := map[string]interface{}{}
 
-	err := m.getCollection().FindOne(context.Background(), search).Decode(&result)
+	err := m.getCollection().FindOne(context.Background(), parseSearch(search)).Decode(&result)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -131,7 +149,7 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[str
 		return "", nil, err
 	}
 
-	id := result["_id"].(string)
+	id := result["_id"].(primitive.ObjectID).Hex()
 
 	cleanId(result)
 
@@ -140,20 +158,12 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[str
 	return id, result, nil
 }
 
-func (m MongoDataSource) Delete(id string) error {
-	m.logger.Debug().Str("id", id).Msg("deleting entity")
-
-	_ = m.getCollection().FindOneAndDelete(context.Background(), map[string]interface{}{"_id": id})
-
-	return nil
-}
-
 func (m MongoDataSource) FindAndDelete(search map[string]interface{}) error {
 	m.logger.Debug().Interface("search", search).Msg("searching and deleting entity")
 
 	result := map[string]interface{}{}
 
-	err := m.getCollection().FindOneAndDelete(context.Background(), search).Decode(&result)
+	err := m.getCollection().FindOneAndDelete(context.Background(), parseSearch(search)).Decode(&result)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -165,16 +175,8 @@ func (m MongoDataSource) FindAndDelete(search map[string]interface{}) error {
 	return nil
 }
 
-func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
-	m.logger.Debug().Interface("search", search).Msg("counting entities")
-
-	count, err := m.getCollection().CountDocuments(context.Background(), search)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
+func (m MongoDataSource) Name() string {
+	return m.collectionName
 }
 
 func (m MongoDataSource) SaveWithId(entityId string, entity map[string]interface{}) error {
@@ -201,10 +203,53 @@ func (m MongoDataSource) SaveWithId(entityId string, entity map[string]interface
 		}
 	}
 
-	entity["_id"] = entityId
+	entity["_id"] = sanitizeId(entityId)
 
 	_, err := m.getCollection().InsertOne(context.Background(), entity)
 	return err
+}
+
+func (m MongoDataSource) Save(entity map[string]interface{}) (string, error) {
+	m.logger.Debug().Interface("entity", entity).Msg("saving entity")
+	metadata, ok := entity[constants.MetadataKey]
+
+	if !ok {
+		return "", errors.MetadataRequiredError{}
+	}
+
+	m.logger.Trace().Interface("metadata", metadata).Bool("ok", ok).Msg("checking metadata")
+	collection, ok := metadata.(map[string]interface{})[constants2.MetadataCollectionKey]
+
+	if !ok {
+		return "", errors2.CollectionMetadataRequiredError{}
+	}
+
+	m.logger.Debug().Str("collection", collection.(string)).Interface("entity", entity).Msg("saving entity")
+
+	if collection != m.collectionName {
+		return "", errors2.CollectionMismatchError{
+			SourceCollection: m.collectionName,
+			TargetCollection: collection.(string),
+		}
+	}
+
+	result, err := m.getCollection().InsertOne(context.Background(), entity)
+
+	if err != nil {
+		return "", err
+	}
+
+	e := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return e, nil
+}
+
+func (m MongoDataSource) Start() error {
+	return nil
+}
+
+func (m MongoDataSource) Stop() error {
+	return nil
 }
 
 func (m MongoDataSource) getCollection() *mongo.Collection {
@@ -213,4 +258,41 @@ func (m MongoDataSource) getCollection() *mongo.Collection {
 
 func cleanId(entity map[string]interface{}) {
 	delete(entity, "_id")
+}
+
+func parseSearch(search map[string]interface{}) map[string]interface{} {
+	if search["id"] != nil {
+		search["_id"] = search["id"]
+		delete(search, "id")
+	}
+
+	if search["_id"] != nil {
+		search["_id"] = sanitizeId(search["_id"].(string))
+	}
+
+	return search
+}
+
+// sanitizeId converts an id to a ObjecId
+func sanitizeId(id string) primitive.ObjectID {
+	if primitive.IsValidObjectID(id) {
+		oid, _ := primitive.ObjectIDFromHex(id)
+
+		return oid
+	}
+
+	hash := sha256.New()
+	hash.Write([]byte(id))
+	sha := hash.Sum(nil)
+
+	final := sha[:12]
+	id = fmt.Sprintf("%x", final)
+
+	bid, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return bid
 }

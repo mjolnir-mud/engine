@@ -40,11 +40,7 @@ func (p plugin) Registered() error {
 	})
 
 	engine.RegisterBeforeServiceStopCallback("world", func() {
-		err := registry.Stop()
-
-		if err != nil {
-			logger.Instance.Error().Err(err).Msg("error stopping data sources")
-		}
+		registry.Stop()
 	})
 
 	return nil
