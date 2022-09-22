@@ -105,6 +105,41 @@ func CreateEntity(dataSource string, entityType string, data map[string]interfac
 	}
 }
 
+func CreateEntityWithId(dataSource string, entityType string, entityId string, data map[string]interface{}) (map[string]interface{}, error) {
+	l := log.With().Str("data_source", dataSource).Str("entity_type", entityType).Logger()
+	l.Debug().Msg("creating entity with id")
+	if d, ok := dataSources[dataSource]; ok {
+		l.Trace().Msg("data source found, creating entity")
+		entity, err := ecs.CreateEntity(entityType, data)
+
+		if err != nil {
+			return nil, err
+		}
+
+		l.Trace().Msg("entity created, saving")
+
+		metadata := map[string]interface{}{
+			constants.MetadataTypeKey: entityType,
+		}
+
+		l.Trace().Msg("appending metadata from data source")
+		metadata = d.AppendMetadata(metadata)
+
+		entity[constants.MetadataKey] = metadata
+
+		l.Trace().Msg("saving entity")
+		err = d.SaveWithId(entityId, entity)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return entity, nil
+	} else {
+		return nil, InvalidDataSourceError{Source: dataSource}
+	}
+}
+
 func Find(source string, search map[string]interface{}) (map[string]map[string]interface{}, error) {
 	if d, ok := dataSources[source]; ok {
 		entities, err := d.Find(search)

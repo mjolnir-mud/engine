@@ -75,6 +75,36 @@ func TestCreateEntity(t *testing.T) {
 		"testComponent": "test3"}, entity)
 }
 
+func TestCreateEntityWithId(t *testing.T) {
+	setup()
+	defer teardown()
+
+	entity, err := CreateEntityWithId("fake", "fake", "test3", map[string]interface{}{
+		"testComponent": "test3",
+	})
+
+	assert.Nil(t, err)
+
+	assert.Equal(t, map[string]interface{}{
+		"__metadata": map[string]interface{}{
+			"entityType": "fake",
+			"fake":       true,
+		},
+		"testComponent": "test3"}, entity)
+
+	_, entity, err = FindOne("fake", map[string]interface{}{
+		"id": "test3",
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"__metadata": map[string]interface{}{
+			"entityType": "fake",
+			"fake":       true,
+		},
+		"testComponent": "test3"}, entity)
+}
+
 func TestCount(t *testing.T) {
 	setup()
 	defer teardown()
