@@ -7,8 +7,8 @@
 
 ### DataSources
 #### New Features
-* Data Sources now can create a new entity by calling the `CreateEntity` function. It will automatically set the entity
-  metadata and return the entity ID.
+* Data Sources now can create a new entity by calling the `CreateEntity` or the `CreateEntityWithId` functions. It will 
+* automatically set the entity metadata and return the entity.
 
 #### Breaking Changes
 * Data Sources interface has been updated to include an `AppendMetadata` function. This function will be called when
