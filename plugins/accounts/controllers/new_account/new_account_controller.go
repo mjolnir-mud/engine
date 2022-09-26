@@ -1,18 +1,14 @@
-package new_account_controller
+package new_account
 
 import (
-	"fmt"
-	"net/mail"
-	"regexp"
+	"github.com/mjolnir-mud/engine/plugins/accounts/controllers/login"
 	"strings"
 
-	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/controllers/login_controller"
+	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
-	passwordvalidator "github.com/wagslane/go-password-validator"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,68 +16,15 @@ type controller struct{}
 
 var Controller = controller{}
 
-const MinUsernameLength = 4
-const MaxUsernameLength = 20
-const UsernameRegex = `^[a-zA-Z0-9_]+$`
-
-const PasswordEntropy = 40
-
-const UsernameStep = 1
 const EmailStep = 2
 const PasswordStep = 3
-const PasswordConfirmationStep = 4
-
-var UsernameValidator = func(username string) error {
-	r, err := regexp.Compile(UsernameRegex)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if len(username) < MinUsernameLength {
-		//goland:noinspection GoErrorStringFormat
-		return fmt.Errorf(
-			"'%s' is not a valid username. It must be at least %d characters long.",
-			username,
-			MinUsernameLength,
-		)
-	}
-
-	if len(username) >= MaxUsernameLength {
-		//goland:noinspection GoErrorStringFormat
-		return fmt.Errorf(
-			"'%s' is not a valid username. It must be at most %d characters long.",
-			username,
-			MaxUsernameLength,
-		)
-	}
-
-	if !r.MatchString(username) {
-		return fmt.Errorf(
-			"'%s' is not a valid username. It must contain only alpha-numeric characters, dashes (-) or underscores (_)",
-			username,
-		)
-	}
-
-	return nil
-}
-var PasswordValidator = func(password string) error {
-	e := passwordvalidator.GetEntropy(password)
-
-	if e < PasswordEntropy {
-		//goland:noinspection GoErrorStringFormat
-		return fmt.Errorf("That isn't a very secure password. Try something stronger.")
-	}
-
-	return nil
-}
 
 var AfterCreateCallback = func(sessId string, entityId string) error {
-	return login_controller.Login(sessId, entityId)
+	return login.Login(sessId, entityId)
 }
 
 func (n controller) Name() string {
-	return "new_account_controller"
+	return "new_account"
 }
 
 func (n controller) Start(id string) error {
@@ -118,7 +61,19 @@ func (n controller) HandleInput(id string, input string) error {
 }
 
 func handlePassword(id string, input string) error {
-	err := PasswordValidator(input)
+	username, err := session.GetStringFromFlash(id, "username")
+
+	if err != nil {
+		return err
+	}
+
+	email, err := session.GetStringFromFlash(id, "email")
+
+	if err != nil {
+		return err
+	}
+
+	err = accountSystem.ValidatePassword(username, email, input)
 
 	if err != nil {
 		return session.SendLine(id, err.Error())
@@ -141,7 +96,8 @@ func handlePassword(id string, input string) error {
 
 func handleEmail(id string, input string) error {
 	input = strings.ToLower(input)
-	_, err := mail.ParseAddress(input)
+
+	err := accountSystem.ValidateEmail(input)
 
 	if err != nil {
 		err := session.Render(id, "email_invalid", input)
@@ -199,7 +155,7 @@ func handleUsername(id, input string) error {
 		return promptNewUsername(id)
 	}
 
-	err = UsernameValidator(input)
+	err = accountSystem.ValidateUsername(input)
 
 	if err != nil {
 		return session.SendLine(id, err.Error())
@@ -267,7 +223,7 @@ func handlePasswordConfirmation(id string, input string) error {
 		return err
 	}
 
-	err = data_sources.Save("accounts", userId, account)
+	err = data_sources.SaveWithId("accounts", userId, account)
 
 	if err != nil {
 		return err

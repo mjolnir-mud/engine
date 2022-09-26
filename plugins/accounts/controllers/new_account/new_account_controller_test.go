@@ -1,13 +1,13 @@
-package new_account_controller
+package new_account
 
 import (
+	account2 "github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
+	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
+	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
-	"github.com/mjolnir-mud/engine/plugins/accounts/internal/data_source"
-	"github.com/mjolnir-mud/engine/plugins/accounts/internal/templates"
-	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
 	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
@@ -30,18 +30,18 @@ func setup() {
 		sessionsTesting.Setup()
 		controllersTesting.Setup()
 		engine.RegisterBeforeServiceStartCallback("world", func() {
-			data_sources.Register(data_source.Create())
+			data_sources.Register(account2.Create())
 		})
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
+			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "test-account"})
 
-			err := data_sources.Save(
+			err := data_sources.SaveWithId(
 				"accounts",
-				"testaccount",
+				"test-account",
 				map[string]interface{}{
-					"username":       "testaccount",
+					"username":       "test-account",
 					"hashedPassword": string(hashedPassword),
 					"__metadata": map[string]interface{}{
 						"entityType": "account",
@@ -54,7 +54,7 @@ func setup() {
 			}
 		})
 
-		ecs.RegisterEntityType(account.Type)
+		ecs.RegisterEntityType(account.EntityType)
 	})
 
 	templates.RegisterAll()
@@ -62,7 +62,8 @@ func setup() {
 
 func teardown() {
 	_ = engine.RedisFlushAll()
-	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
+	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "test-account"})
+	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "New_Random_Account"})
 	engineTesting.Teardown()
 }
 
@@ -70,7 +71,7 @@ func TestController_Name(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Equal(t, Controller.Name(), "new_account_controller")
+	assert.Equal(t, Controller.Name(), "new_account")
 }
 
 func TestSignupHappyPath(t *testing.T) {
@@ -93,25 +94,25 @@ func TestSignupHappyPath(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "Enter a username:", <-receivedLine)
+	assert.Equal(t, "Enter a username:\r\n", <-receivedLine)
 
-	err = Controller.HandleInput("sess", "New_Account")
-
-	assert.Equal(t, nil, err)
-	assert.NoError(t, err)
-	assert.Equal(t, "Enter an email:", <-receivedLine)
-
-	err = Controller.HandleInput("sess", "new_account_controller@test.com")
+	err = Controller.HandleInput("sess", "New_Random_Account")
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "Enter a password:", <-receivedLine)
+	assert.Equal(t, "Enter an email:\r\n", <-receivedLine)
+
+	err = Controller.HandleInput("sess", "new_random_account@test.com")
+
+	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
+	assert.Equal(t, "Enter a password:\r\n", <-receivedLine)
 
 	err = Controller.HandleInput("sess", "A VERY secure password with lots of entropy")
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "Confirm your password:", <-receivedLine)
+	assert.Equal(t, "Confirm your password:\r\n", <-receivedLine)
 
 	err = Controller.HandleInput("sess", "A VERY secure password with lots of entropy")
 
@@ -140,13 +141,13 @@ func TestUsernameTooShort(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "Enter a username:", <-receivedLine)
+	assert.Equal(t, "Enter a username:\r\n", <-receivedLine)
 
 	err = Controller.HandleInput("sess", "New")
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "'New' is not a valid username. It must be at least 4 characters long.", <-receivedLine)
+	assert.Equal(t, "'New' is not a valid username. It must be at least 4 characters long.\r\n", <-receivedLine)
 }
 
 func TestUsernameTooLong(t *testing.T) {
@@ -169,7 +170,7 @@ func TestUsernameTooLong(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "Enter a username:", <-receivedLine)
+	assert.Equal(t, "Enter a username:\r\n", <-receivedLine)
 
 	err = Controller.HandleInput("sess", "New_Account_That_Is_Too_Long_For_Username")
 
@@ -177,7 +178,7 @@ func TestUsernameTooLong(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
-		"'New_Account_That_Is_Too_Long_For_Username' is not a valid username. It must be at most 20 characters long.",
+		"'New_Account_That_Is_Too_Long_For_Username' is not a valid username. It must be at most 20 characters long.\r\n",
 		<-receivedLine,
 	)
 }
@@ -202,7 +203,7 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "Enter a username:", <-receivedLine)
+	assert.Equal(t, "Enter a username:\r\n", <-receivedLine)
 
 	err = Controller.HandleInput("sess", "New Accounts")
 
@@ -210,7 +211,7 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
-		"'New Accounts' is not a valid username. It must contain only alpha-numeric characters, dashes (-) or underscores (_)",
+		"'New Accounts' is not a valid username. It must contain only alpha-numeric characters, dashes (-) or underscores (_)\r\n",
 		<-receivedLine,
 	)
 }
@@ -239,7 +240,7 @@ func TestInvalidEmail(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "'email is invalid' is not a valid email address.", <-receivedLine)
+	assert.Equal(t, "'email is invalid' is not a valid email address.\r\n", <-receivedLine)
 }
 
 func TestPasswordTooShort(t *testing.T) {
@@ -260,9 +261,19 @@ func TestPasswordTooShort(t *testing.T) {
 
 	err = session.SetIntInFlash("sess", "step", PasswordStep)
 
+	assert.NoError(t, err)
+
+	err = session.SetStringInFlash("sess", "username", "New_Account")
+
+	assert.NoError(t, err)
+
+	err = session.SetStringInFlash("sess", "email", "test_account@email.com")
+
+	assert.NoError(t, err)
+
 	err = Controller.HandleInput("sess", "New")
 
 	assert.Equal(t, nil, err)
 	assert.NoError(t, err)
-	assert.Equal(t, "That isn't a very secure password. Try something stronger.", <-receivedLine)
+	assert.Equal(t, "That isn't a very secure password. Try something stronger.\r\n", <-receivedLine)
 }
