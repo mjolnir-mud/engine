@@ -15,10 +15,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package login_controller
+package login
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/accounts/pkg/entities/account"
+	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
@@ -92,7 +92,7 @@ func handleInput(id string, input string) error {
 
 func handleUsername(id string, input string) error {
 	if input == "create" {
-		err := controllers.Set(id, "new_account_controller")
+		err := controllers.Set(id, "new_account")
 
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func handlePassword(id string, input string) error {
 		return err
 	}
 
-	accountId, err := account.ValidateAccount(account.Credentials{
+	accountId, err := account.CompareAccountCredentials(account.Credentials{
 		Username: username,
 		Password: input,
 	})
