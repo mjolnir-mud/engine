@@ -57,7 +57,7 @@ func Count(source string, search map[string]interface{}) (int64, error) {
 	return d.Count(search)
 }
 
-func CreateEntity(dataSource string, entityType string, data map[string]interface{}) (string, map[string]interface{}, error) {
+func NewEntity(dataSource string, entityType string, data map[string]interface{}) (string, map[string]interface{}, error) {
 	l := log.With().Str("data_source", dataSource).Str("entity_type", entityType).Logger()
 	l.Debug().Msg("creating entity")
 
@@ -95,7 +95,7 @@ func CreateEntity(dataSource string, entityType string, data map[string]interfac
 	return id, entity, nil
 }
 
-func CreateEntityWithId(dataSource string, entityType string, entityId string, data map[string]interface{}) (map[string]interface{}, error) {
+func NreEntityWithId(dataSource string, entityType string, entityId string, data map[string]interface{}) (map[string]interface{}, error) {
 	l := log.With().Str("data_source", dataSource).Str("entity_type", entityType).Logger()
 	l.Debug().Msg("creating entity with id")
 	d, err := getDataSource(dataSource)

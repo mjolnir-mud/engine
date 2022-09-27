@@ -49,7 +49,7 @@ func TestCreateEntity(t *testing.T) {
 	setup()
 	defer teardown()
 
-	id, entity, err := CreateEntity("fake", "fake", map[string]interface{}{
+	id, entity, err := NewEntity("fake", "fake", map[string]interface{}{
 		"testComponent": "test3",
 	})
 
@@ -79,7 +79,7 @@ func TestCreateEntityWithId(t *testing.T) {
 	setup()
 	defer teardown()
 
-	entity, err := CreateEntityWithId("fake", "fake", "test3", map[string]interface{}{
+	entity, err := NreEntityWithId("fake", "fake", "test3", map[string]interface{}{
 		"testComponent": "test3",
 	})
 
