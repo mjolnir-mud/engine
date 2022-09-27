@@ -11,7 +11,7 @@ func (a accountType) Name() string {
 	return "account"
 }
 
-func (a accountType) Create(args map[string]interface{}) map[string]interface{} {
+func (a accountType) New(args map[string]interface{}) map[string]interface{} {
 	password, ok := args["password"].(string)
 
 	if ok {

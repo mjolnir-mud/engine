@@ -68,7 +68,7 @@ func CreateEntity(dataSource string, entityType string, data map[string]interfac
 	}
 
 	l.Trace().Msg("data source found, creating entity")
-	entity, err := ecs.CreateEntity(entityType, data)
+	entity, err := ecs.NewEntity(entityType, data)
 
 	if err != nil {
 		return "", nil, err
@@ -105,7 +105,7 @@ func CreateEntityWithId(dataSource string, entityType string, entityId string, d
 	}
 
 	l.Trace().Msg("data source found, creating entity")
-	entity, err := ecs.CreateEntity(entityType, data)
+	entity, err := ecs.NewEntity(entityType, data)
 
 	if err != nil {
 		return nil, err
@@ -335,7 +335,7 @@ func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
 		return nil, errors.MetadataRequiredError{ID: id.(string)}
 	}
 
-	return ecs.CreateEntity(entityType, entity)
+	return ecs.NewEntity(entityType, entity)
 }
 
 func getDataSource(source string) (data_source.DataSource, error) {

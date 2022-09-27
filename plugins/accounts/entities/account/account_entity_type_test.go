@@ -63,8 +63,8 @@ func TestAccountType_Name(t *testing.T) {
 	assert.Equal(t, "account", EntityType.Name())
 }
 
-func TestAccountType_Create(t *testing.T) {
-	assert.Equal(t, map[string]interface{}{"username": "test"}, EntityType.Create(map[string]interface{}{"username": "test"}))
+func TestAccountType_New(t *testing.T) {
+	assert.Equal(t, map[string]interface{}{"username": "test"}, EntityType.New(map[string]interface{}{"username": "test"}))
 }
 
 func TestAccountType_Validate(t *testing.T) {

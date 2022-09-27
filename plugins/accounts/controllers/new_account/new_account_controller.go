@@ -208,7 +208,7 @@ func handlePasswordConfirmation(id string, input string) error {
 	// the downcased username is used as the account's id
 	userId := strings.ToLower(username)
 
-	account, err := ecs.CreateEntity("account", map[string]interface{}{
+	account, err := ecs.NewEntity("account", map[string]interface{}{
 		"username":       username,
 		"email":          email,
 		"hashedPassword": hashedPassword,

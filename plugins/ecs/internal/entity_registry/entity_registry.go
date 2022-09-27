@@ -314,7 +314,7 @@ func ComponentExists(id string, name string) (bool, error) {
 }
 
 // Create will create an entity of the given entity type, without adding it to the entity registry. it takes the
-// entity type and a map of components. It will pass the component arguments to the entity type's `Create` method,
+// entity type and a map of components. It will pass the component arguments to the entity type's `New` method,
 // and return the result.
 func Create(entityType string, components map[string]interface{}) (map[string]interface{}, error) {
 	t := getEntityTypeByName(entityType)
@@ -323,7 +323,7 @@ func Create(entityType string, components map[string]interface{}) (map[string]in
 		return nil, fmt.Errorf("entity type %s not found", entityType)
 	}
 
-	return t.Create(components), nil
+	return t.New(components), nil
 }
 
 // CreateAndAdd creates an entity of the given entity type, adds it to the entity registry, and returns the

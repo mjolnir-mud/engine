@@ -169,10 +169,10 @@ func ComponentExists(id string, component string) (bool, error) {
 	return plugin.ComponentExists(id, component)
 }
 
-// CreateEntity will create an entity of the given entity type, without adding it to the entity registry. it takes the
+// NewEntity will create an entity of the given entity type, without adding it to the entity registry. it takes the
 // entity type and a map of components. It will merge the provided components with the default components for the
 // entity type returning the merged components as a map.
-func CreateEntity(entityType string, args map[string]interface{}) (map[string]interface{}, error) {
+func NewEntity(entityType string, args map[string]interface{}) (map[string]interface{}, error) {
 	return plugin.CreateEntity(entityType, args)
 }
 

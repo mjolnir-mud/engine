@@ -91,7 +91,7 @@ func setup() {
 
 	registry.Start()
 
-	ent, err := ecs.CreateEntity("session", map[string]interface{}{})
+	ent, err := ecs.NewEntity("session", map[string]interface{}{})
 
 	if err != nil {
 		panic(err)
