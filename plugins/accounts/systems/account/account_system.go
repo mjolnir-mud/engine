@@ -2,7 +2,10 @@ package account
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/accounts/errors"
+	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	passwordvalidator "github.com/wagslane/go-password-validator"
+	"golang.org/x/crypto/bcrypt"
 	"net/mail"
 	"regexp"
 	"strings"
@@ -13,6 +16,11 @@ const MaxUsernameLength = 20
 const UsernameRegex = `^[a-zA-Z0-9_]+$`
 
 const PasswordEntropy = 40
+
+type Credentials struct {
+	Username string
+	Password string
+}
 
 var UsernameValidator = func(username string) error {
 	r, err := regexp.Compile(UsernameRegex)
@@ -115,4 +123,25 @@ func ValidatePassword(username string, email string, password string) error {
 	}
 
 	return PasswordValidator(password)
+}
+
+// CompareAccountCredentials validates the account credentials returning the account id.
+func CompareAccountCredentials(args Credentials) (string, error) {
+	id, r, err := data_sources.FindOne("accounts", map[string]interface{}{"username": args.Username})
+
+	if err != nil {
+		return "", err
+	}
+
+	if r == nil {
+		return "", errors.AccountNotFoundError{}
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(r["hashedPassword"].(string)), []byte(args.Password))
+
+	if err != nil {
+		return "", errors.AccountNotFoundError{}
+	}
+
+	return id, nil
 }
