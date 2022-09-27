@@ -29,14 +29,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
 
-type InvalidDataSourceError struct {
-	Source string
-}
-
-func (e InvalidDataSourceError) Error() string {
-	return fmt.Sprintf("data source %s does not exist", e.Source)
-}
-
 type MetadataTypeRequiredError struct {
 	ID string
 }
@@ -49,146 +41,182 @@ var log zerolog.Logger
 var dataSources map[string]data_source.DataSource
 
 func All(source string) (map[string]map[string]interface{}, error) {
-	if d, ok := dataSources[source]; ok {
-		entities, err := d.All()
+	d, err := getDataSource(source)
 
-		if err != nil {
-			return nil, err
-		}
-
-		return loadEntities(entities)
-	} else {
-		return nil, InvalidDataSourceError{Source: source}
+	if err != nil {
+		return nil, err
 	}
+
+	entities, err := d.All()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return loadEntities(entities)
 }
 
 func Count(source string, search map[string]interface{}) (int64, error) {
-	if d, ok := dataSources[source]; ok {
-		return d.Count(search)
-	} else {
-		return 0, InvalidDataSourceError{Source: source}
+	d, err := getDataSource(source)
+
+	if err != nil {
+		return 0, err
 	}
+
+	return d.Count(search)
 }
 
 func CreateEntity(dataSource string, entityType string, data map[string]interface{}) (string, map[string]interface{}, error) {
 	l := log.With().Str("data_source", dataSource).Str("entity_type", entityType).Logger()
 	l.Debug().Msg("creating entity")
-	if d, ok := dataSources[dataSource]; ok {
-		l.Trace().Msg("data source found, creating entity")
-		entity, err := ecs.CreateEntity(entityType, data)
 
-		if err != nil {
-			return "", nil, err
-		}
+	d, err := getDataSource(dataSource)
 
-		l.Trace().Msg("entity created, saving")
-
-		metadata := map[string]interface{}{
-			constants.MetadataTypeKey: entityType,
-		}
-
-		l.Trace().Msg("appending metadata from data source")
-		metadata = d.AppendMetadata(metadata)
-
-		entity[constants.MetadataKey] = metadata
-
-		l.Trace().Msg("saving entity")
-		id, err := d.Save(entity)
-
-		if err != nil {
-			return "", nil, err
-		}
-
-		return id, entity, nil
-	} else {
-		return "", nil, InvalidDataSourceError{Source: dataSource}
+	if err != nil {
+		return "", nil, err
 	}
+
+	l.Trace().Msg("data source found, creating entity")
+	entity, err := ecs.CreateEntity(entityType, data)
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	l.Trace().Msg("entity created, saving")
+
+	metadata := map[string]interface{}{
+		constants.MetadataTypeKey: entityType,
+	}
+
+	l.Trace().Msg("appending metadata from data source")
+	metadata = d.AppendMetadata(metadata)
+
+	entity[constants.MetadataKey] = metadata
+
+	l.Trace().Msg("saving entity")
+	id, err := d.Save(entity)
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	return id, entity, nil
 }
 
 func CreateEntityWithId(dataSource string, entityType string, entityId string, data map[string]interface{}) (map[string]interface{}, error) {
 	l := log.With().Str("data_source", dataSource).Str("entity_type", entityType).Logger()
 	l.Debug().Msg("creating entity with id")
-	if d, ok := dataSources[dataSource]; ok {
-		l.Trace().Msg("data source found, creating entity")
-		entity, err := ecs.CreateEntity(entityType, data)
+	d, err := getDataSource(dataSource)
 
-		if err != nil {
-			return nil, err
-		}
-
-		l.Trace().Msg("entity created, saving")
-
-		metadata := map[string]interface{}{
-			constants.MetadataTypeKey: entityType,
-		}
-
-		l.Trace().Msg("appending metadata from data source")
-		metadata = d.AppendMetadata(metadata)
-
-		entity[constants.MetadataKey] = metadata
-
-		l.Trace().Msg("saving entity")
-		err = d.SaveWithId(entityId, entity)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return entity, nil
-	} else {
-		return nil, InvalidDataSourceError{Source: dataSource}
+	if err != nil {
+		return nil, err
 	}
+
+	l.Trace().Msg("data source found, creating entity")
+	entity, err := ecs.CreateEntity(entityType, data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	l.Trace().Msg("entity created, saving")
+
+	metadata := map[string]interface{}{
+		constants.MetadataTypeKey: entityType,
+	}
+
+	l.Trace().Msg("appending metadata from data source")
+	metadata = d.AppendMetadata(metadata)
+
+	entity[constants.MetadataKey] = metadata
+
+	l.Trace().Msg("saving entity")
+	err = d.SaveWithId(entityId, entity)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return entity, nil
 }
 
 func Find(source string, search map[string]interface{}) (map[string]map[string]interface{}, error) {
-	if d, ok := dataSources[source]; ok {
-		entities, err := d.Find(search)
+	d, err := getDataSource(source)
 
-		if err != nil {
-			return nil, err
-		}
-
-		return loadEntities(entities)
-	} else {
-		return nil, InvalidDataSourceError{Source: source}
+	if err != nil {
+		return nil, err
 	}
+	entities, err := d.Find(search)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return loadEntities(entities)
+}
+
+func FindAndAddToECS(source string, search map[string]interface{}) ([]string, error) {
+	//entites, err := Find(source, search)
+	//
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//ids := make([]string, 0)
+	//
+	//for id, entity := range entites {
+	//	ids = append(ids, id)
+	//	err := ecs.AddEntityWithID(id, entity)
+	//
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+
+	return nil, nil
 }
 
 func FindOne(source string, search map[string]interface{}) (string, map[string]interface{}, error) {
-	if d, ok := dataSources[source]; ok {
-		id, entity, err := d.FindOne(search)
+	d, err := getDataSource(source)
 
-		if err != nil {
-			return "", nil, err
-		}
-
-		e, err := loadEntity(entity)
-
-		if err != nil {
-			return "", nil, err
-		}
-
-		return id, e, nil
-	} else {
-		return "", nil, InvalidDataSourceError{Source: source}
+	if err != nil {
+		return "", nil, err
 	}
+	id, entity, err := d.FindOne(search)
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	e, err := loadEntity(entity)
+
+	if err != nil {
+		return "", nil, err
+	}
+
+	return id, e, nil
 }
 
 func Delete(source string, entityId string) error {
-	if d, ok := dataSources[source]; ok {
-		return d.Delete(entityId)
-	} else {
-		return InvalidDataSourceError{Source: source}
+	d, err := getDataSource(source)
+
+	if err != nil {
+		return err
 	}
+
+	return d.Delete(entityId)
 }
 
 func FindAndDelete(source string, search map[string]interface{}) error {
 	log.Debug().Str("source", source).Msg("finding and deleting")
-	if d, ok := dataSources[source]; ok {
-		return d.FindAndDelete(search)
-	} else {
-		return InvalidDataSourceError{Source: source}
+	d, err := getDataSource(source)
+
+	if err != nil {
+		return err
 	}
+
+	return d.FindAndDelete(search)
 }
 
 func Register(dataSource data_source.DataSource) {
@@ -198,56 +226,58 @@ func Register(dataSource data_source.DataSource) {
 
 func SaveWithId(source string, entityId string, entity map[string]interface{}) error {
 	log.Trace().Str("source", source).Str("entityId", entityId).Msg("SaveWithId")
+	d, err := getDataSource(source)
 
-	if d, ok := dataSources[source]; ok {
-		log.Trace().Str("source", source).Str("entityId", entityId).Msg("data source found")
-
-		log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for metadata")
-		metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
-
-		if !ok {
-			return errors.MetadataRequiredError{ID: entityId}
-		}
-
-		log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for type")
-		_, ok = metadata[constants.MetadataTypeKey].(string)
-
-		if !ok {
-			return MetadataTypeRequiredError{ID: entityId}
-		}
-
-		log.Trace().Str("source", source).Str("entityId", entityId).Msg("saving entity")
-		return d.SaveWithId(entityId, entity)
-	} else {
-		return InvalidDataSourceError{Source: source}
+	if err != nil {
+		return err
 	}
+
+	log.Trace().Str("source", source).Str("entityId", entityId).Msg("data source found")
+
+	log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for metadata")
+	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
+
+	if !ok {
+		return errors.MetadataRequiredError{ID: entityId}
+	}
+
+	log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for type")
+	_, ok = metadata[constants.MetadataTypeKey].(string)
+
+	if !ok {
+		return MetadataTypeRequiredError{ID: entityId}
+	}
+
+	log.Trace().Str("source", source).Str("entityId", entityId).Msg("saving entity")
+	return d.SaveWithId(entityId, entity)
 }
 
 func Save(source string, entity map[string]interface{}) (string, error) {
 	log.Trace().Str("source", source).Msg("Save")
+	d, err := getDataSource(source)
 
-	if d, ok := dataSources[source]; ok {
-		log.Trace().Str("source", source).Msg("data source found")
-
-		log.Trace().Str("source", source).Msg("checking for metadata")
-		metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
-
-		if !ok {
-			return "", errors.MetadataRequiredError{}
-		}
-
-		log.Trace().Str("source", source).Msg("checking for type")
-		_, ok = metadata[constants.MetadataTypeKey].(string)
-
-		if !ok {
-			return "", MetadataTypeRequiredError{}
-		}
-
-		log.Trace().Str("source", source).Msg("saving entity")
-		return d.Save(entity)
-	} else {
-		return "", InvalidDataSourceError{Source: source}
+	if err != nil {
+		return "", err
 	}
+
+	log.Trace().Str("source", source).Msg("data source found")
+
+	log.Trace().Str("source", source).Msg("checking for metadata")
+	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
+
+	if !ok {
+		return "", errors.MetadataRequiredError{}
+	}
+
+	log.Trace().Str("source", source).Msg("checking for type")
+	_, ok = metadata[constants.MetadataTypeKey].(string)
+
+	if !ok {
+		return "", MetadataTypeRequiredError{}
+	}
+
+	log.Trace().Str("source", source).Msg("saving entity")
+	return d.Save(entity)
 }
 
 func Start() {
@@ -315,4 +345,12 @@ func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
 	}
 
 	return ecs.CreateEntity(entityType, entity)
+}
+
+func getDataSource(source string) (data_source.DataSource, error) {
+	if d, ok := dataSources[source]; ok {
+		return d, nil
+	} else {
+		return nil, errors.InvalidDataSourceError{Source: source}
+	}
 }

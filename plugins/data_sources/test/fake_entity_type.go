@@ -10,4 +10,8 @@ func (f fakeEntityType) Create(entity map[string]interface{}) map[string]interfa
 	return entity
 }
 
+func (f fakeEntityType) Validate(entity map[string]interface{}) error {
+	return nil
+}
+
 var FakeEntityType = fakeEntityType{}
