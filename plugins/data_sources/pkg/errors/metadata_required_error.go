@@ -7,5 +7,5 @@ type MetadataRequiredError struct {
 }
 
 func (e MetadataRequiredError) Error() string {
-	return fmt.Sprintf("data source %s does not return an entity with the type set in the metadata", e.ID)
+	return fmt.Sprintf("entity with id %s did not return an entity with the type set in the metadata", e.ID)
 }

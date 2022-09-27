@@ -18,7 +18,6 @@
 package registry
 
 import (
-	"fmt"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
 
 	"github.com/rs/zerolog"
@@ -28,14 +27,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
-
-type MetadataTypeRequiredError struct {
-	ID string
-}
-
-func (e MetadataTypeRequiredError) Error() string {
-	return fmt.Sprintf("entity %s does not return an entity with the type set in the metadata", e.ID)
-}
 
 var log zerolog.Logger
 var dataSources map[string]data_source.DataSource
@@ -245,7 +236,7 @@ func SaveWithId(source string, entityId string, entity map[string]interface{}) e
 	_, ok = metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return MetadataTypeRequiredError{ID: entityId}
+		return errors.MetadataRequiredError{ID: entityId}
 	}
 
 	log.Trace().Str("source", source).Str("entityId", entityId).Msg("saving entity")
@@ -273,7 +264,7 @@ func Save(source string, entity map[string]interface{}) (string, error) {
 	_, ok = metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return "", MetadataTypeRequiredError{}
+		return "", errors.MetadataRequiredError{}
 	}
 
 	log.Trace().Str("source", source).Msg("saving entity")
@@ -341,7 +332,7 @@ func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
 	entityType, ok := metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return nil, MetadataTypeRequiredError{ID: id.(string)}
+		return nil, errors.MetadataRequiredError{ID: id.(string)}
 	}
 
 	return ecs.CreateEntity(entityType, entity)
