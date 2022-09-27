@@ -18,3 +18,7 @@ func TestSessionType_Create(t *testing.T) {
 		"flash": map[string]interface{}{},
 	}, Type.Create(map[string]interface{}{}))
 }
+
+func TestSessionType_Validate(t *testing.T) {
+	assert.Nil(t, Type.Validate(map[string]interface{}{}))
+}

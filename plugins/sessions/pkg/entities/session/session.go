@@ -14,7 +14,7 @@ func (s sessionType) Create(args map[string]interface{}) map[string]interface{} 
 	return args
 }
 
-func Validate(_ map[string]interface{}) error {
+func (s sessionType) Validate(_ map[string]interface{}) error {
 	return nil
 }
 
