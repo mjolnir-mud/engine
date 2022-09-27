@@ -18,7 +18,7 @@
 package login
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
+	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
@@ -117,7 +117,7 @@ func handlePassword(id string, input string) error {
 		return err
 	}
 
-	accountId, err := account.CompareAccountCredentials(account.Credentials{
+	accountId, err := accountSystem.CompareAccountCredentials(accountSystem.Credentials{
 		Username: username,
 		Password: input,
 	})
