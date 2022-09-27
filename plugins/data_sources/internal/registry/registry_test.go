@@ -79,7 +79,7 @@ func TestCreateEntityWithId(t *testing.T) {
 	setup()
 	defer teardown()
 
-	entity, err := NreEntityWithId("fake", "fake", "test3", map[string]interface{}{
+	entity, err := NewEntityWithId("fake", "fake", "test3", map[string]interface{}{
 		"testComponent": "test3",
 	})
 
