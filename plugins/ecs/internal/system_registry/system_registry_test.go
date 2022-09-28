@@ -4,21 +4,28 @@ import (
 	"github.com/mjolnir-mud/engine"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func setup() {
-	engineTesting.Setup()
-	ecsTesting.Setup()
+	engineTesting.Setup("world", func() {
+		engine.RegisterBeforeStartCallback(func() {
+			Start()
+			entity_registry.Start()
+		})
 
-	_ = engine.RedisFlushAll()
+		engine.RegisterAfterStartCallback(func() {
+			_ = engine.RedisFlushAll()
+			entity_registry.Register(fakes.FakeEntityType{})
+		})
+	})
+
 }
 
 func teardown() {
 	Stop()
-	ecsTesting.Teardown()
 	engineTesting.Teardown()
 }
 
@@ -26,7 +33,7 @@ func Test_ComponentAddedEvents(t *testing.T) {
 	//setup()
 	//defer teardown()
 	//
-	//ts := ecsTesting.NewTestSystem()
+	//ts := ecsTesting.NewFakeSystem()
 	//
 	//Start()
 	//Register(ts)
@@ -48,7 +55,7 @@ func Test_ComponentUpdatedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := ecsTesting.NewTestSystem()
+	ts := fakes.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -75,7 +82,7 @@ func Test_ComponentRemovedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := ecsTesting.NewTestSystem()
+	ts := fakes.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -100,7 +107,7 @@ func TestMatchingComponentAddedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := ecsTesting.NewTestSystem()
+	ts := fakes.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -122,7 +129,7 @@ func TestMatchingComponentUpdatedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := ecsTesting.NewTestSystem()
+	ts := fakes.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -148,7 +155,7 @@ func TestMatchingComponentRemovedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := ecsTesting.NewTestSystem()
+	ts := fakes.NewFakeSystem()
 
 	Start()
 	Register(ts)

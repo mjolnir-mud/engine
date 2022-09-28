@@ -20,7 +20,7 @@ package testing
 import "github.com/mjolnir-mud/engine"
 
 func Teardown() {
-	engine.RegisterBeforeStopCallbackForEnv("test", func() {
+	engine.RegisterBeforeStopCallbackForEnv("testing", func() {
 		_ = engine.RedisFlushAll()
 	})
 }
