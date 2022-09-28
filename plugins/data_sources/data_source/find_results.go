@@ -23,3 +23,13 @@ func (f FindResults) Get(id string) *FindResult {
 func (f FindResults) Len() int {
 	return len(f.results)
 }
+
+func (f FindResults) All() []*FindResult {
+	results := make([]*FindResult, 0)
+
+	for _, r := range f.results {
+		results = append(results, r)
+	}
+
+	return results
+}
