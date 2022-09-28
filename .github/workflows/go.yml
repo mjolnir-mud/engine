@@ -25,7 +25,7 @@ jobs:
       run: go mod download
 
     - name: Test Internal
-      run: go test internal
+      run: go test ./internal
       
     - name: Test Pkg
-      run: go test pkg
+      run: go test ./pkg
