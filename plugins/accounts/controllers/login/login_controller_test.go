@@ -22,13 +22,13 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
+	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
@@ -43,7 +43,7 @@ func setup() {
 	engineTesting.Setup("world", func() {
 		ecsTesting.Setup()
 		templatesTesting.Setup()
-		dataSourcesTesting.Setup()
+		testing2.Setup()
 		mongoDataSourceTesting.Setup()
 		sessionsTesting.Setup()
 		controllersTesting.Setup()
@@ -85,7 +85,7 @@ func teardown() {
 	ecsTesting.Teardown()
 	templatesTesting.Teardown()
 	mongoDataSourceTesting.Teardown()
-	dataSourcesTesting.Teardown()
+	testing2.Teardown()
 	engineTesting.Teardown()
 }
 

@@ -31,7 +31,7 @@ func Test_ComponentAddedEvents(t *testing.T) {
 	//Start()
 	//Register(ts)
 	//
-	//err := plugin("testing", "testing", map[string]interface{}{
+	//err := plugin("testing", "testing", map[string]data_source{}{
 	//	"testComponent": "testing",
 	//})
 	//

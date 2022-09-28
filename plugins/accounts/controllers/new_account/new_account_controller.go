@@ -2,11 +2,11 @@ package new_account
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/controllers/login"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
 	"strings"
 
 	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	"golang.org/x/crypto/bcrypt"

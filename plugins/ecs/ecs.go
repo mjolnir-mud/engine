@@ -262,7 +262,7 @@ func RegisterSystem(system system.System) {
 	system_registry.Register(system)
 }
 
-// RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` interface. It is
+// RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` data_source. It is
 // expected that developers can override default EntityType implementations with their own implementations.Q
 func RegisterEntityType(entityType entity_type.EntityType) {
 	plugin.RegisterEntityType(entityType)

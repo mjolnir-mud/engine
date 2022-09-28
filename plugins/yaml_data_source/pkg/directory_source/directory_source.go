@@ -2,14 +2,14 @@ package directory_source
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
+	errors2 "github.com/mjolnir-mud/engine/plugins/data_sources/errors"
 	"github.com/mjolnir-mud/engine/plugins/yaml_data_source/internal/logger"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	constants2 "github.com/mjolnir-mud/engine/plugins/yaml_data_source/pkg/constants"
 	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
@@ -111,7 +111,7 @@ func (d DirectorySource) FindOne(search map[string]interface{}) (string, map[str
 		return id, entity, nil
 	}
 
-	return "", nil, errors.EntityNotFoundError{ID: ""}
+	return "", nil, errors2.EntityNotFoundError{ID: ""}
 }
 
 func (d DirectorySource) Count(search map[string]interface{}) (int64, error) {
@@ -130,7 +130,7 @@ func (d DirectorySource) Save(entityId string, entity map[string]interface{}) er
 
 	if !ok {
 		d.logger.Error().Msg("failed to find metadata")
-		return errors.MetadataRequiredError{ID: entityId}
+		return errors2.MetadataRequiredError{ID: entityId}
 	}
 
 	file, ok := metadata[constants2.MetadataFileKey].(string)
@@ -233,7 +233,7 @@ func (d DirectorySource) loadFromFile(file string) (map[string]map[string]interf
 
 		if !ok {
 			d.logger.Error().Str("file", file).Msg("failed to find metadata")
-			return nil, errors.MetadataRequiredError{ID: id}
+			return nil, errors2.MetadataRequiredError{ID: id}
 		}
 
 		metadata[constants2.MetadataFileKey] = file

@@ -1,6 +1,6 @@
 package plugin
 
-// Plugin is the interface that must be implemented by a Mjolnir plugin. The game is expected to call
+// Plugin is the data_source that must be implemented by a Mjolnir plugin. The game is expected to call
 // `engine.RegisterPlugin(plugin)` for every plugin that is to be used for that game before the `engine.Start()`
 // is called. See [the plugins wiki documentation](https://github.com/mjolnir-mud/engine/wiki/Plugins) for more
 // information.

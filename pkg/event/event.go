@@ -15,7 +15,7 @@ type EventPayload struct {
 	Payload []byte
 }
 
-// Unmarshal unmarshals the payload into the given interface.
+// Unmarshal unmarshals the payload into the given data_source.
 func (ep *EventPayload) Unmarshal(i interface{}) error {
 	return json.Unmarshal(ep.Payload, i)
 }

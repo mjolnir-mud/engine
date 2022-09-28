@@ -6,7 +6,7 @@ import (
 	accountDataSource "github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
 	accountEntityType "github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
+	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"

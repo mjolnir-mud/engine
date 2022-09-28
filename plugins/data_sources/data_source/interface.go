@@ -1,10 +1,10 @@
 package data_source
 
-// DataSource is a data source that can be used to retrieve and persist data. So long as the data source implements this
-// interface, it can be registered and used.
-type DataSource interface {
+// Interface is a data source that can be used to retrieve and persist data. So long as the data source implements this
+// data_source, it can be registered and used.
+type Interface interface {
 	// All loads all entities from the data source returning a map of entity ID to entities.
-	All() (map[string]map[string]interface{}, error)
+	All() ([]map[string]interface{}, error)
 
 	// AppendMetadata appends metadata to the entity, returning the  metadata appended.
 	AppendMetadata(metadata map[string]interface{}) map[string]interface{}
@@ -17,10 +17,10 @@ type DataSource interface {
 
 	// Find returns a list of entities from executing a search against a provided map. It returns a list of entities as a
 	// map keyed by their ids.
-	Find(search map[string]interface{}) (map[string]map[string]interface{}, error)
+	Find(search map[string]interface{}) ([]map[string]interface{}, error)
 
 	// FindOne returns a single id, and entity from executing a search against a provided map.
-	FindOne(search map[string]interface{}) (string, map[string]interface{}, error)
+	FindOne(search map[string]interface{}) (map[string]interface{}, error)
 
 	// FindAndDelete deletes all entities from the data source that match the provided filter.
 	FindAndDelete(search map[string]interface{}) error

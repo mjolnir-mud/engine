@@ -253,7 +253,7 @@ func RegisterBeforeServiceStopCallbackForEnv(service string, env string, callbac
 }
 
 // RegisterPlugin registers a plugin with the engine. Plugins need to be registered before the engine is started, but
-// after the engine is initialized. Plugins should conform to the plugin interface.
+// after the engine is initialized. Plugins should conform to the plugin data_source.
 func RegisterPlugin(plugin plugin.Plugin) {
 	plugin_registry.Register(plugin)
 }

@@ -5,7 +5,7 @@ import (
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/pkg/testing"
+	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
@@ -16,7 +16,7 @@ import (
 
 func setup() {
 	engineTesting.Setup("world", func() {
-		dataSourcesTesting.Setup()
+		testing2.Setup()
 		ecsTesting.Setup()
 		mongoDataSourceTesting.Setup()
 
@@ -52,7 +52,7 @@ func setup() {
 
 func teardown() {
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
-	dataSourcesTesting.Teardown()
+	testing2.Teardown()
 	mongoDataSourceTesting.Teardown()
 	engineTesting.Teardown()
 }

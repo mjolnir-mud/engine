@@ -646,7 +646,7 @@ func IsEntityTypeRegistered(name string) bool {
 	return ok
 }
 
-// Register registers an entity type. Entity Types must implement the `EntityType` interface. It is expected that
+// Register registers an entity type. Entity Types must implement the `EntityType` data_source. It is expected that
 // developers can override default EntityType implementations with their own implementations.
 func Register(e entity_type.EntityType) {
 	registry.types[e.Name()] = e

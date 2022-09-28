@@ -1,6 +1,6 @@
 package controller
 
-// Controller is the interface for a session controller. A session controller handles interactions from the player
+// Controller is the data_source for a session controller. A session controller handles interactions from the player
 // session to the game world
 type Controller interface {
 	// Name returns the name of the controller. If multiple controllers of the same name are registered with the world

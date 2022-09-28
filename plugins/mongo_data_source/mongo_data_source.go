@@ -21,9 +21,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/data_source"
+	errors3 "github.com/mjolnir-mud/engine/plugins/data_sources/errors"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/config"
@@ -41,7 +41,7 @@ type MongoDataSource struct {
 	logger         zerolog.Logger
 }
 
-func New(collection string) data_source.DataSource {
+func New(collection string) data_source.Interface {
 	return MongoDataSource{
 		collectionName: collection,
 		logger:         logger.Instance.With().Str("collection", collection).Logger(),
@@ -144,7 +144,7 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[str
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return "", nil, errors.EntityNotFoundError{}
+			return "", nil, errors3.EntityNotFoundError{}
 		}
 		return "", nil, err
 	}
@@ -167,7 +167,7 @@ func (m MongoDataSource) FindAndDelete(search map[string]interface{}) error {
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return errors.EntityNotFoundError{}
+			return errors3.EntityNotFoundError{}
 		}
 		return err
 	}
@@ -184,7 +184,7 @@ func (m MongoDataSource) SaveWithId(entityId string, entity map[string]interface
 	metadata, ok := entity[constants.MetadataKey]
 
 	if !ok {
-		return errors.MetadataRequiredError{ID: entityId}
+		return errors3.MetadataRequiredError{ID: entityId}
 	}
 
 	m.logger.Trace().Interface("metadata", metadata).Bool("ok", ok).Msg("checking metadata")
@@ -214,7 +214,7 @@ func (m MongoDataSource) Save(entity map[string]interface{}) (string, error) {
 	metadata, ok := entity[constants.MetadataKey]
 
 	if !ok {
-		return "", errors.MetadataRequiredError{}
+		return "", errors3.MetadataRequiredError{}
 	}
 
 	m.logger.Trace().Interface("metadata", metadata).Bool("ok", ok).Msg("checking metadata")
