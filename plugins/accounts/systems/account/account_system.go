@@ -127,7 +127,7 @@ func ValidatePassword(username string, email string, password string) error {
 
 // CompareAccountCredentials validates the account credentials returning the account id.
 func CompareAccountCredentials(args Credentials) (string, error) {
-	id, r, err := data_sources.FindOne("accounts", map[string]interface{}{"username": args.Username})
+	r, err := data_sources.FindOne("accounts", map[string]interface{}{"username": args.Username})
 
 	if err != nil {
 		return "", err
@@ -137,11 +137,11 @@ func CompareAccountCredentials(args Credentials) (string, error) {
 		return "", errors.AccountNotFoundError{}
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(r["hashedPassword"].(string)), []byte(args.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(r.Record["hashedPassword"].(string)), []byte(args.Password))
 
 	if err != nil {
 		return "", errors.AccountNotFoundError{}
 	}
 
-	return id, nil
+	return r.Id, nil
 }

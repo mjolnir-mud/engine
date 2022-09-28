@@ -29,7 +29,14 @@ func setup() {
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			ecs.RegisterEntityType(accountEntityType.EntityType)
 
-			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
+			waitForResult := make(chan interface{})
+
+			go func() {
+				waitForResult <- data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
+			}()
+
+			<-waitForResult
+
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
 			err := data_sources.SaveWithId(
