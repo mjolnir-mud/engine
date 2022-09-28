@@ -18,14 +18,14 @@
 package data_sources
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/data_sources/data_source"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
 )
 
-// All loads all entities from a data source. It will call `ecs.Create` passing the map returned by the data source
+// All loads all entities from a data source. It will call `ecs.New` passing the map returned by the data source
 // for each entity, and return a map of entities keyed by their ids.
-func All(source string) (map[string]map[string]interface{}, error) {
+func All(source string) (*data_source.FindResults, error) {
 	return registry.All(source)
 }
 
@@ -46,7 +46,7 @@ func CreateEntity(dataSource string, entityType string, data map[string]interfac
 // error will be thrown. If the entityType does not exist, an error will be thrown. It returns the id map representing
 // the entities components as well as the entity metadata.
 func CreateEntityWithId(dataSource string, entityType string, id string, data map[string]interface{}) (map[string]interface{}, error) {
-	return registry.CreateEntityWithId(dataSource, entityType, id, data)
+	return registry.NewEntityWithId(dataSource, entityType, id, data)
 }
 
 // Delete deletes an entity from a data source. If the data source does not exist, an error will be thrown.
@@ -56,13 +56,20 @@ func Delete(source string, entityId string) error {
 
 // Find returns all entities in a data source that match the provided filter. If the data source does not exist, an
 // error will be thrown.
-func Find(source string, filter map[string]interface{}) (map[string]map[string]interface{}, error) {
+func Find(source string, filter map[string]interface{}) (*data_source.FindResults, error) {
 	return registry.Find(source, filter)
+}
+
+// FindAndAddToECS will find all entities in a data source that match the provided filter, and add them to the ECS.
+// If the data source does not exist, an error will be thrown. If the entity already exists within the ECS, it an error
+// will be thrown.
+func FindAndAddToECS(source string, filter map[string]interface{}) error {
+	return nil
 }
 
 // FindOne returns the first entity in a data source that matches the provided filter. If the data source does not
 // exist, an error will be thrown.
-func FindOne(source string, filter map[string]interface{}) (string, map[string]interface{}, error) {
+func FindOne(source string, filter map[string]interface{}) (*data_source.FindResult, error) {
 	return registry.FindOne(source, filter)
 }
 
@@ -74,18 +81,20 @@ func FindAndDelete(source string, filter map[string]interface{}) error {
 
 // Register registers a data source with the registry. If a data source with the same name is already registered,
 //i it will be overwritten.
-func Register(source data_source.DataSource) {
+func Register(source data_source.Interface) {
 	registry.Register(source)
 }
 
 // Save saves data to a data source for a given entity. If the entity does not have a valid metadata field an error will
 // be thrown. If the data source does not exist, an error will be thrown. If the metadata field does not have a type
-// set, an error will be thrown. If the entity exists in the data source, it will be overwritten.
-func Save(source string, entityId string, entity map[string]interface{}) error {
-	return registry.SaveWithId(source, entityId, entity)
+// set, an error will be thrown.
+func Save(source string, entity map[string]interface{}) (string, error) {
+	return registry.Save(source, entity)
 }
 
 // SaveWithId saves data to a data source for a given entity. If the data source does not exist, an error will be thrown.
+// If the data source does not have a type set, an error will be thrown. If the entity exists in the data source, it
+// will be overwritten.
 func SaveWithId(source string, entityId string, entity map[string]interface{}) error {
 	return registry.SaveWithId(source, entityId, entity)
 }

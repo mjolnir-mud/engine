@@ -18,20 +18,20 @@
 package registry
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
+	"github.com/mjolnir-mud/engine/plugins/data_sources/data_source"
+	dataSourceErrors "github.com/mjolnir-mud/engine/plugins/data_sources/errors"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/internal/logger"
 
 	"github.com/rs/zerolog"
 
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/constants"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/data_source"
-	"github.com/mjolnir-mud/engine/plugins/data_sources/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
 
 var log zerolog.Logger
-var dataSources map[string]data_source.DataSource
+var dataSources map[string]data_source.Interface
 
-func All(source string) (map[string]map[string]interface{}, error) {
+func All(source string) (*data_source.FindResults, error) {
 	d, err := getDataSource(source)
 
 	if err != nil {
@@ -57,7 +57,7 @@ func Count(source string, search map[string]interface{}) (int64, error) {
 	return d.Count(search)
 }
 
-func NewEntity(dataSource string, entityType string, data map[string]interface{}) (string, map[string]interface{}, error) {
+func CreateEntity(dataSource string, entityType string, data map[string]interface{}) (string, map[string]interface{}, error) {
 	l := log.With().Str("data_source", dataSource).Str("entity_type", entityType).Logger()
 	l.Debug().Msg("creating entity")
 
@@ -132,7 +132,7 @@ func NewEntityWithId(dataSource string, entityType string, entityId string, data
 	return entity, nil
 }
 
-func Find(source string, search map[string]interface{}) (map[string]map[string]interface{}, error) {
+func Find(source string, search map[string]interface{}) (*data_source.FindResults, error) {
 	d, err := getDataSource(source)
 
 	if err != nil {
@@ -168,25 +168,26 @@ func FindAndAddToECS(source string, search map[string]interface{}) ([]string, er
 	return nil, nil
 }
 
-func FindOne(source string, search map[string]interface{}) (string, map[string]interface{}, error) {
+func FindOne(source string, search map[string]interface{}) (*data_source.FindResult, error) {
 	d, err := getDataSource(source)
 
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	id, entity, err := d.FindOne(search)
+
+	entity, err := d.FindOne(search)
 
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	e, err := loadEntity(entity)
+	e, err := newFindResult(entity)
 
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	return id, e, nil
+	return e, nil
 }
 
 func Delete(source string, entityId string) error {
@@ -210,7 +211,7 @@ func FindAndDelete(source string, search map[string]interface{}) error {
 	return d.FindAndDelete(search)
 }
 
-func Register(dataSource data_source.DataSource) {
+func Register(dataSource data_source.Interface) {
 	log.Info().Msgf("registering data source %s", dataSource.Name())
 	dataSources[dataSource.Name()] = dataSource
 }
@@ -229,14 +230,14 @@ func SaveWithId(source string, entityId string, entity map[string]interface{}) e
 	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 	if !ok {
-		return errors.MetadataRequiredError{ID: entityId}
+		return dataSourceErrors.MetadataRequiredError{ID: entityId}
 	}
 
 	log.Trace().Str("source", source).Str("entityId", entityId).Msg("checking for type")
 	_, ok = metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return errors.MetadataRequiredError{ID: entityId}
+		return dataSourceErrors.MetadataRequiredError{ID: entityId}
 	}
 
 	log.Trace().Str("source", source).Str("entityId", entityId).Msg("saving entity")
@@ -257,14 +258,14 @@ func Save(source string, entity map[string]interface{}) (string, error) {
 	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 	if !ok {
-		return "", errors.MetadataRequiredError{}
+		return "", dataSourceErrors.MetadataRequiredError{}
 	}
 
 	log.Trace().Str("source", source).Msg("checking for type")
 	_, ok = metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return "", errors.MetadataRequiredError{}
+		return "", dataSourceErrors.MetadataRequiredError{}
 	}
 
 	log.Trace().Str("source", source).Msg("saving entity")
@@ -275,7 +276,7 @@ func Start() {
 	log = logger.Instance.With().Str("component", "registry").Logger()
 	log.Info().Msg("starting")
 
-	dataSources = make(map[string]data_source.DataSource)
+	dataSources = make(map[string]data_source.Interface)
 }
 
 func StartDataSources() {
@@ -298,50 +299,57 @@ func Stop() {
 	}
 }
 
-func loadEntities(entities map[string]map[string]interface{}) (map[string]map[string]interface{}, error) {
-	result := make(map[string]map[string]interface{})
-
-	for id, entity := range entities {
-		entity["id"] = id
-		loadedEntity, err := loadEntity(entity)
+func loadEntities(entities []map[string]interface{}) (*data_source.FindResults, error) {
+	results := make([]*data_source.FindResult, 0)
+	for _, entity := range entities {
+		e, err := newFindResult(entity)
 
 		if err != nil {
 			return nil, err
 		}
 
-		result[id] = loadedEntity
+		results = append(results, e)
 	}
 
-	return result, nil
+	return data_source.NewFindResults(results), nil
+
 }
 
-func loadEntity(entity map[string]interface{}) (map[string]interface{}, error) {
-	id, ok := entity["id"]
+func newFindResult(entity map[string]interface{}) (*data_source.FindResult, error) {
+	id, ok := entity["id"].(string)
 
 	if !ok {
-		return nil, errors.IDRequiredError{}
+		return nil, dataSourceErrors.IDRequiredError{}
 	}
 
 	metadata, ok := entity[constants.MetadataKey].(map[string]interface{})
 
 	if !ok {
-		return nil, errors.MetadataRequiredError{ID: entity["id"].(string)}
+		return nil, dataSourceErrors.MetadataRequiredError{ID: entity["id"].(string)}
 	}
+
+	delete(entity, constants.MetadataKey)
 	delete(entity, "id")
 
 	entityType, ok := metadata[constants.MetadataTypeKey].(string)
 
 	if !ok {
-		return nil, errors.MetadataRequiredError{ID: id.(string)}
+		return nil, dataSourceErrors.MetadataRequiredError{ID: id}
 	}
 
-	return ecs.NewEntity(entityType, entity)
+	newEntity, err := ecs.NewEntity(entityType, entity)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data_source.NewFindResult(entityType, id, newEntity, metadata), nil
 }
 
-func getDataSource(source string) (data_source.DataSource, error) {
+func getDataSource(source string) (data_source.Interface, error) {
 	if d, ok := dataSources[source]; ok {
 		return d, nil
 	} else {
-		return nil, errors.InvalidDataSourceError{Source: source}
+		return nil, dataSourceErrors.InvalidDataSourceError{Source: source}
 	}
 }
