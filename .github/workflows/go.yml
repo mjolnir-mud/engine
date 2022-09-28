@@ -21,6 +21,9 @@ jobs:
     - name: Setup Redis
       uses: zhulik/redis-action@1.1.0
       
+    - name: MongoDB
+      uses: uses: SusanDoggie/mongodb-action@0.0.1
+      
     - name: Go Mod Download
       run: go mod download
 
@@ -29,3 +32,6 @@ jobs:
       
     - name: Test Pkg
       run: go test ./pkg/...
+      
+    - name: Test Accounts Plugin
+      run: go test ./pkg/accounts/...
