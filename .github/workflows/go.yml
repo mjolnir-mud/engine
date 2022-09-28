@@ -27,11 +27,5 @@ jobs:
     - name: Go Mod Download
       run: go mod download
 
-    - name: Test Internal
-      run: go test ./internal/...
-      
-    - name: Test Pkg
-      run: go test ./pkg/...
-      
-    - name: Test Accounts Plugin
-      run: go test -parallel 1 ./plugins/accounts/...
+    - name: Test
+      run: go test -parallel 1 ./...
