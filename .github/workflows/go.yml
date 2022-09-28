@@ -19,7 +19,7 @@ jobs:
         go-version: 1.17
     
     - name: Setup Redis
-      uses: zhulik/redis-action@1.1.0
+      uses: mjolnir-mud/redis-action@1.2.0
       
     - name: MongoDB
       uses: SusanDoggie/mongodb-action@0.0.1
