@@ -186,7 +186,7 @@ func TestStopService(t *testing.T) {
 		}()
 	})
 
-	RegisterBeforeServiceStopCallbackForEnv("testing", "testing", func() {
+	RegisterBeforeServiceStopCallbackForEnv("testing", "test", func() {
 		go func() {
 			beforeStopCalledForEnv <- true
 		}()
@@ -198,7 +198,7 @@ func TestStopService(t *testing.T) {
 		}()
 	})
 
-	RegisterAfterServiceStopCallbackForEnv("testing", "testing", func() {
+	RegisterAfterServiceStopCallbackForEnv("testing", "test", func() {
 		go func() {
 			afterStopCalledForEnv <- true
 		}()
