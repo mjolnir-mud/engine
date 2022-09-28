@@ -22,7 +22,7 @@ jobs:
       uses: zhulik/redis-action@1.1.0
       
     - name: MongoDB
-      uses: uses: SusanDoggie/mongodb-action@0.0.1
+      uses: SusanDoggie/mongodb-action@0.0.1
       
     - name: Go Mod Download
       run: go mod download
