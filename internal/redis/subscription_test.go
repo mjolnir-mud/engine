@@ -20,7 +20,7 @@ func (e testEvent) Topic() string {
 
 func setup() {
 	viper.Set("env", "testing")
-	Start()
+	Start("localhost", 6379, 1)
 }
 
 func teardown() {

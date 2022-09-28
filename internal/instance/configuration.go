@@ -32,6 +32,15 @@ func initializeConfigurations() {
 				},
 			}
 		},
+		"test": func(*config.Configuration) *config.Configuration {
+			return &config.Configuration{
+				Redis: config.RedisConfiguration{
+					Host: "localhost",
+					Port: 6379,
+					Db:   1,
+				},
+			}
+		},
 	}
 }
 

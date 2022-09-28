@@ -1,7 +1,7 @@
 package instance
 
 func setup() {
-	Initialize("testing", "testing")
+	Initialize("testing", "test")
 }
 
 func teardown() {

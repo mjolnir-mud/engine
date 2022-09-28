@@ -27,7 +27,7 @@ func TestInitialize(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Equal(t, "testing", GetEnv())
+	assert.Equal(t, "test", GetEnv())
 	assert.NotNil(t, log)
 }
 
@@ -42,7 +42,7 @@ func TestGetEnv(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Equal(t, "testing", GetEnv())
+	assert.Equal(t, "test", GetEnv())
 }
 
 func TestStart(t *testing.T) {
@@ -60,7 +60,7 @@ func TestStart(t *testing.T) {
 		}()
 	})
 
-	RegisterBeforeStartCallbackForEnv("testing", func() {
+	RegisterBeforeStartCallbackForEnv("test", func() {
 		go func() {
 			beforeStartCallbacksForEnvCalled <- true
 		}()
@@ -72,7 +72,7 @@ func TestStart(t *testing.T) {
 		}()
 	})
 
-	RegisterAfterStartCallbackForEnv("testing", func() {
+	RegisterAfterStartCallbackForEnv("test", func() {
 		go func() {
 			afterStartCallbacksForEnvCalled <- true
 		}()
@@ -109,7 +109,7 @@ func TestStop(t *testing.T) {
 		}()
 	})
 
-	RegisterBeforeStopCallbackForEnv("testing", func() {
+	RegisterBeforeStopCallbackForEnv("test", func() {
 		go func() {
 			beforeStopCallbacksForEnvCalled <- true
 		}()
@@ -139,7 +139,7 @@ func TestStartService(t *testing.T) {
 		}()
 	})
 
-	RegisterBeforeServiceStartCallbackForEnv("testing", "testing", func() {
+	RegisterBeforeServiceStartCallbackForEnv("testing", "test", func() {
 		go func() {
 			beforeStartCalledForEnv <- true
 		}()
@@ -151,7 +151,7 @@ func TestStartService(t *testing.T) {
 		}()
 	})
 
-	RegisterAfterServiceStartCallbackForEnv("testing", "testing", func() {
+	RegisterAfterServiceStartCallbackForEnv("testing", "test", func() {
 		go func() {
 			afterStartCalledForEnv <- true
 		}()

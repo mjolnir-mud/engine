@@ -55,7 +55,14 @@ func setup() {
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			controllers.Register(controllersTesting.CreateMockController("new_account"))
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
+
+			deleted := make(chan interface{})
+
+			go func() {
+				deleted <- data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
+			}()
+
+			<-deleted
 
 			err := data_sources.SaveWithId(
 				"accounts",

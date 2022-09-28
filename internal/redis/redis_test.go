@@ -7,7 +7,7 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	Start()
+	Start("localhost", 6379, 1)
 
 	assert.NotNil(t, client)
 
