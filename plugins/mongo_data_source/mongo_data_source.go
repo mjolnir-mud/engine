@@ -24,11 +24,11 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/data_source"
 	errors3 "github.com/mjolnir-mud/engine/plugins/data_sources/errors"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/config"
+	constants2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/constants"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/errors"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/config"
-	constants2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/constants"
-	errors2 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/errors"
 	"github.com/rs/zerolog"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,7 +53,7 @@ func ConfigureForEnv(env string, cb func(c *config.Configuration) *config.Config
 	plugin.ConfigureForEnv(env, cb)
 }
 
-func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
+func (m MongoDataSource) All() ([]map[string]interface{}, error) {
 	m.logger.Debug().Msg("loading all entities")
 
 	cursor, err := m.getCollection().Find(context.Background(), map[string]interface{}{})
@@ -69,15 +69,11 @@ func (m MongoDataSource) All() (map[string]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	entities := make(map[string]map[string]interface{})
-
-	for _, entity := range results {
-		id := entity["_id"].(primitive.ObjectID).Hex()
-		cleanId(entity)
-		entities[id] = entity
+	for _, result := range results {
+		cleanId(result)
 	}
 
-	return entities, nil
+	return results, nil
 }
 
 func (m MongoDataSource) AppendMetadata(metadata map[string]interface{}) map[string]interface{} {
@@ -108,7 +104,7 @@ func (m MongoDataSource) Delete(id string) error {
 	return nil
 }
 
-func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[string]interface{}, error) {
+func (m MongoDataSource) Find(search map[string]interface{}) ([]map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching entities")
 
 	cursor, err := m.getCollection().Find(context.Background(), parseSearch(search))
@@ -124,18 +120,14 @@ func (m MongoDataSource) Find(search map[string]interface{}) (map[string]map[str
 		return nil, err
 	}
 
-	entities := make(map[string]map[string]interface{})
-
-	for _, entity := range results {
-		id := entity["_id"].(primitive.ObjectID).Hex()
-		cleanId(entity)
-		entities[id] = entity
+	for _, result := range results {
+		cleanId(result)
 	}
 
-	return entities, nil
+	return results, nil
 }
 
-func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[string]interface{}, error) {
+func (m MongoDataSource) FindOne(search map[string]interface{}) (map[string]interface{}, error) {
 	m.logger.Debug().Interface("search", search).Msg("searching one entity")
 
 	result := map[string]interface{}{}
@@ -144,18 +136,14 @@ func (m MongoDataSource) FindOne(search map[string]interface{}) (string, map[str
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return "", nil, errors3.EntityNotFoundError{}
+			return nil, errors3.EntityNotFoundError{}
 		}
-		return "", nil, err
+		return nil, err
 	}
-
-	id := result["_id"].(primitive.ObjectID).Hex()
 
 	cleanId(result)
 
-	result["id"] = id
-
-	return id, result, nil
+	return result, nil
 }
 
 func (m MongoDataSource) FindAndDelete(search map[string]interface{}) error {
@@ -191,13 +179,13 @@ func (m MongoDataSource) SaveWithId(entityId string, entity map[string]interface
 	collection, ok := metadata.(map[string]interface{})[constants2.MetadataCollectionKey]
 
 	if !ok {
-		return errors2.CollectionMetadataRequiredError{ID: entityId}
+		return errors.CollectionMetadataRequiredError{ID: entityId}
 	}
 
 	m.logger.Debug().Str("collection", collection.(string)).Interface("entity", entity).Msg("saving entity")
 
 	if collection != m.collectionName {
-		return errors2.CollectionMismatchError{
+		return errors.CollectionMismatchError{
 			SourceCollection: m.collectionName,
 			TargetCollection: collection.(string),
 		}
@@ -221,13 +209,13 @@ func (m MongoDataSource) Save(entity map[string]interface{}) (string, error) {
 	collection, ok := metadata.(map[string]interface{})[constants2.MetadataCollectionKey]
 
 	if !ok {
-		return "", errors2.CollectionMetadataRequiredError{}
+		return "", errors.CollectionMetadataRequiredError{}
 	}
 
 	m.logger.Debug().Str("collection", collection.(string)).Interface("entity", entity).Msg("saving entity")
 
 	if collection != m.collectionName {
-		return "", errors2.CollectionMismatchError{
+		return "", errors.CollectionMismatchError{
 			SourceCollection: m.collectionName,
 			TargetCollection: collection.(string),
 		}
@@ -257,6 +245,7 @@ func (m MongoDataSource) getCollection() *mongo.Collection {
 }
 
 func cleanId(entity map[string]interface{}) {
+	entity["id"] = entity["_id"].(primitive.ObjectID).Hex()
 	delete(entity, "_id")
 }
 

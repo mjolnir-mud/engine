@@ -19,10 +19,10 @@ package plugin
 
 import (
 	"context"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/config"
 
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/config"
 	"github.com/rs/zerolog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -35,7 +35,7 @@ var Configs = map[string]func(c *config.Configuration) *config.Configuration{
 
 		return c
 	},
-	"test": func(c *config.Configuration) *config.Configuration {
+	"testing": func(c *config.Configuration) *config.Configuration {
 		c.MongoURL = "mongodb://localhost:27017"
 		c.Database = "mjolnir_test"
 

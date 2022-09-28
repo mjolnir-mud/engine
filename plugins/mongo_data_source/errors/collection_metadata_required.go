@@ -2,8 +2,7 @@ package errors
 
 import (
 	"fmt"
-
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/constants"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/constants"
 )
 
 type CollectionMetadataRequiredError struct {

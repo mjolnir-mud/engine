@@ -24,7 +24,7 @@ func setup() {
 					"collection": "entities",
 					"type":       "fake",
 				},
-				"testComponent": "test",
+				"testComponent": "testing",
 			})
 
 			_, _ = Plugin.Collection("entities").InsertOne(context.Background(), map[string]interface{}{
@@ -79,7 +79,7 @@ func TestMongoDataSource_Find(t *testing.T) {
 	_ = dataSource.Start()
 
 	entities, err := dataSource.Find(map[string]interface{}{
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -98,7 +98,7 @@ func TestMongoDataSource_SaveWithId(t *testing.T) {
 			"collection": "entities",
 			"type":       "fake",
 		},
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -123,7 +123,7 @@ func TestMongoDataSource_Save(t *testing.T) {
 			"collection": "entities",
 			"type":       "fake",
 		},
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -143,8 +143,8 @@ func TestMongoDataSource_FindOne(t *testing.T) {
 	dataSource := New("entities")
 	_ = dataSource.Start()
 
-	id, entity, err := dataSource.FindOne(map[string]interface{}{
-		"testComponent": "test",
+	entity, err := dataSource.FindOne(map[string]interface{}{
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -154,10 +154,8 @@ func TestMongoDataSource_FindOne(t *testing.T) {
 			"type":       "fake",
 		},
 		"id":            sanitizeId("entity_1").Hex(),
-		"testComponent": "test",
+		"testComponent": "testing",
 	}, entity)
-
-	assert.Equal(t, sanitizeId("entity_1").Hex(), id)
 }
 
 func TestMongoDataSource_Count(t *testing.T) {
@@ -168,7 +166,7 @@ func TestMongoDataSource_Count(t *testing.T) {
 	_ = dataSource.Start()
 
 	c, err := dataSource.Count(map[string]interface{}{
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -202,7 +200,7 @@ func TestMongoDataSource_FindAndDelete(t *testing.T) {
 	_ = dataSource.Start()
 
 	err := dataSource.FindAndDelete(map[string]interface{}{
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)

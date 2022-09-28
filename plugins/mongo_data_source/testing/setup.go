@@ -19,12 +19,12 @@ package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/config"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/config"
 )
 
 func Setup() {
-	plugin.ConfigureForEnv("test", func(c *config.Configuration) *config.Configuration {
+	plugin.ConfigureForEnv("testing", func(c *config.Configuration) *config.Configuration {
 		c.MongoURL = "mongodb://localhost:27017"
 		c.Database = "mjolnir_test"
 
