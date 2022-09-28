@@ -25,9 +25,9 @@ import (
 )
 
 func Setup(args ...interface{}) chan bool {
-	engine.Initialize("test", "test")
+	engine.Initialize("testing", "testing")
 
-	engine.ConfigureForEnv("test", func(cfg *config.Configuration) *config.Configuration {
+	engine.ConfigureForEnv("testing", func(cfg *config.Configuration) *config.Configuration {
 		return cfg
 	})
 

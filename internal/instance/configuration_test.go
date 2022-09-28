@@ -25,7 +25,7 @@ import (
 )
 
 func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("test", func(configuration *config.Configuration) *config.Configuration {
+	ConfigureForEnv("testing", func(configuration *config.Configuration) *config.Configuration {
 		return &config.Configuration{
 			Redis: config.RedisConfiguration{
 				Host: "localhost",
@@ -35,5 +35,5 @@ func TestConfigureForEnv(t *testing.T) {
 		}
 	})
 
-	assert.NotNil(t, Configs["test"])
+	assert.NotNil(t, Configs["testing"])
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -33,7 +34,7 @@ type testController struct {
 }
 
 func (c testController) Name() string {
-	return "test"
+	return "testing"
 }
 
 func (c testController) Start(entityId string) error {
@@ -73,7 +74,7 @@ func setup() {
 		ecsTesting.Setup()
 	})
 
-	ecs.RegisterEntityType(ecsTesting.TestEntityType{})
+	ecs.RegisterEntityType(fakes.FakeEntityType{})
 	ecs.RegisterSystem(ControllerSystem)
 
 }
@@ -95,39 +96,39 @@ func TestControllerSystem_Component(t *testing.T) {
 }
 
 func TestControllerSystem_Match(t *testing.T) {
-	assert.True(t, ControllerSystem.Match("controller", "test"))
+	assert.True(t, ControllerSystem.Match("controller", "testing"))
 }
 
 func TestControllerSystem_MatchingComponentAdded(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Nil(t, ControllerSystem.MatchingComponentAdded("test", "test"))
+	assert.Nil(t, ControllerSystem.MatchingComponentAdded("testing", "testing"))
 
 	entityId := <-tc.StartCalled
 
-	assert.Equal(t, "test", entityId)
+	assert.Equal(t, "testing", entityId)
 }
 
 func TestControllerSystem_MatchingComponentUpdated(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Nil(t, ControllerSystem.MatchingComponentUpdated("test", "test", "test"))
+	assert.Nil(t, ControllerSystem.MatchingComponentUpdated("testing", "testing", "testing"))
 	entityId := <-tc.StopCalled
 
-	assert.Equal(t, "test", entityId)
+	assert.Equal(t, "testing", entityId)
 
 	entityId = <-tc.StartCalled
 
-	assert.Equal(t, "test", entityId)
+	assert.Equal(t, "testing", entityId)
 }
 
 func TestGetController(t *testing.T) {
 	setup()
 	defer teardown()
 
-	c, err := GetController("test")
+	c, err := GetController("testing")
 
 	assert.Nil(t, err)
 	assert.Equal(t, tc, c)
@@ -137,25 +138,25 @@ func TestSetController(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := ecs.AddEntityWithID("testing", "test", map[string]interface{}{})
+	err := ecs.AddEntityWithID("testing", "testing", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	assert.Nil(t, SetController("test", "test"))
+	assert.Nil(t, SetController("testing", "testing"))
 
 	called := <-tc.StartCalled
 
-	assert.Equal(t, "test", called)
+	assert.Equal(t, "testing", called)
 }
 
 func TestHandleInput(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Nil(t, HandleInput("test", "test"))
+	assert.Nil(t, HandleInput("testing", "testing"))
 
 	called := <-tc.HandleInputCalled
 
-	assert.Equal(t, "test", called[0])
-	assert.Equal(t, "test", called[1])
+	assert.Equal(t, "testing", called[0])
+	assert.Equal(t, "testing", called[1])
 }

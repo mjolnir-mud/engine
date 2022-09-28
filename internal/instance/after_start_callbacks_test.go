@@ -35,7 +35,7 @@ func TestRegisterAfterServiceStartCallback(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterAfterServiceStartCallback("test", func() {})
+	RegisterAfterServiceStartCallback("testing", func() {})
 
 	assert.Equal(t, 1, len(afterServiceStartCallbacks))
 }
@@ -44,16 +44,16 @@ func TestRegisterAfterStartCallbackForEnv(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterAfterStartCallbackForEnv("test", func() {})
+	RegisterAfterStartCallbackForEnv("testing", func() {})
 
-	assert.Equal(t, 1, len(afterStartCallbacksForEnv["test"]))
+	assert.Equal(t, 1, len(afterStartCallbacksForEnv["testing"]))
 }
 
 func TestRegisterAfterServiceStartCallbackForEnv(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterAfterServiceStartCallbackForEnv("test", "test", func() {})
+	RegisterAfterServiceStartCallbackForEnv("testing", "testing", func() {})
 
-	assert.Equal(t, 1, len(afterServiceStartCallbacksForEnv["test"]["test"]))
+	assert.Equal(t, 1, len(afterServiceStartCallbacksForEnv["testing"]["testing"]))
 }

@@ -9,7 +9,7 @@ import (
 type testTheme struct{}
 
 func (t testTheme) Name() string {
-	return "test"
+	return "testing"
 }
 
 func (t testTheme) DefaultStyle() lipgloss.Style {
@@ -43,7 +43,7 @@ func TestGetTheme(t *testing.T) {
 
 	Register(testTheme{})
 
-	thm, err := GetTheme("test")
+	thm, err := GetTheme("testing")
 
 	assert.NoError(t, err)
 	assert.Equal(t, testTheme{}.Name(), thm.Name())

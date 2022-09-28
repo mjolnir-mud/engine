@@ -38,6 +38,8 @@
 * The `Save` function has been changed to `SaveWithId`. A new `Save` function has been added that will automatically
   generate a new entity ID and call `SaveWithId` with the new ID, returning the new id.
 
+* Restructured plugin package
+
 ### MongoDataSource
 
 ### Bug Fixes

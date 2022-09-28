@@ -41,7 +41,7 @@ func (c mockController) Stop(_ string) error {
 }
 
 func (c mockController) HandleInput(_ string, _ string) error {
-	go func() { c.HandleInputCalled <- []string{"test", "test"} }()
+	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
 
 	return nil
 }

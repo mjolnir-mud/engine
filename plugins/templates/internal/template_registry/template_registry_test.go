@@ -14,11 +14,11 @@ func (t *testTemplate) Render(data interface{}) (string, error) {
 }
 
 func (t *testTemplate) Name() string {
-	return "test"
+	return "testing"
 }
 
 func (t *testTemplate) Style() string {
-	return "test"
+	return "testing"
 }
 
 type testTheme struct{}
@@ -60,7 +60,7 @@ func TestRender(t *testing.T) {
 
 	Register(&testTemplate{})
 
-	_, err := Render("test", nil)
+	_, err := Render("testing", nil)
 
 	assert.NoError(t, err)
 }

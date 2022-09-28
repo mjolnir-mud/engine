@@ -45,7 +45,7 @@ type testController struct {
 }
 
 func (c testController) Name() string {
-	return "test"
+	return "testing"
 }
 
 func (c testController) Start(_ string) error {
@@ -61,7 +61,7 @@ func (c testController) Stop(_ string) error {
 }
 
 func (c testController) HandleInput(_ string, _ string) error {
-	go func() { c.HandleInputCalled <- []string{"test", "test"} }()
+	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
 
 	return nil
 }
@@ -90,7 +90,7 @@ func TestGet(t *testing.T) {
 
 	Register(testController{})
 
-	c, err := Get("test")
+	c, err := Get("testing")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, c)
@@ -106,19 +106,19 @@ func TestHandleInput(t *testing.T) {
 
 	Register(tc)
 
-	err := ecs.AddEntityWithID("session", "test", map[string]interface{}{})
+	err := ecs.AddEntityWithID("session", "testing", map[string]interface{}{})
 
 	assert.Nil(t, err)
 
-	err = ecs.AddStringComponentToEntity("test", "controller", "test")
+	err = ecs.AddStringComponentToEntity("testing", "controller", "testing")
 
 	assert.Nil(t, err)
 
-	err = HandleInput("test", "test")
+	err = HandleInput("testing", "testing")
 
 	assert.Nil(t, err)
 
 	res := <-tc.HandleInputCalled
 
-	assert.Equal(t, []string{"test", "test"}, res)
+	assert.Equal(t, []string{"testing", "testing"}, res)
 }

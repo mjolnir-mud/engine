@@ -13,7 +13,7 @@ type testPlugin struct {
 }
 
 func (p *testPlugin) Name() string {
-	return "test"
+	return "testing"
 }
 
 func (p *testPlugin) Start() error {

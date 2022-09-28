@@ -15,11 +15,11 @@ type testEvent struct {
 
 func (e testEvent) Topic() string {
 
-	return fmt.Sprintf("test.%s", e.Value)
+	return fmt.Sprintf("testing.%s", e.Value)
 }
 
 func setup() {
-	viper.Set("env", "test")
+	viper.Set("env", "testing")
 	Start()
 }
 
@@ -32,7 +32,7 @@ func TestSubscribe(t *testing.T) {
 	defer teardown()
 	ch := make(chan interface{})
 
-	s := NewSubscription(&testEvent{Value: "test"}, func(payload event.EventPayload) {
+	s := NewSubscription(&testEvent{Value: "testing"}, func(payload event.EventPayload) {
 		p := &testEvent{}
 
 		_ = payload.Unmarshal(p)
@@ -41,7 +41,7 @@ func TestSubscribe(t *testing.T) {
 	})
 
 	err := Publish(&testEvent{
-		Value: "test",
+		Value: "testing",
 	})
 
 	assert.Nil(t, err)
@@ -49,7 +49,7 @@ func TestSubscribe(t *testing.T) {
 	v := <-ch
 
 	assert.Equal(t, &testEvent{
-		Value: "test",
+		Value: "testing",
 	}, v)
 
 	s.Stop()

@@ -9,7 +9,7 @@ import (
 )
 
 func setup() {
-	viper.Set("env", "test")
+	viper.Set("env", "testing")
 }
 
 func tearDown() {

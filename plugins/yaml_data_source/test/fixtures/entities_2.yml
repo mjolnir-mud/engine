@@ -1,7 +1,7 @@
 entity_3:
     __metadata:
         entityType: fake
-    testComponent: test
+    testComponent: testing
 entity_4:
     __metadata:
         entityType: fake

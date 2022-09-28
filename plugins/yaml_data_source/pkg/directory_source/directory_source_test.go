@@ -10,9 +10,9 @@ import (
 )
 
 func TestDirectorySource_All(t *testing.T) {
-	ds := New("entities_1", "../../test/fixtures")
+	ds := New("entities_1", "../../testing/fixtures")
 
-	p, err := filepath.Abs("../../test/fixtures")
+	p, err := filepath.Abs("../../testing/fixtures")
 
 	assert.Nil(t, err)
 
@@ -26,7 +26,7 @@ func TestDirectorySource_All(t *testing.T) {
 				"entityType": "fake",
 				"file":       path.Join(p, "entities_1.yml"),
 			},
-			"testComponent": "test",
+			"testComponent": "testing",
 		},
 		"entity_2": {
 			"__metadata": map[string]interface{}{
@@ -40,7 +40,7 @@ func TestDirectorySource_All(t *testing.T) {
 				"entityType": "fake",
 				"file":       path.Join(p, "entities_2.yml"),
 			},
-			"testComponent": "test",
+			"testComponent": "testing",
 		},
 		"entity_4": {
 			"__metadata": map[string]interface{}{
@@ -53,14 +53,14 @@ func TestDirectorySource_All(t *testing.T) {
 }
 
 func TestDirectorySource_Find(t *testing.T) {
-	ds := New("entities_1", "../../test/fixtures")
+	ds := New("entities_1", "../../testing/fixtures")
 
-	p, err := filepath.Abs("../../test/fixtures")
+	p, err := filepath.Abs("../../testing/fixtures")
 
 	assert.Nil(t, err)
 
 	e, err := ds.Find(map[string]interface{}{
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -71,23 +71,23 @@ func TestDirectorySource_Find(t *testing.T) {
 				"entityType": "fake",
 				"file":       path.Join(p, "entities_1.yml"),
 			},
-			"testComponent": "test",
+			"testComponent": "testing",
 		},
 		"entity_3": {
 			"__metadata": map[string]interface{}{
 				"entityType": "fake",
 				"file":       path.Join(p, "entities_2.yml"),
 			},
-			"testComponent": "test",
+			"testComponent": "testing",
 		},
 	}, e)
 }
 
 func TestDirectorySource_FindOne(t *testing.T) {
-	ds := New("entities_1", "../../test/fixtures")
+	ds := New("entities_1", "../../testing/fixtures")
 
 	id, _, err := ds.FindOne(map[string]interface{}{
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
@@ -95,9 +95,9 @@ func TestDirectorySource_FindOne(t *testing.T) {
 }
 
 func TestDirectorySource_Save(t *testing.T) {
-	ds := New("entities_1", "../../test/fixtures")
+	ds := New("entities_1", "../../testing/fixtures")
 
-	p, err := filepath.Abs("../../test/fixtures")
+	p, err := filepath.Abs("../../testing/fixtures")
 
 	defer func() {
 		resetToEmptyFile(path.Join(p, "entities_3.yml"))
@@ -110,14 +110,14 @@ func TestDirectorySource_Save(t *testing.T) {
 			"entityType": "fake",
 			"file":       path.Join(p, "entities_3.yml"),
 		},
-		"testComponent": "test",
+		"testComponent": "testing",
 	})
 
 	assert.Nil(t, err)
 }
 
 func TestDirectorySource_Count(t *testing.T) {
-	ds := New("entities_1", "../../test/fixtures")
+	ds := New("entities_1", "../../testing/fixtures")
 
 	count, err := ds.Count(map[string]interface{}{})
 

@@ -9,7 +9,7 @@ func TestRegisterBeforeServiceStopCallback(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterBeforeServiceStopCallback("test", func() {})
+	RegisterBeforeServiceStopCallback("testing", func() {})
 
 	assert.Equal(t, 1, len(beforeServiceStopCallbacks))
 }
@@ -27,16 +27,16 @@ func TestRegisterBeforeServiceStopCallbackForEnv(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterBeforeServiceStopCallbackForEnv("test", "test", func() {})
+	RegisterBeforeServiceStopCallbackForEnv("testing", "testing", func() {})
 
-	assert.Equal(t, 1, len(beforeServiceStopCallbacksForEnv["test"]["test"]))
+	assert.Equal(t, 1, len(beforeServiceStopCallbacksForEnv["testing"]["testing"]))
 }
 
 func TestRegisterBeforeStopCallbackForEnv(t *testing.T) {
 	setup()
 	defer teardown()
 
-	RegisterBeforeStopCallbackForEnv("test", func() {})
+	RegisterBeforeStopCallbackForEnv("testing", func() {})
 
-	assert.Equal(t, 1, len(beforeStopCallbacksForEnv["test"]))
+	assert.Equal(t, 1, len(beforeStopCallbacksForEnv["testing"]))
 }
