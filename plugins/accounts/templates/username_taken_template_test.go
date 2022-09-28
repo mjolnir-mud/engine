@@ -14,8 +14,8 @@ func TestUsernameTakenTemplate_Style(t *testing.T) {
 }
 
 func TestUsernameTakenTemplate_Render(t *testing.T) {
-	s, err := UsernameTakenTemplate.Render("test")
+	s, err := UsernameTakenTemplate.Render("testing")
 
 	assert.NoError(t, err)
-	assert.Equal(t, s, "The username 'test' is already taken.")
+	assert.Equal(t, s, "The username 'testing' is already taken.")
 }

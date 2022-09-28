@@ -23,6 +23,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -31,7 +32,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/pkg/testing"
 	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
@@ -44,7 +44,7 @@ func setup() {
 		ecsTesting.Setup()
 		templatesTesting.Setup()
 		testing2.Setup()
-		mongoDataSourceTesting.Setup()
+		testing3.Setup()
 		sessionsTesting.Setup()
 		controllersTesting.Setup()
 
@@ -55,13 +55,13 @@ func setup() {
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			controllers.Register(controllersTesting.CreateMockController("new_account"))
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "test-account"})
+			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
 
 			err := data_sources.SaveWithId(
 				"accounts",
-				"test-account",
+				"testing-account",
 				map[string]interface{}{
-					"username":       "test-account",
+					"username":       "testing-account",
 					"hashedPassword": string(hashedPassword),
 					"__metadata": map[string]interface{}{
 						"entityType": "account",
@@ -84,7 +84,7 @@ func setup() {
 func teardown() {
 	ecsTesting.Teardown()
 	templatesTesting.Teardown()
-	mongoDataSourceTesting.Teardown()
+	testing3.Teardown()
 	testing2.Teardown()
 	engineTesting.Teardown()
 }
@@ -145,7 +145,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = c.HandleInput("sess", "test")
+	err = c.HandleInput("sess", "testing")
 
 	assert.NoError(t, err)
 
@@ -157,13 +157,13 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 	s, err := session.GetStringFromFlash("sess", "username")
 
 	assert.NoError(t, err)
-	assert.Equal(t, "test", s)
+	assert.Equal(t, "testing", s)
 
 	line := <-receivedLine
 
 	assert.Equal(t, "Enter your password:\r\n", line)
 
-	err = c.HandleInput("sess", "test")
+	err = c.HandleInput("sess", "testing")
 
 	line = <-receivedLine
 
@@ -187,7 +187,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = c.HandleInput("sess", "test-account")
+	err = c.HandleInput("sess", "testing-account")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "Enter your password:\r\n", <-receivedLine)

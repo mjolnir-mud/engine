@@ -8,7 +8,7 @@ import (
 	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
+	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
@@ -18,7 +18,7 @@ func setup() {
 	engineTesting.Setup("world", func() {
 		testing2.Setup()
 		ecsTesting.Setup()
-		mongoDataSourceTesting.Setup()
+		testing3.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
 			data_sources.Register(account.Create())
@@ -53,7 +53,7 @@ func setup() {
 func teardown() {
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
 	testing2.Teardown()
-	mongoDataSourceTesting.Teardown()
+	testing3.Teardown()
 	engineTesting.Teardown()
 }
 
@@ -64,12 +64,12 @@ func TestAccountType_Name(t *testing.T) {
 }
 
 func TestAccountType_New(t *testing.T) {
-	assert.Equal(t, map[string]interface{}{"username": "test"}, EntityType.New(map[string]interface{}{"username": "test"}))
+	assert.Equal(t, map[string]interface{}{"username": "testing"}, EntityType.New(map[string]interface{}{"username": "testing"}))
 }
 
 func TestAccountType_Validate(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Error(t, EntityType.Validate(map[string]interface{}{"username": "test"}))
+	assert.Error(t, EntityType.Validate(map[string]interface{}{"username": "testing"}))
 }

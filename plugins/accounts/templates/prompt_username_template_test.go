@@ -1,14 +1,12 @@
 package templates
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/accounts/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestPromptUsernameTemplate_Render(t *testing.T) {
-	test.Setup()
-	defer test.Teardown()
+	setup()
 
 	v, err := PromptUsernameTemplate.Render(nil)
 	assert.NoError(t, err)

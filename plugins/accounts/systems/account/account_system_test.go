@@ -9,7 +9,7 @@ import (
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/pkg/testing"
+	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 
@@ -29,14 +29,14 @@ func setup() {
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			ecs.RegisterEntityType(accountEntityType.EntityType)
 
-			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "test-account"})
+			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
 			err := data_sources.SaveWithId(
 				"accounts",
-				"test-account",
+				"testing-account",
 				map[string]interface{}{
-					"username":       "test-account",
+					"username":       "testing-account",
 					"hashedPassword": string(hashedPassword),
 					"__metadata": map[string]interface{}{
 						"entityType": "account",
@@ -72,26 +72,26 @@ func TestValidateEmail(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Nil(t, ValidateEmail("test@email.com"))
+	assert.Nil(t, ValidateEmail("testing@email.com"))
 
-	assert.Error(t, ValidateEmail("test"))
+	assert.Error(t, ValidateEmail("testing"))
 }
 
 func TestValidatePassword(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Nil(t, ValidatePassword("test", "test@test.com", "validPassword"))
-	assert.Error(t, ValidatePassword("test", "test@test.com", "invalid"))
-	assert.Error(t, ValidatePassword("validPassword", "test@test.com", "validPassword"))
-	assert.Error(t, ValidatePassword("test", "test@test.com", "test@test.com"))
+	assert.Nil(t, ValidatePassword("testing", "testing@testing.com", "validPassword"))
+	assert.Error(t, ValidatePassword("testing", "testing@testing.com", "invalid"))
+	assert.Error(t, ValidatePassword("validPassword", "testing@testing.com", "validPassword"))
+	assert.Error(t, ValidatePassword("testing", "testing@testing.com", "testing@testing.com"))
 }
 
 func TestValidateUsername(t *testing.T) {
 	setup()
 	defer teardown()
 
-	assert.Nil(t, ValidateUsername("test"))
+	assert.Nil(t, ValidateUsername("testing"))
 	assert.Error(t, ValidateUsername("invalid@"))
 }
 
@@ -99,12 +99,12 @@ func TestCompareAccountCredentials(t *testing.T) {
 	setup()
 	defer teardown()
 
-	id, err := CompareAccountCredentials(Credentials{"test-account", "password"})
+	id, err := CompareAccountCredentials(Credentials{"testing-account", "password"})
 
 	assert.Nil(t, err)
 	assert.NotNil(t, id)
 
-	_, err = CompareAccountCredentials(Credentials{"test-account", "wrongpassword"})
+	_, err = CompareAccountCredentials(Credentials{"testing-account", "wrongpassword"})
 
 	assert.NotNil(t, err)
 }
