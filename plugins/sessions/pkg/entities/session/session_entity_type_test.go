@@ -11,10 +11,6 @@ func TestSessionType_Name(t *testing.T) {
 
 func TestSessionType_New(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
-		"expireIn": 900,
-		"store": map[string]interface{}{
-			"controller": "login",
-		},
 		"flash": map[string]interface{}{},
 	}, Type.New(map[string]interface{}{}))
 }

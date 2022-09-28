@@ -28,60 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var ch = make(chan inputArgs)
-
-type inputArgs struct {
-	Id    string
-	Input string
-}
-
-// testController is the login testController, responsible handling user logins.
-type testController struct{}
-
-func (l testController) Name() string {
-	return "login"
-}
-
-func (l testController) Start(_ string) error {
-	return nil
-}
-
-func (l testController) Resume(_ string) error {
-	return nil
-}
-
-func (l testController) Stop(_ string) error {
-	return nil
-}
-
-func (l testController) HandleInput(id string, input string) error {
-	go func() { ch <- inputArgs{Id: id, Input: input} }()
-
-	return nil
-}
-
-type altController struct{}
-
-func (a altController) Name() string {
-	return "alt"
-}
-
-func (a altController) Start(_ string) error {
-	return nil
-}
-
-func (a altController) Resume(_ string) error {
-	return nil
-}
-
-func (a altController) Stop(_ string) error {
-	return nil
-}
-
-func (a altController) HandleInput(_ string, _ string) error {
-	return nil
-}
-
 func setup() {
 	engineTesting.Setup(func() {
 		ecsTesting.Setup()
@@ -97,7 +43,7 @@ func setup() {
 		panic(err)
 	}
 
-	err = ecs.AddEntityWithID("session", "test", ent)
+	err = ecs.AddEntityWithID("session", "testing", ent)
 
 	if err != nil {
 		panic(err)
@@ -114,7 +60,7 @@ func TestStart(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := Start("test")
+	err := Start("testing")
 
 	assert.NoError(t, err)
 }
@@ -123,15 +69,15 @@ func TestGetIntFromFlash(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := Start("test")
+	err := Start("testing")
 
 	assert.NoError(t, err)
 
-	err = SetIntInFlash("test", "test", 1)
+	err = SetIntInFlash("testing", "testing", 1)
 
 	assert.NoError(t, err)
 
-	i, err := GetIntFromFlash("test", "test")
+	i, err := GetIntFromFlash("testing", "testing")
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, i)
@@ -141,20 +87,20 @@ func TestGetIntFromFlashWithDefault(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := Start("test")
+	err := Start("testing")
 
 	assert.NoError(t, err)
 
-	err = SetIntInFlash("test", "test", 1)
+	err = SetIntInFlash("testing", "testing", 1)
 
 	assert.NoError(t, err)
 
-	i, err := GetIntFromFlashWithDefault("test", "test", 1)
+	i, err := GetIntFromFlashWithDefault("testing", "testing", 1)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, i)
 
-	i, err = GetIntFromFlashWithDefault("test", "test2", 2)
+	i, err = GetIntFromFlashWithDefault("testing", "test2", 2)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, i)
@@ -168,15 +114,15 @@ func TestGetStringFromFlash(t *testing.T) {
 	setup()
 	defer teardown()
 
-	err := Start("test")
+	err := Start("testing")
 
 	assert.NoError(t, err)
 
-	err = SetStringInFlash("test", "test", "test")
+	err = SetStringInFlash("testing", "testing", "testing")
 	assert.NoError(t, err)
 
-	s, err := GetStringFromFlash("test", "test")
+	s, err := GetStringFromFlash("testing", "testing")
 
 	assert.NoError(t, err)
-	assert.Equal(t, "test", s)
+	assert.Equal(t, "testing", s)
 }

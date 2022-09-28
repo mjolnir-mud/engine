@@ -6,6 +6,6 @@ import (
 )
 
 func TestPlayerDisconnectedEvent_Topic(t *testing.T) {
-	e := PlayerDisconnectedEvent{Id: "test"}
-	assert.Equal(t, "test.disconnected", e.Topic())
+	e := PlayerDisconnectedEvent{Id: "testing"}
+	assert.Equal(t, "testing.disconnected", e.Topic())
 }

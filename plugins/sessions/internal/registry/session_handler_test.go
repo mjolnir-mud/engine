@@ -12,9 +12,9 @@ func TestNewSessionHandler(t *testing.T) {
 	setup()
 	defer teardown()
 
-	sh := NewSessionHandler("test")
+	sh := NewSessionHandler("testing")
 
-	assert.Equal(t, "test", sh.Id)
+	assert.Equal(t, "testing", sh.Id)
 }
 
 func TestSessionHandler_Start(t *testing.T) {
@@ -28,13 +28,13 @@ func TestSessionHandler_Start(t *testing.T) {
 		return nil
 	})
 
-	sh := NewSessionHandler("test")
+	sh := NewSessionHandler("testing")
 	sh.Start()
 	defer sh.Stop()
 
 	v := <-ch
 
-	assert.Equal(t, "test", v)
+	assert.Equal(t, "testing", v)
 }
 
 func TestSessionHandler_Stop(t *testing.T) {
@@ -48,13 +48,13 @@ func TestSessionHandler_Stop(t *testing.T) {
 		return nil
 	})
 
-	sh := NewSessionHandler("test")
+	sh := NewSessionHandler("testing")
 	sh.Start()
 	sh.Stop()
 
 	v := <-ch
 
-	assert.Equal(t, "test", v)
+	assert.Equal(t, "testing", v)
 	assert.Len(t, sessionHandlers, 0)
 }
 
@@ -64,7 +64,7 @@ func TestSessionHandler_SendLine(t *testing.T) {
 
 	ch := make(chan string)
 
-	sub := engine.Subscribe(events.PlayerOutputEvent{Id: "test"}, func(e event.EventPayload) {
+	sub := engine.Subscribe(events.PlayerOutputEvent{Id: "testing"}, func(e event.EventPayload) {
 		ev := &events.PlayerOutputEvent{}
 		_ = e.Unmarshal(ev)
 
@@ -73,14 +73,14 @@ func TestSessionHandler_SendLine(t *testing.T) {
 
 	defer sub.Stop()
 
-	sh := NewSessionHandler("test")
+	sh := NewSessionHandler("testing")
 	sh.Start()
 	defer sh.Stop()
 
-	err := sh.SendLine("test")
+	err := sh.SendLine("testing")
 
 	assert.NoError(t, err)
-	assert.Equal(t, "test", <-ch)
+	assert.Equal(t, "testing\r\n", <-ch)
 
 }
 
@@ -95,15 +95,15 @@ func TestLineHandler(t *testing.T) {
 		return nil
 	})
 
-	sh := NewSessionHandler("test")
+	sh := NewSessionHandler("testing")
 	sh.Start()
 	defer sh.Stop()
 
-	err := engine.Publish(events.PlayerInputEvent{Id: "test", Line: "test"})
+	err := engine.Publish(events.PlayerInputEvent{Id: "testing", Line: "testing"})
 
 	assert.NoError(t, err)
 
 	v := <-ch
 
-	assert.Equal(t, "test", v)
+	assert.Equal(t, "testing", v)
 }

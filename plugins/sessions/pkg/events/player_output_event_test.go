@@ -6,6 +6,6 @@ import (
 )
 
 func TestPlayerOutputEvent_Topic(t *testing.T) {
-	e := PlayerOutputEvent{Id: "test"}
-	assert.Equal(t, "test.output", e.Topic())
+	e := PlayerOutputEvent{Id: "testing"}
+	assert.Equal(t, "testing.output", e.Topic())
 }

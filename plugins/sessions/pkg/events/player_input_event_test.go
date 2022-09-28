@@ -6,6 +6,6 @@ import (
 )
 
 func TestInputEvent_Topic(t *testing.T) {
-	e := PlayerInputEvent{Id: "test"}
-	assert.Equal(t, "test.input", e.Topic())
+	e := PlayerInputEvent{Id: "testing"}
+	assert.Equal(t, "testing.input", e.Topic())
 }

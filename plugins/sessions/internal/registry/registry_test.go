@@ -116,7 +116,7 @@ func TestSendLine(t *testing.T) {
 
 	defer sub.Stop()
 
-	err = SendLine("testSession", "test")
+	err = SendLine("testSession", "testing")
 
 	assert.NoError(t, err)
 
