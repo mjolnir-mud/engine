@@ -61,6 +61,16 @@ func (e session) MatchingComponentUpdated(_ string, _ string, _ interface{}, _ i
 
 func (e session) MatchingComponentRemoved(_ string, _ string) error { return nil }
 
+// GetAccountId returns the account id for the given session. If the session does not exist, an error is returned.
+func GetAccountId(id string) (string, error) {
+	return ecs.GetStringComponent(id, "accountId")
+}
+
+// SetAccountId sets the account id for the given session. If the session does not exist, an error is returned.
+func SetAccountId(id, accountId string) error {
+	return ecs.AddOrUpdateStringComponentToEntity(id, "accountId", accountId)
+}
+
 // Start starts the session with the given id. This calls the start method of the testController. If the session does not
 // exist, an error is returned.
 func Start(_ string) error {

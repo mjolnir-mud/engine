@@ -19,11 +19,26 @@ package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
+	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/plugins/sessions/events"
 )
 
-func RegisterSession(id string) error {
-	return engine.Publish(events.PlayerConnectedEvent{
-		Id: id,
+func CreateReceiveOutputSubscription() (chan string, engine.Subscription) {
+	receivedOutput := make(chan string)
+
+	return receivedOutput, engine.Subscribe(events.PlayerOutputEvent{
+		Id: "sess",
+	}, func(e event.EventPayload) {
+		go func() {
+			poe := &events.PlayerOutputEvent{}
+
+			err := e.Unmarshal(poe)
+
+			if err != nil {
+				panic(err)
+			}
+
+			go func() { receivedOutput <- poe.Line }()
+		}()
 	})
 }

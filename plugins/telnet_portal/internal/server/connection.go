@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"fmt"
+	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"net"
 	"strings"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/pkg/logger"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
 	"github.com/rs/zerolog"
 )
 
@@ -75,7 +75,7 @@ func (c *connection) Start() {
 			// send each line to the world
 			for _, line := range lines {
 				if len(line) > 0 {
-					err = engine.Publish(events.PlayerInputEvent{
+					err = engine.Publish(events2.PlayerInputEvent{
 						Id:   c.uuid,
 						Line: line,
 					})
@@ -90,7 +90,7 @@ func (c *connection) Start() {
 		}
 	}()
 
-	sub := engine.Subscribe(events.SessionRegistryStartedEvent{}, func(_ event.EventPayload) {
+	sub := engine.Subscribe(events2.SessionRegistryStartedEvent{}, func(_ event.EventPayload) {
 		c.logger.Debug().Msg("handling session manager started event")
 		c.assertSession()
 
@@ -98,10 +98,10 @@ func (c *connection) Start() {
 
 	defer sub.Stop()
 
-	sub = engine.Subscribe(events.PlayerOutputEvent{
+	sub = engine.Subscribe(events2.PlayerOutputEvent{
 		Id: c.uuid,
 	}, func(e event.EventPayload) {
-		ev := &events.PlayerOutputEvent{}
+		ev := &events2.PlayerOutputEvent{}
 		err := e.Unmarshal(ev)
 
 		c.logger.Debug().Msg("handling write to connection event")
@@ -133,7 +133,7 @@ func (c *connection) Stop() {
 	c.logger.Debug().Msg("stopping connection")
 	_ = c.conn.Close()
 
-	_ = engine.Publish(events.PlayerDisconnectedEvent{
+	_ = engine.Publish(events2.PlayerDisconnectedEvent{
 		Id: c.uuid,
 	})
 
@@ -143,7 +143,7 @@ func (c *connection) Stop() {
 func (c *connection) assertSession() {
 	c.logger.Trace().Msg("asserting session")
 
-	err := engine.Publish(events.PlayerConnectedEvent{
+	err := engine.Publish(events2.PlayerConnectedEvent{
 		Id: c.uuid,
 	})
 

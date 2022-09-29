@@ -22,8 +22,8 @@ import (
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
+	"github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
+	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/stretchr/testify/assert"
 	"testing"
 
@@ -56,7 +56,7 @@ func TestPlayerConnected(t *testing.T) {
 		return nil
 	})
 
-	err := engine.Publish(events.PlayerConnectedEvent{})
+	err := engine.Publish(events2.PlayerConnectedEvent{})
 
 	assert.NoError(t, err)
 
@@ -110,7 +110,7 @@ func TestSendLine(t *testing.T) {
 
 	add(NewSessionHandler("testSession"))
 
-	sub := engine.Subscribe(events.PlayerOutputEvent{Id: "testSession"}, func(event event.EventPayload) {
+	sub := engine.Subscribe(events2.PlayerOutputEvent{Id: "testSession"}, func(event event.EventPayload) {
 		go func() { ch <- true }()
 	})
 

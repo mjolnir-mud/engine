@@ -22,9 +22,8 @@ import (
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
-
 	"github.com/rs/zerolog"
 )
 
@@ -55,13 +54,13 @@ func RegisterSessionStoppedHandler(f func(id string) error) {
 func Start() {
 	log = logger.Instance.With().Str("component", "registry").Logger()
 	sessionHandlers = make(map[string]*sessionHandler, 0)
-	playerConnectedSubscription = engine.Subscribe(events.PlayerConnectedEvent{}, handlePlayerConnected)
+	playerConnectedSubscription = engine.Subscribe(events2.PlayerConnectedEvent{}, handlePlayerConnected)
 	receiveLineHandlers = make([]func(id string, line string) error, 0)
 	sendLineHandlers = make([]func(id string, line string) error, 0)
 	sessionStartedHandlers = make([]func(id string) error, 0)
 	sessionStoppedHandlers = make([]func(id string) error, 0)
 
-	err := engine.Publish(events.SessionRegistryStartedEvent{})
+	err := engine.Publish(events2.SessionRegistryStartedEvent{})
 
 	if err != nil {
 		log.Error().Err(err).Msg("error session manager started event")
@@ -116,7 +115,7 @@ func remove(id string) {
 
 func handlePlayerConnected(payload event.EventPayload) {
 	log.Debug().Msg("handling player connected event")
-	newConnection := &events.PlayerConnectedEvent{}
+	newConnection := &events2.PlayerConnectedEvent{}
 	err := payload.Unmarshal(newConnection)
 
 	if err != nil {

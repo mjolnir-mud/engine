@@ -20,7 +20,6 @@
 * The `EntityType` interface has been updated to require a `Validate` function. This function will becalled before an
   entity is added to the world. It should return an error if the entity is invalid, nil otherwise.
 
-
 * The `EntityType` `Create` function has been renamed to `New` to better reflect its purpose.
 
 * The `ecs.CreateEntity` function has been renamed to `ecs.NewEntity` to better reflect its purpose.
@@ -45,6 +44,14 @@
 
 ### Bug Fixes
 * Fix bug that incorrectly handled ids preventing find functions from working correctly.
+
+### Sessions
+
+#### New Features
+* Addition of the `SetAccountId` and `GetAccountId` functions to the `session` system.
+
+#### Breaking Changes
+* Flattened the plugin directory structure to be more consistent with the rest of the application.
 
 ## 0.2.2
 * Initial public release.

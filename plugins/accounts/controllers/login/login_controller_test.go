@@ -24,6 +24,8 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
+	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
+	testing4 "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -32,8 +34,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
-	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/pkg/testing"
 	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
@@ -45,7 +45,7 @@ func setup() {
 		templatesTesting.Setup()
 		testing2.Setup()
 		testing3.Setup()
-		sessionsTesting.Setup()
+		testing4.Setup()
 		controllersTesting.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
@@ -109,7 +109,7 @@ func TestController_Start(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
+	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
@@ -119,7 +119,7 @@ func TestController_Start(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = sessionsTesting.RegisterSession("sess")
+	err = testing4.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -138,7 +138,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
+	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 
@@ -148,7 +148,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = sessionsTesting.RegisterSession("sess")
+	err = testing4.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -181,7 +181,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := sessionsTesting.CreateReceiveOutputSubscription()
+	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
 
 	defer sub.Stop()
 	c := controller{}
@@ -190,7 +190,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = sessionsTesting.RegisterSession("sess")
+	err = testing4.RegisterSession("sess")
 
 	assert.NoError(t, err)
 
@@ -218,7 +218,7 @@ func TestControllerHandleUsernameCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = sessionsTesting.RegisterSession("sess")
+	err = testing4.RegisterSession("sess")
 
 	assert.NoError(t, err)
 

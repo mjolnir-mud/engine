@@ -3,7 +3,7 @@ package registry
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/pkg/event"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/events"
+	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -64,8 +64,8 @@ func TestSessionHandler_SendLine(t *testing.T) {
 
 	ch := make(chan string)
 
-	sub := engine.Subscribe(events.PlayerOutputEvent{Id: "testing"}, func(e event.EventPayload) {
-		ev := &events.PlayerOutputEvent{}
+	sub := engine.Subscribe(events2.PlayerOutputEvent{Id: "testing"}, func(e event.EventPayload) {
+		ev := &events2.PlayerOutputEvent{}
 		_ = e.Unmarshal(ev)
 
 		go func() { ch <- ev.Line }()
@@ -99,7 +99,7 @@ func TestLineHandler(t *testing.T) {
 	sh.Start()
 	defer sh.Stop()
 
-	err := engine.Publish(events.PlayerInputEvent{Id: "testing", Line: "testing"})
+	err := engine.Publish(events2.PlayerInputEvent{Id: "testing", Line: "testing"})
 
 	assert.NoError(t, err)
 
