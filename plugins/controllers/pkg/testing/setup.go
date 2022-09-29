@@ -20,8 +20,12 @@ package testing
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/sessions"
 )
 
 func Setup() {
+	engine.RegisterPlugin(ecs.Plugin)
+	engine.RegisterPlugin(sessions.Plugin)
 	engine.RegisterPlugin(plugin.Plugin)
 }
