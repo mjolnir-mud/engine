@@ -20,9 +20,9 @@ package plugin
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
 )
 
 type plugin struct{}

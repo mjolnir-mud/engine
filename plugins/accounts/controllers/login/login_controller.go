@@ -20,8 +20,7 @@ package login
 import (
 	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/pkg/systems/session"
+	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
 )
 
@@ -61,7 +60,7 @@ func (l controller) HandleInput(id string, input string) error {
 }
 
 func Login(id string, accountId string) error {
-	_ = ecs.AddStringComponentToEntity(id, "accountId", accountId)
+	_ = session.SetAccountId(id, accountId)
 
 	err := AfterLoginCallback(id)
 

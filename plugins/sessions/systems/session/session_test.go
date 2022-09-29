@@ -18,13 +18,13 @@
 package session
 
 import (
+	sessionEntity "github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
 	"testing"
 
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
-	sessionEntity "github.com/mjolnir-mud/engine/plugins/sessions/pkg/entities/session"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -125,4 +125,22 @@ func TestGetStringFromFlash(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "testing", s)
+}
+
+func TestGetAccountId(t *testing.T) {
+	setup()
+	defer teardown()
+
+	err := Start("testing")
+
+	assert.NoError(t, err)
+
+	err = SetAccountId("testing", "testing")
+
+	assert.NoError(t, err)
+
+	i, err := GetAccountId("testing")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "testing", i)
 }

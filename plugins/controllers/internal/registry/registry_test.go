@@ -21,7 +21,7 @@ import (
 	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/pkg/testing"
+	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
