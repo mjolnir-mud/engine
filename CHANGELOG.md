@@ -4,6 +4,7 @@
 
 #### New Features
 * Password may not be either the username or email address
+* Addition of testing helpers
 
 #### Breaking Changes
 * Directories have been re-organized to be more consistent with the rest of the application
