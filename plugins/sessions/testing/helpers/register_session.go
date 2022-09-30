@@ -15,15 +15,48 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package testing
+package helpers
 
 import (
+	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/events"
 )
 
-func RegisterSession(id string) error {
-	return engine.Publish(events.PlayerConnectedEvent{
+func RegisterSessionWithId(id string) error {
+	err := engine.Publish(events.PlayerConnectedEvent{
 		Id: id,
 	})
+
+	if err != nil {
+		return err
+	}
+
+	sessionAvailable := make(chan bool)
+
+	go func() {
+		for {
+			e, err := ecs.EntityExists(id)
+
+			if err != nil {
+				panic(err)
+			}
+
+			if e {
+				sessionAvailable <- true
+				break
+			}
+		}
+	}()
+
+	<-sessionAvailable
+
+	return nil
+}
+
+func RegisterSession() (string, error) {
+	uid := uuid.New().String()
+
+	return uid, RegisterSessionWithId(uid)
 }

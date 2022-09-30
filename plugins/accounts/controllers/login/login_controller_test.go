@@ -26,6 +26,7 @@ import (
 	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	testing4 "github.com/mjolnir-mud/engine/plugins/sessions/testing"
+	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -109,7 +110,7 @@ func TestController_Start(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -119,7 +120,7 @@ func TestController_Start(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -138,7 +139,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -148,7 +149,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -181,7 +182,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 	c := controller{}
@@ -190,7 +191,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -218,7 +219,7 @@ func TestControllerHandleUsernameCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 

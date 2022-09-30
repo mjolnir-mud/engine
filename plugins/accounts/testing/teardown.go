@@ -1,11 +1,11 @@
 package testing
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/accounts/testing/helpers"
 )
 
 func Teardown() {
-	_ = ecs.RemoveEntity("test-account")
-	_ = data_sources.Delete("accounts", "test-account")
+	_ = engine.RedisFlushAll()
+	helpers.DeleteDefaultAccount()
 }

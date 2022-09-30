@@ -8,6 +8,7 @@ import (
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	testing2 "github.com/mjolnir-mud/engine/plugins/sessions/testing"
+	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -78,13 +79,13 @@ func TestSignupHappyPath(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing2.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
 	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
 
-	err = testing2.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -125,7 +126,7 @@ func TestUsernameTooShort(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing2.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -133,7 +134,7 @@ func TestUsernameTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing2.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -154,7 +155,7 @@ func TestUsernameTooLong(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing2.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -162,7 +163,7 @@ func TestUsernameTooLong(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing2.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -187,7 +188,7 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing2.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -195,7 +196,7 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing2.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -220,7 +221,7 @@ func TestInvalidEmail(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing2.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -228,7 +229,7 @@ func TestInvalidEmail(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing2.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
@@ -247,7 +248,7 @@ func TestPasswordTooShort(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing2.CreateReceiveOutputSubscription()
+	receivedLine, sub := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
@@ -255,7 +256,7 @@ func TestPasswordTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = testing2.RegisterSession("sess")
+	err = helpers.RegisterSessionWithId("sess")
 
 	assert.NoError(t, err)
 
