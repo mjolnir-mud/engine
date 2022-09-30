@@ -15,7 +15,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package testing
+package helpers
 
 import (
 	"github.com/mjolnir-mud/engine"
@@ -23,11 +23,17 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions/events"
 )
 
-func CreateReceiveOutputSubscription() (chan string, engine.Subscription) {
+func CreateSessionWithOutputSubscription() (string, chan string, engine.Subscription, error) {
+	id, err := RegisterSession()
+
+	if err != nil {
+		return "", nil, nil, err
+	}
+
 	receivedOutput := make(chan string)
 
-	return receivedOutput, engine.Subscribe(events.PlayerOutputEvent{
-		Id: "sess",
+	return id, receivedOutput, engine.Subscribe(events.PlayerOutputEvent{
+		Id: id,
 	}, func(e event.EventPayload) {
 		go func() {
 			poe := &events.PlayerOutputEvent{}
@@ -40,5 +46,5 @@ func CreateReceiveOutputSubscription() (chan string, engine.Subscription) {
 
 			go func() { receivedOutput <- poe.Line }()
 		}()
-	})
+	}), nil
 }
