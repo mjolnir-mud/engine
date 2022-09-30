@@ -22,10 +22,11 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
-	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
-	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
+	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	mongoDataSourcesTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
-	testing4 "github.com/mjolnir-mud/engine/plugins/sessions/testing"
+	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
+	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -43,9 +44,9 @@ func setup() {
 	engineTesting.Setup("world", func() {
 		ecsTesting.Setup()
 		templatesTesting.Setup()
-		testing2.Setup()
-		testing3.Setup()
-		testing4.Setup()
+		dataSourcesTesting.Setup()
+		mongoDataSourcesTesting.Setup()
+		sessionsTesting.Setup()
 		controllersTesting.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
@@ -91,8 +92,8 @@ func setup() {
 func teardown() {
 	ecsTesting.Teardown()
 	templatesTesting.Teardown()
-	testing3.Teardown()
-	testing2.Teardown()
+	mongoDataSourcesTesting.Teardown()
+	dataSourcesTesting.Teardown()
 	engineTesting.Teardown()
 }
 
@@ -109,21 +110,19 @@ func TestController_Start(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
+	id, receivedLine, sub, err := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
 	c := controller{}
 
-	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+	assert.NoError(t, err)
+
+	err = helpers.RegisterSessionWithId(id)
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
-
-	assert.NoError(t, err)
-
-	err = c.Start("sess")
+	err = c.Start(id)
 
 	assert.Equal(t, nil, err)
 
@@ -138,30 +137,24 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
+	id, receivedLine, sub, err := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 
 	c := controller{}
 
-	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+	assert.NoError(t, err)
+
+	err = c.HandleInput(id, "testing")
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
-
-	assert.NoError(t, err)
-
-	err = c.HandleInput("sess", "testing")
-
-	assert.NoError(t, err)
-
-	i, err := session.GetIntFromFlash("sess", "step")
+	i, err := session.GetIntFromFlash(id, "step")
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, i)
 
-	s, err := session.GetStringFromFlash("sess", "username")
+	s, err := session.GetStringFromFlash(id, "username")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "testing", s)
@@ -170,7 +163,7 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 
 	assert.Equal(t, "Enter your password:\r\n", line)
 
-	err = c.HandleInput("sess", "testing")
+	err = c.HandleInput(id, "testing")
 
 	line = <-receivedLine
 
@@ -181,28 +174,26 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 	setup()
 	defer teardown()
 
-	receivedLine, sub := testing4.CreateReceiveOutputSubscription()
+	id, receivedLine, sub, err := helpers.CreateSessionWithOutputSubscription()
 
 	defer sub.Stop()
 	c := controller{}
 
-	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+	assert.NoError(t, err)
+
+	err = helpers.RegisterSessionWithId(id)
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
-
-	assert.NoError(t, err)
-
-	err = c.HandleInput("sess", "testing-account")
+	err = c.HandleInput(id, "testing-account")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "Enter your password:\r\n", <-receivedLine)
-	err = c.HandleInput("sess", "password")
+	err = c.HandleInput(id, "password")
 
 	assert.NoError(t, err)
 
-	s, err := ecs.GetStringComponent("sess", "accountId")
+	s, err := ecs.GetStringComponent(id, "accountId")
 
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
@@ -212,21 +203,23 @@ func TestControllerHandleUsernameCreate(t *testing.T) {
 	setup()
 	defer teardown()
 
+	id, _, sub, err := helpers.CreateSessionWithOutputSubscription()
+
+	defer sub.Stop()
+
 	c := controller{}
 
-	err := ecs.AddEntityWithID("session", "sess", map[string]interface{}{})
+	assert.NoError(t, err)
+
+	err = helpers.RegisterSessionWithId(id)
 
 	assert.NoError(t, err)
 
-	err = testing4.RegisterSession("sess")
+	err = c.HandleInput(id, "create")
 
 	assert.NoError(t, err)
 
-	err = c.HandleInput("sess", "create")
-
-	assert.NoError(t, err)
-
-	i, err := ecs.GetStringComponent("sess", "controller")
+	i, err := ecs.GetStringComponent(id, "controller")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "new_account", i)
