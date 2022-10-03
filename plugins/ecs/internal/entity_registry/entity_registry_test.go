@@ -1,9 +1,9 @@
 package entity_registry
 
 import (
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -12,7 +12,9 @@ import (
 
 func setup() {
 	Register(ecsTesting.FakeEntityType{})
-	engineTesting.Setup()
+
+	engineTesting.Setup("world")
+
 	_ = engine.RedisFlushAll()
 	Start()
 }

@@ -24,7 +24,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions/events"
 )
 
-func RegisterSessionWithId(id string) error {
+func CreateSessionWithId(id string) error {
 	err := engine.Publish(events.PlayerConnectedEvent{
 		Id: id,
 	})
@@ -55,8 +55,8 @@ func RegisterSessionWithId(id string) error {
 	return nil
 }
 
-func RegisterSession() (string, error) {
+func CreateSession() (string, error) {
 	uid := uuid.New().String()
 
-	return uid, RegisterSessionWithId(uid)
+	return uid, CreateSessionWithId(uid)
 }

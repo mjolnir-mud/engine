@@ -2,15 +2,15 @@ package system_registry
 
 import (
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("ecs", func() {
 		engine.RegisterBeforeStartCallback(func() {
 			Start()
 			entity_registry.Start()
@@ -21,7 +21,7 @@ func setup() {
 			entity_registry.Register(fakes.FakeEntityType{})
 		})
 	})
-
+	engineTesting.Setup("world")
 }
 
 func teardown() {

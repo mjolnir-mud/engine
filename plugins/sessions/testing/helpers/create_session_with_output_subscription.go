@@ -24,7 +24,7 @@ import (
 )
 
 func CreateSessionWithOutputSubscription() (string, chan string, engine.Subscription, error) {
-	id, err := RegisterSession()
+	id, err := CreateSession()
 
 	if err != nil {
 		return "", nil, nil, err

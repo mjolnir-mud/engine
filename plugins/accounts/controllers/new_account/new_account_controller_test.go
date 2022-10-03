@@ -5,17 +5,17 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
-	testing2 "github.com/mjolnir-mud/engine/plugins/sessions/testing"
+	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
@@ -23,13 +23,14 @@ import (
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("controllers", func() {
 		ecsTesting.Setup()
 		templatesTesting.Setup()
 		dataSourcesTesting.Setup()
 		mongoDataSourceTesting.Setup()
-		testing2.Setup()
+		sessionsTesting.Setup()
 		controllersTesting.Setup()
+
 		engine.RegisterBeforeServiceStartCallback("world", func() {
 			data_sources.Register(account2.Create())
 		})
@@ -53,12 +54,15 @@ func setup() {
 			if err != nil {
 				panic(err)
 			}
+
+			templates.RegisterAll()
+			ecs.RegisterEntityType(account.EntityType)
 		})
 
-		ecs.RegisterEntityType(account.EntityType)
+		engineTesting.Setup("controllers")
+
 	})
 
-	templates.RegisterAll()
 }
 
 func teardown() {
@@ -83,7 +87,7 @@ func TestSignupHappyPath(t *testing.T) {
 
 	defer sub.Stop()
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -130,7 +134,7 @@ func TestUsernameTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -157,7 +161,7 @@ func TestUsernameTooLong(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -188,7 +192,7 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -219,7 +223,7 @@ func TestInvalidEmail(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -244,7 +248,7 @@ func TestPasswordTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 

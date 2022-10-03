@@ -1,9 +1,9 @@
 package registry
 
 import (
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/testing/fakes"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -12,7 +12,7 @@ import (
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("data_sources", func() {
 		engine.RegisterPlugin(ecs.Plugin)
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
@@ -26,6 +26,8 @@ func setup() {
 
 		fakes.Reset()
 	})
+
+	engineTesting.Setup("world")
 }
 
 func teardown() {

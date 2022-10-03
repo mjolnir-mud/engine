@@ -1,8 +1,8 @@
-package test
+package fakes
 
 import "github.com/mjolnir-mud/engine/pkg/plugin"
 
-func CreateTestPlugin() plugin.Plugin {
+func CreateFakePlugin() plugin.Plugin {
 	return &testPlugin{
 		pluginInitialized: make(chan bool),
 	}

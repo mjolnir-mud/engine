@@ -1,9 +1,9 @@
 package plugin_registry
 
 import (
+	"github.com/mjolnir-mud/engine/testing/fakes"
 	"testing"
 
-	"github.com/mjolnir-mud/engine/test"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,6 +22,6 @@ func TestRegister(t *testing.T) {
 	Start()
 	defer Stop()
 
-	Register(test.CreateTestPlugin())
+	Register(fakes.CreateFakePlugin())
 	assert.Equal(t, len(plugins), 1)
 }

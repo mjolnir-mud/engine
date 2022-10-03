@@ -21,10 +21,16 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/pkg/config"
-	"reflect"
 )
 
-func Setup(args ...interface{}) chan bool {
+var engineSetupCallbacks = make(map[string]func())
+
+func RegisterSetupCallback(plugin string, cb func()) {
+	engineSetupCallbacks[plugin] = cb
+}
+
+func Setup(service string) chan bool {
+
 	engine.Initialize("testing", "testing")
 
 	engine.ConfigureForEnv("testing", func(cfg *config.Configuration) *config.Configuration {
@@ -36,31 +42,22 @@ func Setup(args ...interface{}) chan bool {
 		go func() { ch <- true }()
 	})
 
-	for _, arg := range args {
-		callBeforeStartCallbackIfFunc(arg)
-	}
+	callBeforeStartCallbacks()
 
 	engine.Start()
 
-	for _, arg := range args {
-		startServiceIfString(arg)
-	}
+	instance.StartService(service)
 
 	return ch
 }
 
-func callBeforeStartCallbackIfFunc(arg interface{}) {
-	if reflect.TypeOf(arg).Kind() == reflect.Func {
-		arg.(func())()
-	}
-}
-
-func startServiceIfString(arg interface{}) {
-	if reflect.TypeOf(arg).Kind() == reflect.String {
-		instance.StartService(arg.(string))
+func callBeforeStartCallbacks() {
+	for _, cb := range engineSetupCallbacks {
+		cb()
 	}
 }
 
 func Teardown() {
+	engineSetupCallbacks = make(map[string]func())
 	engine.Stop()
 }

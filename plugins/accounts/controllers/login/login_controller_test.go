@@ -27,10 +27,10 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
@@ -41,7 +41,7 @@ import (
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("accounts", func() {
 		ecsTesting.Setup()
 		templatesTesting.Setup()
 		dataSourcesTesting.Setup()
@@ -83,10 +83,10 @@ func setup() {
 		})
 
 		ecs.RegisterEntityType(account.EntityType)
+		templates.RegisterAll()
 	})
 
-	templates.RegisterAll()
-
+	engineTesting.Setup("world")
 }
 
 func teardown() {
@@ -118,7 +118,7 @@ func TestController_Start(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -181,7 +181,7 @@ func TestControllerHandlesValidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -211,7 +211,7 @@ func TestControllerHandleUsernameCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 

@@ -2,20 +2,20 @@ package account
 
 import (
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("accounts", func() {
 		testing2.Setup()
 		ecsTesting.Setup()
 		testing3.Setup()
@@ -48,6 +48,7 @@ func setup() {
 		})
 	})
 
+	engineTesting.Setup("world")
 }
 
 func teardown() {

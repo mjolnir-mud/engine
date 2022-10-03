@@ -75,6 +75,19 @@ func Start() {
 	cfg = callConfigureForEnv(env)
 	engineRedis.Start(cfg.Redis.Host, cfg.Redis.Port, cfg.Redis.Db)
 
+	redisReady := make(chan bool)
+
+	go func() {
+		for {
+			if engineRedis.Ping() == nil {
+				redisReady <- true
+				break
+			}
+		}
+	}()
+
+	<-redisReady
+
 	plugin_registry.Start()
 
 	callAfterStartCallbacks()
