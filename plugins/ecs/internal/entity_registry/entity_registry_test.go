@@ -11,18 +11,23 @@ import (
 )
 
 func setup() {
-	Register(ecsTesting.FakeEntityType{})
+	engineTesting.RegisterSetupCallback("ecs", func() {
+		Register(ecsTesting.FakeEntityType{})
+
+		engine.RegisterAfterServiceStartCallback("world", func() {
+			_ = engine.RedisFlushAll()
+		})
+	})
 
 	engineTesting.Setup("world")
 
-	_ = engine.RedisFlushAll()
 	Start()
 }
 
 func teardown() {
 	_ = engine.RedisFlushAll()
-	engineTesting.Teardown()
 	Stop()
+	engineTesting.Teardown()
 }
 
 func TestAdd(t *testing.T) {
@@ -32,7 +37,7 @@ func TestAdd(t *testing.T) {
 	// testing happy path
 	id, err := Add("testing", map[string]interface{}{})
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, id)
 
 	ty, err := getEntityType(id)

@@ -19,6 +19,7 @@ func TestRegister(t *testing.T) {
 	setup()
 	defer tearDown()
 
+	Initialize()
 	Start()
 	defer Stop()
 

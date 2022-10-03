@@ -61,6 +61,7 @@ func Initialize(name string, env string) {
 	initializeBeforeStopCallbacks()
 	initializeAfterStopCallbacks()
 
+	plugin_registry.Initialize()
 	logger.Start()
 }
 

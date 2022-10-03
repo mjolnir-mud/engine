@@ -24,12 +24,20 @@ import (
 )
 
 var engineSetupCallbacks = make(map[string]func())
+var engineTestRunning = false
+var engineMux = make(chan bool)
 
 func RegisterSetupCallback(plugin string, cb func()) {
 	engineSetupCallbacks[plugin] = cb
 }
 
 func Setup(service string) chan bool {
+	if !engineTestRunning {
+		engineTestRunning = true
+	} else {
+		<-engineMux
+		engineTestRunning = true
+	}
 
 	engine.Initialize("testing", "testing")
 
@@ -60,4 +68,6 @@ func callBeforeStartCallbacks() {
 func Teardown() {
 	engineSetupCallbacks = make(map[string]func())
 	engine.Stop()
+	engineTestRunning = false
+	go func() { engineMux <- true }()
 }

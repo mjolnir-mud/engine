@@ -22,12 +22,14 @@ import (
 	"github.com/mjolnir-mud/engine/pkg/event"
 	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
+	sessionExists "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"
 	"github.com/rs/zerolog"
+	"sync"
 )
 
 var sessionHandlers map[string]*sessionHandler
+var sessionHandlersMux sync.Mutex
 var playerConnectedSubscription engine.Subscription
 var receiveLineHandlers []func(id string, line string) error
 var sendLineHandlers []func(id string, line string) error
@@ -54,13 +56,14 @@ func RegisterSessionStoppedHandler(f func(id string) error) {
 func Start() {
 	log = logger.Instance.With().Str("component", "registry").Logger()
 	sessionHandlers = make(map[string]*sessionHandler, 0)
-	playerConnectedSubscription = engine.Subscribe(events2.PlayerConnectedEvent{}, handlePlayerConnected)
+	playerConnectedSubscription = engine.Subscribe(sessionExists.PlayerConnectedEvent{}, handlePlayerConnected)
 	receiveLineHandlers = make([]func(id string, line string) error, 0)
 	sendLineHandlers = make([]func(id string, line string) error, 0)
 	sessionStartedHandlers = make([]func(id string) error, 0)
 	sessionStoppedHandlers = make([]func(id string) error, 0)
+	sessionHandlersMux = sync.Mutex{}
 
-	err := engine.Publish(events2.SessionRegistryStartedEvent{})
+	err := engine.Publish(sessionExists.SessionRegistryStartedEvent{})
 
 	if err != nil {
 		log.Error().Err(err).Msg("error session manager started event")
@@ -104,7 +107,9 @@ func SendLine(id string, line string) error {
 }
 
 func add(s *sessionHandler) {
+	sessionHandlersMux.Lock()
 	sessionHandlers[s.Id] = s
+	sessionHandlersMux.Unlock()
 	s.Start()
 }
 
@@ -115,7 +120,7 @@ func remove(id string) {
 
 func handlePlayerConnected(payload event.EventPayload) {
 	log.Debug().Msg("handling player connected event")
-	newConnection := &events2.PlayerConnectedEvent{}
+	newConnection := &sessionExists.PlayerConnectedEvent{}
 	err := payload.Unmarshal(newConnection)
 
 	if err != nil {

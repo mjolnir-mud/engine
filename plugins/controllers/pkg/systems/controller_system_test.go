@@ -70,9 +70,10 @@ func setup() {
 	}
 
 	engineTesting.RegisterSetupCallback("controllers", func() {
+		ecsTesting.Setup()
+
 		registry.Start()
 		registry.Register(tc)
-		ecsTesting.Setup()
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			ecs.RegisterEntityType(fakes.FakeEntityType{})
@@ -92,10 +93,15 @@ func teardown() {
 var tc *testController
 
 func TestControllerSystem_Name(t *testing.T) {
+	setup()
+	defer teardown()
 	assert.Equal(t, "controller", ControllerSystem.Name())
 }
 
 func TestControllerSystem_Component(t *testing.T) {
+	setup()
+	defer teardown()
+
 	assert.Equal(t, "controller", ControllerSystem.Component())
 }
 

@@ -80,10 +80,10 @@ func setup() {
 			if err != nil {
 				panic(err)
 			}
-		})
 
-		ecs.RegisterEntityType(account.EntityType)
-		templates.RegisterAll()
+			ecs.RegisterEntityType(account.EntityType)
+			templates.RegisterAll()
+		})
 	})
 
 	engineTesting.Setup("world")

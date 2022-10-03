@@ -39,6 +39,8 @@ func setup() {
 
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
+			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"id": "testing-account"})
+
 			err := data_sources.SaveWithId(
 				"accounts",
 				"testing-account",
@@ -61,6 +63,7 @@ func setup() {
 }
 
 func teardown() {
+	dataSourcesTesting.Teardown()
 	ecsTesting.Teardown()
 	engineTesting.Teardown()
 }

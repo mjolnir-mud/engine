@@ -114,10 +114,16 @@ func (p *plugin) Registered() error {
 }
 
 func (p *plugin) Disconnect() {
+	if p.database == nil {
+		return
+	}
 	_ = p.database.Client().Disconnect(context.Background())
 }
 
 func (p *plugin) Drop() {
+	if p.database == nil {
+		return
+	}
 	_ = p.database.Drop(context.Background())
 }
 

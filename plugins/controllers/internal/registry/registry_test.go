@@ -19,7 +19,6 @@ package registry
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
@@ -28,12 +27,12 @@ import (
 
 func setup() {
 	engineTesting.RegisterSetupCallback("controllers", func() {
-		ecsTesting.Setup()
 		sessionsTesting.Setup()
+
+		Start()
 	})
 	engineTesting.Setup("world")
 
-	Start()
 }
 
 func teardown() {

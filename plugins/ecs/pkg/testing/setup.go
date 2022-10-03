@@ -26,9 +26,9 @@ import (
 )
 
 func Setup() {
-	engine.RegisterPlugin(plugin.Plugin)
-
 	engineTesting.RegisterSetupCallback("ecs", func() {
+		engine.RegisterPlugin(plugin.Plugin)
+
 		engine.RegisterAfterStartCallbackForEnv("testing", func() {
 			_ = engine.RedisFlushAll()
 			system_registry.Start()
