@@ -38,10 +38,12 @@ func (p *plugin) Registered() error {
 	engine.EnsureRegistered(ecs.Plugin.Name())
 	engine.EnsureRegistered(sessions.Plugin.Name())
 
-	engine.RegisterAfterServiceStartCallback("world", func() {
+	engine.RegisterBeforeServiceStartCallback("world", func() {
 		logger.Start()
 		registry.Start()
+	})
 
+	engine.RegisterAfterServiceStartCallback("world", func() {
 		ecs.RegisterSystem(systems.ControllerSystem)
 
 		sessions.RegisterReceiveLineHandler(func(entityId string, line string) error {
