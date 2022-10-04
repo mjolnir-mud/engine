@@ -38,14 +38,16 @@ func (p templatePlugin) Name() string {
 }
 
 func (p templatePlugin) Registered() error {
-	engine.RegisterAfterServiceStartCallback("world", func() {
+	engine.RegisterBeforeServiceStartCallback("world", func() {
 		logger.Start()
 		theme_registry.Start()
 		template_registry.Start()
 
+	})
+
+	engine.RegisterAfterServiceStartCallback("world", func() {
 		theme_registry.Register(default_theme.Theme)
 		templates.Register()
-
 	})
 
 	engine.RegisterBeforeServiceStopCallback("world", func() {

@@ -6,6 +6,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/accounts/testing/helpers"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
+	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
@@ -34,6 +35,7 @@ func Setup() {
 		mongoDataSourceTesting.Setup()
 		sessionsTesting.Setup()
 		templatesTesting.Setup()
+		controllersTesting.Setup()
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			helpers.CreateDefaultAccount()
