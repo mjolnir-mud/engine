@@ -1,4 +1,6 @@
 ## Next Release
+This release upgrades GoLange to 1.19, as well as introduces a lot of directory structure changes. It adds testing
+and CI to the project, and also adds a lot of documentation (to the wiki).
 
 ### Accounts
 
@@ -11,8 +13,14 @@
 
 ### Engine
 
+#### New Features
+* Passing test suite
+
 #### Bug Fixes
 * Fix bug that prevents tests from correctly running due to a missing environment.
+
+#### Breaking Changes
+* Refactor of directory structure to be more consistent with the rest of the application
 
 ### ECS
 
@@ -52,6 +60,14 @@
 
 #### Breaking Changes
 * Flattened the plugin directory structure to be more consistent with the rest of the application.
+
+### Templates
+
+#### New Features
+* New `ordered-list` template that will render a list of items prefixed by a number.
+
+#### Breaking Changes
+* Refactor of directory structure to be more consistent with the rest of the application.
 
 ## 0.2.2
 * Initial public release.

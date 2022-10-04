@@ -12,7 +12,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
-	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
+	testing2 "github.com/mjolnir-mud/engine/plugins/templates/testing"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
@@ -26,7 +26,7 @@ import (
 func setup() {
 	engineTesting.RegisterSetupCallback("accounts", func() {
 		ecsTesting.Setup()
-		templatesTesting.Setup()
+		testing2.Setup()
 		dataSourcesTesting.Setup()
 		mongoDataSourceTesting.Setup()
 		sessionsTesting.Setup()
@@ -77,7 +77,7 @@ func teardown() {
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "New_Random_Account"})
 	controllersTesting.Teardown()
-	templatesTesting.Teardown()
+	testing2.Teardown()
 	mongoDataSourceTesting.Teardown()
 	sessionsTesting.Teardown()
 	engineTesting.Teardown()

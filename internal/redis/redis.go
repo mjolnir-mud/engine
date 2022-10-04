@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mjolnir-mud/engine/event"
+	"github.com/mjolnir-mud/engine/logger"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/mjolnir-mud/engine/pkg/event"
-	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 )
 

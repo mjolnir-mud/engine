@@ -18,14 +18,14 @@
 package instance
 
 import (
+	"github.com/mjolnir-mud/engine/config"
+	"github.com/mjolnir-mud/engine/logger"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/mjolnir-mud/engine/internal/plugin_registry"
 	engineRedis "github.com/mjolnir-mud/engine/internal/redis"
-	"github.com/mjolnir-mud/engine/pkg/config"
-	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 )
 

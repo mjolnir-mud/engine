@@ -2,7 +2,7 @@ package redis
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/event"
 	"testing"
 
 	"github.com/spf13/viper"

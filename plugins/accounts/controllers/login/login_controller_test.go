@@ -27,6 +27,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
+	testing2 "github.com/mjolnir-mud/engine/plugins/templates/testing"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
@@ -35,7 +36,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,7 +43,7 @@ import (
 func setup() {
 	engineTesting.RegisterSetupCallback("accounts", func() {
 		ecsTesting.Setup()
-		templatesTesting.Setup()
+		testing2.Setup()
 		dataSourcesTesting.Setup()
 		mongoDataSourcesTesting.Setup()
 		sessionsTesting.Setup()
@@ -91,7 +91,7 @@ func setup() {
 
 func teardown() {
 	ecsTesting.Teardown()
-	templatesTesting.Teardown()
+	testing2.Teardown()
 	mongoDataSourcesTesting.Teardown()
 	dataSourcesTesting.Teardown()
 	engineTesting.Teardown()

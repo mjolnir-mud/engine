@@ -3,6 +3,8 @@ package server
 import (
 	"bytes"
 	"fmt"
+	"github.com/mjolnir-mud/engine/event"
+	"github.com/mjolnir-mud/engine/logger"
 	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"net"
 	"strings"
@@ -10,8 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/pkg/event"
-	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/rs/zerolog"
 )
 

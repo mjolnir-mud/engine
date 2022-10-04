@@ -15,7 +15,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/sessions"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/templates"
-	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
+	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/testing"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 )
 

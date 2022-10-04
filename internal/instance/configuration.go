@@ -17,7 +17,9 @@
 
 package instance
 
-import "github.com/mjolnir-mud/engine/pkg/config"
+import (
+	"github.com/mjolnir-mud/engine/config"
+)
 
 var Configs map[string]func(configuration *config.Configuration) *config.Configuration
 

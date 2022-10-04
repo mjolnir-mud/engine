@@ -2,8 +2,8 @@ package plugin_registry
 
 import (
 	mapset "github.com/deckarep/golang-set/v2"
-	"github.com/mjolnir-mud/engine/pkg/logger"
-	"github.com/mjolnir-mud/engine/pkg/plugin"
+	"github.com/mjolnir-mud/engine/logger"
+	"github.com/mjolnir-mud/engine/plugin"
 	"github.com/rs/zerolog"
 )
 

@@ -1,10 +1,10 @@
 package template_registry
 
 import (
-	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/logger"
+	"github.com/mjolnir-mud/engine/plugins/templates/errors"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/theme_registry"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/errors"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/template"
+	"github.com/mjolnir-mud/engine/plugins/templates/template"
 	"github.com/rs/zerolog"
 )
 

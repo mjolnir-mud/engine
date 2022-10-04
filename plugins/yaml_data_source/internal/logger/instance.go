@@ -1,6 +1,8 @@
 package logger
 
-import "github.com/mjolnir-mud/engine/pkg/logger"
+import (
+	"github.com/mjolnir-mud/engine/logger"
+)
 
 var Instance = logger.Instance.
 	With().

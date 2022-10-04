@@ -2,7 +2,7 @@ package registry
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/event"
 	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/stretchr/testify/assert"
 	"testing"

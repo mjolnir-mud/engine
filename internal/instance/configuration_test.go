@@ -18,9 +18,9 @@
 package instance
 
 import (
+	"github.com/mjolnir-mud/engine/config"
 	"testing"
 
-	"github.com/mjolnir-mud/engine/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 

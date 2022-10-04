@@ -19,9 +19,9 @@ package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/config"
 	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/internal/redis"
-	"github.com/mjolnir-mud/engine/pkg/config"
 )
 
 var engineSetupCallbacks = make(map[string]func())
