@@ -22,9 +22,10 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/template_registry"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/theme_registry"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/default_theme"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/template"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/theme"
+	"github.com/mjolnir-mud/engine/plugins/templates/template"
+	"github.com/mjolnir-mud/engine/plugins/templates/templates"
+	"github.com/mjolnir-mud/engine/plugins/templates/theme"
+	"github.com/mjolnir-mud/engine/plugins/templates/themes/default_theme"
 )
 
 type templatePlugin struct {
@@ -43,6 +44,7 @@ func (p templatePlugin) Registered() error {
 		template_registry.Start()
 
 		theme_registry.Register(default_theme.Theme)
+		templates.Register()
 
 	})
 

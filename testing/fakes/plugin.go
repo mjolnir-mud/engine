@@ -1,6 +1,8 @@
 package fakes
 
-import "github.com/mjolnir-mud/engine/pkg/plugin"
+import (
+	"github.com/mjolnir-mud/engine/plugin"
+)
 
 func CreateFakePlugin() plugin.Plugin {
 	return &testPlugin{

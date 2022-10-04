@@ -21,8 +21,8 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/template_registry"
 	"github.com/mjolnir-mud/engine/plugins/templates/internal/theme_registry"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/template"
-	"github.com/mjolnir-mud/engine/plugins/templates/pkg/theme"
+	"github.com/mjolnir-mud/engine/plugins/templates/template"
+	"github.com/mjolnir-mud/engine/plugins/templates/theme"
 )
 
 // RegisterTheme registers a theme with the theme registry.
@@ -44,6 +44,17 @@ func GetTheme(name string) (theme.Theme, error) {
 // found, an error is returned.
 func RenderTemplate(name string, ctx interface{}) (string, error) {
 	return template_registry.Render(name, ctx)
+}
+
+// RenderStringWithStyle renders a string with the given style. If the set global theme is not set, the default theme
+// is used.
+func RenderStringWithStyle(style string, content string) (string, error) {
+	return theme_registry.Render(style, content)
+}
+
+// SetGlobalTheme sets the global theme to the given name.
+func SetGlobalTheme(name string) {
+	theme_registry.SetGlobalTheme(name)
 }
 
 var Plugin = plugin.Plugin

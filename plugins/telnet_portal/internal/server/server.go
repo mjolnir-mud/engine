@@ -2,9 +2,9 @@ package server
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/logger"
 	"net"
 
-	"github.com/mjolnir-mud/engine/pkg/logger"
 	"github.com/mjolnir-mud/engine/plugins/telnet_portal/pkg/config"
 	"github.com/rs/zerolog"
 )

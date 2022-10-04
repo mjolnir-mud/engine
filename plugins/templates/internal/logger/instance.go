@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/mjolnir-mud/engine/pkg/logger"
+	"github.com/mjolnir-mud/engine/logger"
 	"github.com/rs/zerolog"
 )
 

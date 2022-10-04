@@ -19,7 +19,7 @@ package registry
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/pkg/event"
+	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
