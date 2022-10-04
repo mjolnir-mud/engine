@@ -20,6 +20,7 @@ package testing
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/internal/instance"
+	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/mjolnir-mud/engine/pkg/config"
 )
 
@@ -67,6 +68,11 @@ func callBeforeStartCallbacks() {
 
 func Teardown() {
 	engineSetupCallbacks = make(map[string]func())
+	flushed := make(chan error)
+	go func() { flushed <- redis.FlushAll() }()
+
+	<-flushed
+
 	engine.Stop()
 	engineTestRunning = false
 	go func() { engineMux <- true }()

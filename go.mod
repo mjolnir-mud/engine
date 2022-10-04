@@ -8,6 +8,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/go-redis/redis/v9 v9.0.0-beta.1
 	github.com/google/uuid v1.1.2
+	github.com/jaswdr/faker v1.15.0
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.7.5
