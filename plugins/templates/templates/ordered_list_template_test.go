@@ -29,15 +29,15 @@ func teardown() {
 	engineTesting.Teardown()
 }
 
-func TestEmailInvalidTemplate_Name(t *testing.T) {
+func TestOrderedListTemplate_Name(t *testing.T) {
 	assert.Equal(t, "ordered_list", OrderedList.Name())
 }
 
-func TestEmailInvalidTemplate_Style(t *testing.T) {
+func TestOrderedListTemplate_Style(t *testing.T) {
 	assert.Equal(t, "default", OrderedList.Style())
 }
 
-func TestEmailInvalidTemplate_Render(t *testing.T) {
+func TestOrderedListTemplate_Render(t *testing.T) {
 	setup()
 	defer teardown()
 
