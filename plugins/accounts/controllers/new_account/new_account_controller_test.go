@@ -1,42 +1,52 @@
 package new_account
 
 import (
-	account2 "github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
+	accountDataSource "github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
+	"github.com/mjolnir-mud/engine/plugins/controllers"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
-	testing2 "github.com/mjolnir-mud/engine/plugins/sessions/testing"
+	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
+	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	templatesTesting "github.com/mjolnir-mud/engine/plugins/templates/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("accounts", func() {
 		ecsTesting.Setup()
 		templatesTesting.Setup()
 		dataSourcesTesting.Setup()
 		mongoDataSourceTesting.Setup()
-		testing2.Setup()
+		sessionsTesting.Setup()
 		controllersTesting.Setup()
+
 		engine.RegisterBeforeServiceStartCallback("world", func() {
-			data_sources.Register(account2.Create())
+			data_sources.Register(accountDataSource.Create())
 		})
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
+			controllers.Register(controllersTesting.CreateMockController("new_account"))
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
+
+			deleted := make(chan interface{})
+
+			go func() {
+				deleted <- data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
+			}()
+
+			<-deleted
 
 			err := data_sources.SaveWithId(
 				"accounts",
@@ -53,18 +63,23 @@ func setup() {
 			if err != nil {
 				panic(err)
 			}
-		})
 
-		ecs.RegisterEntityType(account.EntityType)
+			ecs.RegisterEntityType(account.EntityType)
+			templates.RegisterAll()
+		})
 	})
 
-	templates.RegisterAll()
+	engineTesting.Setup("world")
 }
 
 func teardown() {
 	_ = engine.RedisFlushAll()
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "New_Random_Account"})
+	controllersTesting.Teardown()
+	templatesTesting.Teardown()
+	mongoDataSourceTesting.Teardown()
+	sessionsTesting.Teardown()
 	engineTesting.Teardown()
 }
 
@@ -80,14 +95,9 @@ func TestSignupHappyPath(t *testing.T) {
 	defer teardown()
 
 	id, receivedLine, sub, err := helpers.CreateSessionWithOutputSubscription()
+	assert.NoError(t, err)
 
 	defer sub.Stop()
-
-	err = helpers.RegisterSessionWithId(id)
-
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
 
 	err = Controller.Start(id)
 
@@ -130,7 +140,7 @@ func TestUsernameTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -157,7 +167,7 @@ func TestUsernameTooLong(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -188,7 +198,7 @@ func TestUsernameContainsInvalidCharacters(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -219,7 +229,7 @@ func TestInvalidEmail(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 
@@ -244,7 +254,7 @@ func TestPasswordTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = helpers.RegisterSessionWithId(id)
+	err = helpers.CreateSessionWithId(id)
 
 	assert.NoError(t, err)
 

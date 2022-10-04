@@ -19,9 +19,17 @@ package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/plugin"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 )
 
 func Setup() {
+	engine.RegisterPlugin(ecs.Plugin)
 	engine.RegisterPlugin(plugin.Plugin)
+
+	engineTesting.RegisterSetupCallback("sessions", func() {
+		ecsTesting.Setup()
+	})
 }

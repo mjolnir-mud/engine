@@ -2,7 +2,6 @@ package account
 
 import (
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	accountDataSource "github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
 	accountEntityType "github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
@@ -10,6 +9,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 
@@ -17,7 +17,7 @@ import (
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("accounts", func() {
 		dataSourcesTesting.Setup()
 		ecsTesting.Setup()
 		mongoDataSourceTesting.Setup()
@@ -39,6 +39,8 @@ func setup() {
 
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
+			_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"id": "testing-account"})
+
 			err := data_sources.SaveWithId(
 				"accounts",
 				"testing-account",
@@ -56,9 +58,12 @@ func setup() {
 			}
 		})
 	})
+
+	engineTesting.Setup("world")
 }
 
 func teardown() {
+	dataSourcesTesting.Teardown()
 	ecsTesting.Teardown()
 	engineTesting.Teardown()
 }

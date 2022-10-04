@@ -17,8 +17,12 @@
 
 package testing
 
-import "github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
+import (
+	dataSources "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
+)
 
 func Teardown() {
 	plugin.Plugin.Drop()
+	dataSources.Teardown()
 }

@@ -2,25 +2,24 @@ package account
 
 import (
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/accounts/data_sources/account"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
-	testing2 "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	dataSources "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	testing3 "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
+	mongoDataSourcetesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
-		testing2.Setup()
+	engineTesting.RegisterSetupCallback("accounts", func() {
 		ecsTesting.Setup()
-		testing3.Setup()
+		mongoDataSourcetesting.Setup()
 
-		engine.RegisterBeforeServiceStartCallback("world", func() {
+		engine.RegisterAfterServiceStartCallback("world", func() {
 			data_sources.Register(account.Create())
 		})
 
@@ -48,12 +47,13 @@ func setup() {
 		})
 	})
 
+	engineTesting.Setup("world")
 }
 
 func teardown() {
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testaccount"})
-	testing2.Teardown()
-	testing3.Teardown()
+	dataSources.Teardown()
+	mongoDataSourcetesting.Teardown()
 	engineTesting.Teardown()
 }
 

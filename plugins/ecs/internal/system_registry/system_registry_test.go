@@ -1,16 +1,18 @@
 package system_registry
 
 import (
+	"github.com/jaswdr/faker"
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("ecs", func() {
+
 		engine.RegisterBeforeStartCallback(func() {
 			Start()
 			entity_registry.Start()
@@ -21,7 +23,7 @@ func setup() {
 			entity_registry.Register(fakes.FakeEntityType{})
 		})
 	})
-
+	engineTesting.Setup("world")
 }
 
 func teardown() {
@@ -112,7 +114,9 @@ func TestMatchingComponentAddedEvent(t *testing.T) {
 	Start()
 	Register(ts)
 
-	err := entity_registry.AddWithId("testing", "testing", map[string]interface{}{
+	id := faker.UUID{}.V4()
+
+	err := entity_registry.AddWithId("testing", id, map[string]interface{}{
 		"testComponent": "testing",
 	})
 
@@ -120,7 +124,7 @@ func TestMatchingComponentAddedEvent(t *testing.T) {
 
 	call := <-ts.ComponentAddedCalled
 
-	assert.Equal(t, "testing", call.EntityId)
+	assert.Equal(t, id, call.EntityId)
 	assert.Equal(t, "testComponent", call.Key)
 	assert.Equal(t, "testing", call.Value)
 }

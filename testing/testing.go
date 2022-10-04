@@ -15,48 +15,65 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package helpers
+package testing
 
 import (
-	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/events"
+	"github.com/mjolnir-mud/engine/internal/instance"
+	"github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/mjolnir-mud/engine/pkg/config"
 )
 
-func RegisterSessionWithId(id string) error {
-	err := engine.Publish(events.PlayerConnectedEvent{
-		Id: id,
-	})
+var engineSetupCallbacks = make(map[string]func())
+var engineTestRunning = false
+var engineMux = make(chan bool)
 
-	if err != nil {
-		return err
-	}
-
-	sessionAvailable := make(chan bool)
-
-	go func() {
-		for {
-			e, err := ecs.EntityExists(id)
-
-			if err != nil {
-				panic(err)
-			}
-
-			if e {
-				sessionAvailable <- true
-				break
-			}
-		}
-	}()
-
-	<-sessionAvailable
-
-	return nil
+func RegisterSetupCallback(plugin string, cb func()) {
+	engineSetupCallbacks[plugin] = cb
 }
 
-func RegisterSession() (string, error) {
-	uid := uuid.New().String()
+func Setup(service string) chan bool {
+	if !engineTestRunning {
+		engineTestRunning = true
+	} else {
+		<-engineMux
+		engineTestRunning = true
+	}
 
-	return uid, RegisterSessionWithId(uid)
+	engine.Initialize("testing", "testing")
+
+	engine.ConfigureForEnv("testing", func(cfg *config.Configuration) *config.Configuration {
+		return cfg
+	})
+
+	ch := make(chan bool)
+	engine.RegisterAfterStartCallback(func() {
+		go func() { ch <- true }()
+	})
+
+	callBeforeStartCallbacks()
+
+	engine.Start()
+
+	instance.StartService(service)
+
+	return ch
+}
+
+func callBeforeStartCallbacks() {
+	for _, cb := range engineSetupCallbacks {
+		cb()
+	}
+}
+
+func Teardown() {
+	engineSetupCallbacks = make(map[string]func())
+	flushed := make(chan error)
+	go func() { flushed <- redis.FlushAll() }()
+
+	<-flushed
+
+	engine.Stop()
+	engineTestRunning = false
+	go func() { engineMux <- true }()
 }

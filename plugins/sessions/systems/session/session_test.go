@@ -19,9 +19,9 @@ package session
 
 import (
 	sessionEntity "github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
@@ -29,11 +29,12 @@ import (
 )
 
 func setup() {
-	engineTesting.Setup(func() {
+	engineTesting.RegisterSetupCallback("sessions", func() {
 		ecsTesting.Setup()
 
 		ecs.RegisterEntityType(sessionEntity.Type)
 	})
+	engineTesting.Setup("world")
 
 	registry.Start()
 

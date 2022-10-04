@@ -15,52 +15,48 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package testing
+package helpers
 
 import (
+	"github.com/google/uuid"
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/internal/instance"
-	"github.com/mjolnir-mud/engine/pkg/config"
-	"reflect"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/mjolnir-mud/engine/plugins/sessions/events"
 )
 
-func Setup(args ...interface{}) chan bool {
-	engine.Initialize("testing", "testing")
-
-	engine.ConfigureForEnv("testing", func(cfg *config.Configuration) *config.Configuration {
-		return cfg
+func CreateSessionWithId(id string) error {
+	err := engine.Publish(events.PlayerConnectedEvent{
+		Id: id,
 	})
 
-	ch := make(chan bool)
-	engine.RegisterAfterStartCallback(func() {
-		go func() { ch <- true }()
-	})
-
-	for _, arg := range args {
-		callBeforeStartCallbackIfFunc(arg)
+	if err != nil {
+		return err
 	}
 
-	engine.Start()
+	sessionAvailable := make(chan bool)
 
-	for _, arg := range args {
-		startServiceIfString(arg)
-	}
+	go func() {
+		for {
+			e, err := ecs.EntityExists(id)
 
-	return ch
+			if err != nil {
+				panic(err)
+			}
+
+			if e {
+				sessionAvailable <- true
+				break
+			}
+		}
+	}()
+
+	<-sessionAvailable
+
+	return nil
 }
 
-func callBeforeStartCallbackIfFunc(arg interface{}) {
-	if reflect.TypeOf(arg).Kind() == reflect.Func {
-		arg.(func())()
-	}
-}
+func CreateSession() (string, error) {
+	uid := uuid.New().String()
 
-func startServiceIfString(arg interface{}) {
-	if reflect.TypeOf(arg).Kind() == reflect.String {
-		instance.StartService(arg.(string))
-	}
-}
-
-func Teardown() {
-	engine.Stop()
+	return uid, CreateSessionWithId(uid)
 }

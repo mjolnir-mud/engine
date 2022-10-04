@@ -18,11 +18,12 @@
 package systems
 
 import (
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -68,15 +69,19 @@ func setup() {
 		HandleInputCalled: make(chan []string),
 	}
 
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("controllers", func() {
+		ecsTesting.Setup()
+
 		registry.Start()
 		registry.Register(tc)
-		ecsTesting.Setup()
+
+		engine.RegisterAfterServiceStartCallback("world", func() {
+			ecs.RegisterEntityType(fakes.FakeEntityType{})
+			ecs.RegisterSystem(ControllerSystem)
+		})
 	})
 
-	ecs.RegisterEntityType(fakes.FakeEntityType{})
-	ecs.RegisterSystem(ControllerSystem)
-
+	engineTesting.Setup("world")
 }
 
 func teardown() {
@@ -88,10 +93,15 @@ func teardown() {
 var tc *testController
 
 func TestControllerSystem_Name(t *testing.T) {
+	setup()
+	defer teardown()
 	assert.Equal(t, "controller", ControllerSystem.Name())
 }
 
 func TestControllerSystem_Component(t *testing.T) {
+	setup()
+	defer teardown()
+
 	assert.Equal(t, "controller", ControllerSystem.Component())
 }
 

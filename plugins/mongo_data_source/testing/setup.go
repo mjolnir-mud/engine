@@ -19,6 +19,7 @@ package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/config"
 	"github.com/mjolnir-mud/engine/plugins/mongo_data_source/internal/plugin"
 )
@@ -31,5 +32,7 @@ func Setup() {
 		return c
 	})
 
+	engine.RegisterPlugin(data_sources.Plugin)
 	engine.RegisterPlugin(plugin.Plugin)
+
 }

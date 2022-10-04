@@ -24,18 +24,19 @@ import (
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
 	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
-
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 )
 
 func setup() {
-	engineTesting.Setup(func() {
+	engineTesting.RegisterSetupCallback("sessions", func() {
 		engine.RegisterPlugin(ecs.Plugin)
 		ecs.RegisterEntityType(session.Type)
 		ecsTesting.Setup()
 	})
+	engineTesting.Setup("world")
+
 	Start()
 }
 

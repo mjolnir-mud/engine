@@ -2,8 +2,8 @@ package mongo_data_source
 
 import (
 	"context"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
@@ -11,7 +11,7 @@ import (
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("mongo_data_source", func() {
 		engine.RegisterPlugin(data_sources.Plugin)
 		engine.RegisterPlugin(Plugin)
 
@@ -37,6 +37,8 @@ func setup() {
 			})
 		})
 	})
+
+	engineTesting.Setup("world")
 }
 
 func teardown() {

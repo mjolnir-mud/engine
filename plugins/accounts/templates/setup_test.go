@@ -2,16 +2,18 @@ package templates
 
 import (
 	"github.com/mjolnir-mud/engine"
-	engineTesting "github.com/mjolnir-mud/engine/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/templates"
+	engineTesting "github.com/mjolnir-mud/engine/testing"
 )
 
 func setup() {
-	engineTesting.Setup("world", func() {
+	engineTesting.RegisterSetupCallback("templates", func() {
 		engine.RegisterPlugin(templates.Plugin)
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
 			RegisterAll()
 		})
 	})
+
+	engineTesting.Setup("world")
 }
