@@ -1,10 +1,12 @@
-## 0.3.0
+## [Unreleased]
+
+## [0.3.0]
 This release upgrades GoLange to 1.19, as well as introduces a lot of directory structure changes. It adds testing
 and CI to the project, and also adds a lot of documentation (to the wiki).
 
 ### Accounts
 
-#### New Features
+#### New Features 
 * Password may not be either the username or email address
 * Addition of testing helpers
 
@@ -69,5 +71,5 @@ and CI to the project, and also adds a lot of documentation (to the wiki).
 #### Breaking Changes
 * Refactor of directory structure to be more consistent with the rest of the application.
 
-## 0.2.2
+## [0.2.2] - 2021-09-21
 * Initial public release.
