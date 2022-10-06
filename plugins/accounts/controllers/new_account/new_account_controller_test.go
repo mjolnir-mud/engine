@@ -6,6 +6,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	testing3 "github.com/mjolnir-mud/engine/plugins/controllers/testing"
+	"github.com/mjolnir-mud/engine/plugins/controllers/testing/fakes"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing"
@@ -37,7 +38,7 @@ func setup() {
 		})
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
-			controllers.Register(testing3.CreateMockController("new_account"))
+			controllers.Register(fakes.CreateFakeController("new_account"))
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
 			deleted := make(chan interface{})
