@@ -15,41 +15,42 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package testing
+package fakes
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
+	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 )
 
-type mockController struct {
+type fakeController struct {
 	ControllerName    string
 	HandleInputCalled chan []string
 }
 
-func (c mockController) Name() string {
+func (c fakeController) Name() string {
 	return c.ControllerName
 }
 
-func (c mockController) Start(_ string) error {
+func (c fakeController) Start(id string) error {
+	return session.SendLine(id, "testing")
+}
+
+func (c fakeController) Resume(_ string) error {
 	return nil
 }
 
-func (c mockController) Resume(_ string) error {
+func (c fakeController) Stop(_ string) error {
 	return nil
 }
 
-func (c mockController) Stop(_ string) error {
-	return nil
-}
-
-func (c mockController) HandleInput(_ string, _ string) error {
+func (c fakeController) HandleInput(_ string, _ string) error {
 	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
 
 	return nil
 }
 
-func CreateMockController(name string) controller.Controller {
-	return mockController{
+func CreateFakeController(name string) controller.Controller {
+	return fakeController{
 		ControllerName:    name,
 		HandleInputCalled: make(chan []string),
 	}
