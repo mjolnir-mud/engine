@@ -1,4 +1,4 @@
-## Next Release
+## 0.3.0
 This release upgrades GoLange to 1.19, as well as introduces a lot of directory structure changes. It adds testing
 and CI to the project, and also adds a lot of documentation (to the wiki).
 

@@ -25,10 +25,12 @@ import (
 )
 
 var engineSetupCallbacks = make(map[string]func())
+var engineSetupNames = make([]string, 0)
 var engineTestRunning = false
 var engineMux = make(chan bool)
 
 func RegisterSetupCallback(plugin string, cb func()) {
+	engineSetupNames = append(engineSetupNames, plugin)
 	engineSetupCallbacks[plugin] = cb
 }
 
@@ -61,8 +63,8 @@ func Setup(service string) chan bool {
 }
 
 func callBeforeStartCallbacks() {
-	for _, cb := range engineSetupCallbacks {
-		cb()
+	for _, name := range engineSetupNames {
+		engineSetupCallbacks[name]()
 	}
 }
 

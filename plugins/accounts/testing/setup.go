@@ -25,9 +25,9 @@ func Setup() {
 		engine.RegisterPlugin(ecs.Plugin)
 		engine.RegisterPlugin(data_sources.Plugin)
 		engine.RegisterPlugin(mongo_data_source.Plugin)
-		engine.RegisterPlugin(templates.Plugin)
 		engine.RegisterPlugin(sessions.Plugin)
 		engine.RegisterPlugin(controllers.Plugin)
+		engine.RegisterPlugin(templates.Plugin)
 		engine.RegisterPlugin(plugin.Plugin)
 
 		ecsTesting.Setup()
