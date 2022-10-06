@@ -17,7 +17,9 @@
 
 package testing
 
-import "github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
+import (
+	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
+)
 
 type mockController struct {
 	ControllerName    string

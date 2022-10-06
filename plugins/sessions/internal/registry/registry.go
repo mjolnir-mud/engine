@@ -20,7 +20,7 @@ package registry
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/event"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/errors"
+	"github.com/mjolnir-mud/engine/plugins/controllers/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	sessionExists "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/logger"

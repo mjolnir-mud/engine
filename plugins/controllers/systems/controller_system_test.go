@@ -21,8 +21,8 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	testing2 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
+	"github.com/mjolnir-mud/engine/plugins/ecs/testing/fakes"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -69,7 +69,7 @@ func setup() {
 		HandleInputCalled: make(chan []string),
 	}
 
-	ecsTesting.Setup()
+	testing2.Setup()
 
 	engineTesting.RegisterSetupCallback("controllers", func() {
 
@@ -87,7 +87,7 @@ func setup() {
 
 func teardown() {
 	registry.Stop()
-	ecsTesting.Teardown()
+	testing2.Teardown()
 	engineTesting.Teardown()
 }
 

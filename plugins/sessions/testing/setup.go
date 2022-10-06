@@ -20,7 +20,7 @@ package testing
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/plugin"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 )

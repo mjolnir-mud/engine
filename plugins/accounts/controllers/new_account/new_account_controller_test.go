@@ -5,9 +5,10 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
+	testing3 "github.com/mjolnir-mud/engine/plugins/controllers/testing"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
@@ -17,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
@@ -30,14 +30,14 @@ func setup() {
 		dataSourcesTesting.Setup()
 		mongoDataSourceTesting.Setup()
 		sessionsTesting.Setup()
-		controllersTesting.Setup()
+		testing3.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
 			data_sources.Register(accountDataSource.Create())
 		})
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
-			controllers.Register(controllersTesting.CreateMockController("new_account"))
+			controllers.Register(testing3.CreateMockController("new_account"))
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
 			deleted := make(chan interface{})
@@ -76,7 +76,7 @@ func teardown() {
 	_ = engine.RedisFlushAll()
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "testing-account"})
 	_ = data_sources.FindAndDelete("accounts", map[string]interface{}{"username": "New_Random_Account"})
-	controllersTesting.Teardown()
+	testing3.Teardown()
 	testing2.Teardown()
 	mongoDataSourceTesting.Teardown()
 	sessionsTesting.Teardown()

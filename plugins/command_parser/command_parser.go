@@ -18,8 +18,8 @@
 package command_parser
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/command_parser/command_set"
 	"github.com/mjolnir-mud/engine/plugins/command_parser/internal/command_registry"
-	"github.com/mjolnir-mud/engine/plugins/command_parser/pkg/command_set"
 )
 
 type plugin struct{}

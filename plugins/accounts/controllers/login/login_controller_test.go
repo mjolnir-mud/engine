@@ -22,7 +22,9 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/entities/account"
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
+	testing3 "github.com/mjolnir-mud/engine/plugins/controllers/testing"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
+	testing4 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	mongoDataSourcesTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
@@ -32,29 +34,27 @@ import (
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
-	controllersTesting "github.com/mjolnir-mud/engine/plugins/controllers/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func setup() {
 	engineTesting.RegisterSetupCallback("accounts", func() {
-		ecsTesting.Setup()
+		testing4.Setup()
 		testing2.Setup()
 		dataSourcesTesting.Setup()
 		mongoDataSourcesTesting.Setup()
 		sessionsTesting.Setup()
-		controllersTesting.Setup()
+		testing3.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
 			data_sources.Register(accountDataSource.Create())
 		})
 
 		engine.RegisterAfterServiceStartCallback("world", func() {
-			controllers.Register(controllersTesting.CreateMockController("new_account"))
+			controllers.Register(testing3.CreateMockController("new_account"))
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
 			deleted := make(chan interface{})
@@ -90,7 +90,7 @@ func setup() {
 }
 
 func teardown() {
-	ecsTesting.Teardown()
+	testing4.Teardown()
 	testing2.Teardown()
 	mongoDataSourcesTesting.Teardown()
 	dataSourcesTesting.Teardown()

@@ -19,11 +19,11 @@ package plugin
 
 import (
 	"github.com/mjolnir-mud/engine"
+	"github.com/mjolnir-mud/engine/plugins/ecs/entity_type"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
+	"github.com/mjolnir-mud/engine/plugins/ecs/system"
 )
 
 type plugin struct{}
@@ -72,7 +72,7 @@ func AddBoolComponent(id string, component string, value bool) error {
 // to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-//// the type of a key will result in an error in later updated.
+// // the type of a key will result in an error in later updated.
 func AddBoolToMapComponent(id string, component string, key string, value bool) error {
 	return entity_registry.AddBoolToMapComponent(id, component, key, value)
 }
@@ -161,7 +161,7 @@ func AddOrUpdateStringComponentToEntity(id string, component string, value strin
 // key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-//// the type of a key will result in an error in later updated.
+// // the type of a key will result in an error in later updated.
 func AddStringToMapComponent(id string, component string, key string, value string) error {
 	return entity_registry.AddStringToMapComponent(id, component, key, value)
 }

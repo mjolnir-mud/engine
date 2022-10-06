@@ -21,7 +21,7 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/logger"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/systems"
+	"github.com/mjolnir-mud/engine/plugins/controllers/systems"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions"
 )

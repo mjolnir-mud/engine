@@ -19,6 +19,7 @@ package system_registry
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/ecs/system"
 	"reflect"
 	"strings"
 
@@ -28,7 +29,6 @@ import (
 	redis2 "github.com/go-redis/redis/v9"
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/constants"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
 )
 
 var systems map[string]system.System

@@ -4,7 +4,7 @@ import (
 	"github.com/jaswdr/faker"
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	fakes2 "github.com/mjolnir-mud/engine/plugins/ecs/testing/fakes"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -20,7 +20,7 @@ func setup() {
 
 		engine.RegisterAfterStartCallback(func() {
 			_ = engine.RedisFlushAll()
-			entity_registry.Register(fakes.FakeEntityType{})
+			entity_registry.Register(fakes2.FakeEntityType{})
 		})
 	})
 	engineTesting.Setup("world")
@@ -57,7 +57,7 @@ func Test_ComponentUpdatedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := fakes.NewFakeSystem()
+	ts := fakes2.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -84,7 +84,7 @@ func Test_ComponentRemovedEvents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := fakes.NewFakeSystem()
+	ts := fakes2.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -109,7 +109,7 @@ func TestMatchingComponentAddedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := fakes.NewFakeSystem()
+	ts := fakes2.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -133,7 +133,7 @@ func TestMatchingComponentUpdatedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := fakes.NewFakeSystem()
+	ts := fakes2.NewFakeSystem()
 
 	Start()
 	Register(ts)
@@ -159,7 +159,7 @@ func TestMatchingComponentRemovedEvent(t *testing.T) {
 	setup()
 	defer teardown()
 
-	ts := fakes.NewFakeSystem()
+	ts := fakes2.NewFakeSystem()
 
 	Start()
 	Register(ts)

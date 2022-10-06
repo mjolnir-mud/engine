@@ -19,10 +19,10 @@ package session
 
 import (
 	"fmt"
+	"github.com/mjolnir-mud/engine/plugins/ecs/errors"
 	"strings"
 
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/templates"
 )

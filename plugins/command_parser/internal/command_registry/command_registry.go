@@ -18,11 +18,11 @@
 package command_registry
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/command_parser/command_set"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/mjolnir-mud/engine/plugins/command_parser/pkg/command_set"
 )
 
 type commandRegistry struct {

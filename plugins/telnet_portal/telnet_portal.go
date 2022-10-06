@@ -1,11 +1,11 @@
 package telnet_portal
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/telnet_portal/config"
 	"os"
 
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/telnet_portal/internal/server"
-	"github.com/mjolnir-mud/engine/plugins/telnet_portal/pkg/config"
 )
 
 type telnetPortal struct {

@@ -7,7 +7,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	testing2 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"golang.org/x/crypto/bcrypt"
@@ -19,7 +19,7 @@ import (
 func setup() {
 	engineTesting.RegisterSetupCallback("accounts", func() {
 		dataSourcesTesting.Setup()
-		ecsTesting.Setup()
+		testing2.Setup()
 		mongoDataSourceTesting.Setup()
 
 		engine.RegisterBeforeServiceStartCallback("world", func() {
@@ -64,7 +64,7 @@ func setup() {
 
 func teardown() {
 	dataSourcesTesting.Teardown()
-	ecsTesting.Teardown()
+	testing2.Teardown()
 	engineTesting.Teardown()
 }
 

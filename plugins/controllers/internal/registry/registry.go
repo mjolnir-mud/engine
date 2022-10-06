@@ -18,9 +18,9 @@
 package registry
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
+	errors2 "github.com/mjolnir-mud/engine/plugins/controllers/errors"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/rs/zerolog"
 )
@@ -36,7 +36,7 @@ func HandleInput(entityId string, line string) error {
 	}
 
 	if !exists {
-		return errors.SessionNotFoundError{
+		return errors2.SessionNotFoundError{
 			SessionId: entityId,
 		}
 	}
@@ -75,7 +75,7 @@ func Get(name string) (controller.Controller, error) {
 	c, ok := controllers[name]
 
 	if !ok {
-		return nil, errors.ControllerNotFoundError{
+		return nil, errors2.ControllerNotFoundError{
 			Name: name,
 		}
 	}

@@ -21,7 +21,7 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	testing2 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
 	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
@@ -33,7 +33,7 @@ func setup() {
 	engineTesting.RegisterSetupCallback("sessions", func() {
 		engine.RegisterPlugin(ecs.Plugin)
 		ecs.RegisterEntityType(session.Type)
-		ecsTesting.Setup()
+		testing2.Setup()
 	})
 	engineTesting.Setup("world")
 
@@ -42,7 +42,7 @@ func setup() {
 
 func teardown() {
 	Stop()
-	ecsTesting.Teardown()
+	testing2.Teardown()
 	engineTesting.Teardown()
 }
 
