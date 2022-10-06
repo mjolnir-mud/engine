@@ -69,8 +69,9 @@ func setup() {
 		HandleInputCalled: make(chan []string),
 	}
 
+	ecsTesting.Setup()
+
 	engineTesting.RegisterSetupCallback("controllers", func() {
-		ecsTesting.Setup()
 
 		registry.Start()
 		registry.Register(tc)
