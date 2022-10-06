@@ -18,19 +18,19 @@
 package session
 
 import (
+	testing2 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	sessionEntity "github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/internal/registry"
 	"github.com/stretchr/testify/assert"
 )
 
 func setup() {
 	engineTesting.RegisterSetupCallback("sessions", func() {
-		ecsTesting.Setup()
+		testing2.Setup()
 
 		ecs.RegisterEntityType(sessionEntity.Type)
 	})
@@ -52,7 +52,7 @@ func setup() {
 }
 
 func teardown() {
-	ecsTesting.Teardown()
+	testing2.Teardown()
 	registry.Stop()
 	engineTesting.Teardown()
 }

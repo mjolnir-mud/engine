@@ -21,7 +21,7 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing/fakes"
+	fakes2 "github.com/mjolnir-mud/engine/plugins/ecs/testing/fakes"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 )
 
@@ -32,8 +32,8 @@ func Setup() {
 		engine.RegisterAfterStartCallbackForEnv("testing", func() {
 			_ = engine.RedisFlushAll()
 			system_registry.Start()
-			plugin.RegisterEntityType(fakes.FakeEntityType{})
-			plugin.RegisterSystem(fakes.FakeSystem{})
+			plugin.RegisterEntityType(fakes2.FakeEntityType{})
+			plugin.RegisterSystem(fakes2.FakeSystem{})
 		})
 	})
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/data_sources"
 	dataSources "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/pkg/testing"
+	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	mongoDataSourcetesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"github.com/stretchr/testify/assert"

@@ -18,10 +18,10 @@
 package ecs
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/ecs/entity_type"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/entity_type"
-	"github.com/mjolnir-mud/engine/plugins/ecs/pkg/system"
+	"github.com/mjolnir-mud/engine/plugins/ecs/system"
 )
 
 // AddEntity adds an entity to the entity registry. It takes the entity id, and a map of arguments to be passed to the entity
@@ -49,7 +49,7 @@ func AddBoolComponent(id string, component string, value bool) error {
 // to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-//// the type of a key will result in an error in later updated.
+// // the type of a key will result in an error in later updated.
 func AddBoolToMapComponent(id string, component string, key string, value bool) error {
 	return plugin.AddBoolToMapComponent(id, component, key, value)
 }
@@ -138,7 +138,7 @@ func AddOrUpdateStringComponentToEntity(id string, component string, value strin
 // key to which to add the value, and the value to add to the map. If an entity with the same id does not exist an error
 // will be thrown. If a component with the same name does not exist, an error will be thrown. If the key already exists
 // an error will be thrown. Once a value is added to the map, the type of that key is enforced. Attempting to change
-//// the type of a key will result in an error in later updated.
+// // the type of a key will result in an error in later updated.
 func AddStringToMapComponent(id string, component string, key string, value string) error {
 	return plugin.AddStringToMapComponent(id, component, key, value)
 }

@@ -18,8 +18,8 @@
 package systems
 
 import (
+	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/controllers/pkg/controller"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
 
