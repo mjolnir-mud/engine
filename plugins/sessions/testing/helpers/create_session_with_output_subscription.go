@@ -19,7 +19,6 @@ package helpers
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/plugins/sessions/events"
 )
 
@@ -34,7 +33,7 @@ func CreateSessionWithOutputSubscription() (string, chan string, engine.Subscrip
 
 	return id, receivedOutput, engine.Subscribe(events.PlayerOutputEvent{
 		Id: id,
-	}, func(e event.EventPayload) {
+	}, func(e engine.EventPayload) {
 		go func() {
 			poe := &events.PlayerOutputEvent{}
 

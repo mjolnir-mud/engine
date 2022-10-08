@@ -15,25 +15,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package uid
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+func TestNew(t *testing.T) {
+	uid := New()
 
-	assert.NotNil(t, Configs["testing"])
+	assert.Len(t, uid, 24)
+}
+
+func TestFromString(t *testing.T) {
+	uid := FromString("test")
+
+	assert.Len(t, uid, 24)
+	assert.Equal(t, "9f86d081884c7d659a2feaa0", uid)
 }

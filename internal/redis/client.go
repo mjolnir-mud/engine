@@ -15,25 +15,38 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package redis
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
+	"fmt"
+	"github.com/rs/zerolog"
+	"github.com/rueian/rueidis"
 
-	"github.com/stretchr/testify/assert"
+	engineLogger "github.com/mjolnir-mud/engine/logger"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
+var logger zerolog.Logger
+
+// New creates a new redis client. It accepts a `redis.Configuration` struct which defines the host, port, and database
+func New(config *Configuration) (rueidis.Client, error) {
+	logger = engineLogger.Instance.With().
+		Str("component", "redis").
+		Str("host", config.Host).
+		Int("port", config.Port).
+		Int("db", config.DB).
+		Logger()
+
+	logger.Info().Msg("starting redis client")
+	c, err := rueidis.NewClient(rueidis.ClientOption{
+		InitAddress: []string{
+			fmt.Sprintf("%s:%d", config.Host, config.Port),
+		},
+		SelectDB: config.DB,
 	})
 
-	assert.NotNil(t, Configs["testing"])
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }

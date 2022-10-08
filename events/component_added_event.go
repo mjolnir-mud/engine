@@ -15,25 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package events
 
-import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
+import "fmt"
 
-	"github.com/stretchr/testify/assert"
-)
+type ComponentAddedEvent struct {
+	EntityId string
+	Name string
+}
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
-
-	assert.NotNil(t, Configs["testing"])
+func (e ComponentAddedEvent) Topic() string {
+	return fmt.Sprintf("%s:component:%s:added", e.EntityId, e.Name)
 }

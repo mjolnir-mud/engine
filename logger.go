@@ -15,25 +15,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package engine
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/rs/zerolog"
+	"io"
+	"os"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+// LogConfiguration represents the Mjolnir logging configuration.
+type LogConfiguration struct {
+	// Level is the logging level.
+	Level zerolog.Level
+	Writer io.Writer
+}
 
-	assert.NotNil(t, Configs["testing"])
+// newLogger creates a new logger. It accepts a `LogConfiguration` struct as its only argument.
+func newLogger(config *LogConfiguration) zerolog.Logger {
+	if config == nil {
+		config = &LogConfiguration{
+			Level: zerolog.TraceLevel,
+			Writer: os.Stdout,
+		}
+	}
+
+	if config.Writer == nil {
+		config.Writer = zerolog.ConsoleWriter{Out: os.Stdout}
+	}
+
+	if config.Level == zerolog.NoLevel {
+		config.Level = zerolog.InfoLevel
+	}
+
+	return zerolog.New(config.Writer).With().Timestamp().Logger().Level(config.Level)
 }

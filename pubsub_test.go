@@ -15,25 +15,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package engine
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+type FakeEvent struct {
+	Value string
+}
 
-	assert.NotNil(t, Configs["testing"])
+func (e FakeEvent) Topic() string {
+	return "engine:fake:event"
+}
+
+func TestEngine_PubSub(t *testing.T) {
+	engine := createEngineInstance()
+	ch := make(chan string)
+
+
+
+	engine.Subscribe(FakeEvent{}, func(event EventMessage) {
+		fakeEvent := &FakeEvent{}
+		err := event.Unmarshal(fakeEvent)
+
+		if err != nil {
+			panic(err)
+		}
+
+		ch <- fakeEvent.Value
+	})
+	err := engine.Publish(FakeEvent{Value: "test"})
+	assert.Nil(t, err)
+
+	assert.Equal(t, "test", <-ch)
 }

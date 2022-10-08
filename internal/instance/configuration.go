@@ -18,25 +18,25 @@
 package instance
 
 import (
-	"github.com/mjolnir-mud/engine/config"
+	"github.com/mjolnir-mud/engine"
 )
 
-var Configs map[string]func(configuration *config.Configuration) *config.Configuration
+var Configs map[string]func(configuration *engine.Configuration) *engine.Configuration
 
 func initializeConfigurations() {
-	Configs = map[string]func(configuration *config.Configuration) *config.Configuration{
-		"default": func(*config.Configuration) *config.Configuration {
-			return &config.Configuration{
-				Redis: config.RedisConfiguration{
+	Configs = map[string]func(configuration *engine.Configuration) *engine.Configuration{
+		"default": func(*engine.Configuration) *engine.Configuration {
+			return &engine.Configuration{
+				Redis: engine.RedisConfiguration{
 					Host: "localhost",
 					Port: 6379,
 					Db:   0,
 				},
 			}
 		},
-		"test": func(*config.Configuration) *config.Configuration {
-			return &config.Configuration{
-				Redis: config.RedisConfiguration{
+		"test": func(*engine.Configuration) *engine.Configuration {
+			return &engine.Configuration{
+				Redis: engine.RedisConfiguration{
 					Host: "localhost",
 					Port: 6379,
 					Db:   1,
@@ -46,8 +46,8 @@ func initializeConfigurations() {
 	}
 }
 
-func callConfigureForEnv(env string) *config.Configuration {
-	defaultConfig := Configs["default"](&config.Configuration{})
+func callConfigureForEnv(env string) *engine.Configuration {
+	defaultConfig := Configs["default"](&engine.Configuration{})
 	configForEnv, ok := Configs[env]
 
 	if !ok {
@@ -57,6 +57,6 @@ func callConfigureForEnv(env string) *config.Configuration {
 	return configForEnv(defaultConfig)
 }
 
-func ConfigureForEnv(env string, cb func(config *config.Configuration) *config.Configuration) {
+func ConfigureForEnv(env string, cb func(config *engine.Configuration) *engine.Configuration) {
 	Configs[env] = cb
 }

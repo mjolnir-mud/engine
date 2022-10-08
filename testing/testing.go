@@ -19,7 +19,6 @@ package testing
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/config"
 	"github.com/mjolnir-mud/engine/internal/instance"
 	"github.com/mjolnir-mud/engine/internal/redis"
 )
@@ -44,7 +43,7 @@ func Setup(service string) chan bool {
 
 	engine.Initialize("testing", "testing")
 
-	engine.ConfigureForEnv("testing", func(cfg *config.Configuration) *config.Configuration {
+	engine.ConfigureForEnv("testing", func(cfg *engine.Configuration) *engine.Configuration {
 		return cfg
 	})
 

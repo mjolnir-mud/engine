@@ -19,7 +19,7 @@ package session
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/plugins/ecs/errors"
+	"github.com/mjolnir-mud/engine/errors"
 	"strings"
 
 	"github.com/mjolnir-mud/engine/plugins/ecs"
@@ -66,9 +66,25 @@ func GetAccountId(id string) (string, error) {
 	return ecs.GetStringComponent(id, "accountId")
 }
 
+// GetActor returns the actor for the given session. This is a map that lists the data_source of the entity, as well as
+// as the entity id. The actor is intended to be the entity that is currently being controlled by the session. If the
+// session does not exist, an error is returned.
+func GetActor(id string) (map[string]string, error) {
+	return ecs.GetMapComponent(id, "actor")
+}
+
 // SetAccountId sets the account id for the given session. If the session does not exist, an error is returned.
 func SetAccountId(id, accountId string) error {
 	return ecs.AddOrUpdateStringComponentToEntity(id, "accountId", accountId)
+}
+
+// SetActor sets the actor for the given session. This is a map that lists the data_source of the entity, as well as
+// as the entity id. The actor is intended to be the entity that is currently being controlled by the session.
+func SetActor(id, dataSource, entityId string) error {
+	return ecs.AddOrReplaceMapComponent(id, "actor", map[string]string{
+		"dataSource": dataSource,
+		"entityId":   entityId,
+	})
 }
 
 // Start starts the session with the given id. This calls the start method of the testController. If the session does not

@@ -15,11 +15,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package redis
+package _refactor
 
 import (
 	"github.com/go-redis/redis/v9"
-	"github.com/mjolnir-mud/engine/event"
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/logger"
 	"github.com/rs/zerolog"
 )
@@ -27,21 +27,21 @@ import (
 type Subscription struct {
 	pubsub   *redis.PubSub
 	stop     chan bool
-	callback func(payload event.EventPayload)
+	callback func(payload engine.EventPayload)
 	logger   zerolog.Logger
-	event    event.Event
+	event    engine.Event
 }
 
-func NewSubscription(e event.Event, callback func(payload event.EventPayload)) *Subscription {
+func NewSubscription(e engine.Event, callback func(payload engine.EventPayload)) *Subscription {
 	return createSubscription(Subscribe(e.Topic()), e, callback)
 
 }
 
-func NewPatternSubscription(e event.Event, callback func(payload event.EventPayload)) *Subscription {
+func NewPatternSubscription(e engine.Event, callback func(payload engine.EventPayload)) *Subscription {
 	return createSubscription(PSubscribe(e.Topic()), e, callback)
 }
 
-func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(payload event.EventPayload)) *Subscription {
+func createSubscription(pubsub *redis.PubSub, e engine.Event, callback func(payload engine.EventPayload)) *Subscription {
 	s := &Subscription{
 		pubsub:   pubsub,
 		stop:     make(chan bool),
@@ -72,7 +72,7 @@ func createSubscription(pubsub *redis.PubSub, e event.Event, callback func(paylo
 
 				s.logger.Debug().Msgf("received message: %d", length)
 
-				newEvent := event.EventPayload{
+				newEvent := engine.EventPayload{
 					Payload: payloadBytes,
 				}
 

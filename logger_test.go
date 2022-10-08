@@ -15,20 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package config
+package engine
 
-// RedisConfiguration represents the Redis configuration for the Mjolnir engine.
-type RedisConfiguration struct {
-	Host string
-	Port int
-	Db   int
-}
+import (
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-func (r *RedisConfiguration) Configure(cfg func(r *RedisConfiguration)) {
-	cfg(r)
-}
+func TestNewLogger(t *testing.T) {
+	logger := newLogger(&LogConfiguration{
+		Level: zerolog.TraceLevel,
+	})
 
-// Configuration represents the Mjolnir configuration
-type Configuration struct {
-	Redis RedisConfiguration
+	assert.NotNil(t, logger)
 }

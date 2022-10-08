@@ -15,25 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package engine
 
-import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
+// EntityType is a constructor for entities. The Create function should return a map of the components for the entity
+// that when passed to the `ecs.AddEntity` function will create the entity by adding the returned key value pairs
+// as components.
+type EntityType interface {
+	// Name returns the name of the entity type.
+	Name() string
 
-	"github.com/stretchr/testify/assert"
-)
+	// New returns a map of the components for the entity that can then be added to the game instance.
+	New(args map[string]interface{}) map[string]interface{}
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
-
-	assert.NotNil(t, Configs["testing"])
+	// Validate returns an error if the args are invalid for the entity type.
+	Validate(args map[string]interface{}) error
 }

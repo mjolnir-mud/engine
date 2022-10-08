@@ -18,7 +18,7 @@
 package ecs
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/ecs/entity_type"
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/plugin"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/system"
@@ -264,7 +264,7 @@ func RegisterSystem(system system.System) {
 
 // RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` data_source. It is
 // expected that developers can override default EntityType implementations with their own implementations.Q
-func RegisterEntityType(entityType entity_type.EntityType) {
+func RegisterEntityType(entityType engine.EntityType) {
 	plugin.RegisterEntityType(entityType)
 }
 

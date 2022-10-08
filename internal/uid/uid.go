@@ -15,25 +15,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package uid
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"crypto/sha256"
+	"fmt"
+	"github.com/google/uuid"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+// New returns a new random UID.
+func New() string {
+	id, err := uuid.NewRandom()
 
-	assert.NotNil(t, Configs["testing"])
+	if err != nil {
+		panic(err)
+	}
+
+	return FromString(id.String())
+}
+
+// FromString returns a new UID from a string.
+func FromString(s string) string {
+	hash := sha256.New()
+	hash.Write([]byte(s))
+	sha := hash.Sum(nil)
+
+	final := sha[:12]
+	return fmt.Sprintf("%x", final)
 }

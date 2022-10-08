@@ -15,25 +15,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package engine
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"encoding/json"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+type Event interface {
+	// Topic returns the topic the event should be published to. It accepts the same arguments as the Payload method,
+	// and should return a string representation of the topic.
+	Topic() string
+}
 
-	assert.NotNil(t, Configs["testing"])
+// EventPayload is the payload of an event. Call `Unmarshal` on it to unmarshal the payload into a struct.
+type EventPayload struct {
+	Payload []byte
+}
+
+// Unmarshal unmarshals the payload into the given data_source.
+func (ep *EventPayload) Unmarshal(i interface{}) error {
+	return json.Unmarshal(ep.Payload, i)
 }

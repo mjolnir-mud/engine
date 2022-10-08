@@ -1,7 +1,7 @@
 package entity_registry
 
 import (
-	errors2 "github.com/mjolnir-mud/engine/plugins/ecs/errors"
+	"github.com/mjolnir-mud/engine/errors"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing/fakes"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
@@ -659,7 +659,7 @@ func TestGetInt64FromMapComponent(t *testing.T) {
 	_, err = GetInt64FromMapComponent("notRegistered", "testComponent", "testKey")
 
 	assert.NotNil(t, err)
-	assert.IsTypef(t, errors2.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
+	assert.IsTypef(t, errors.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
 
 	teardown()
 }
@@ -1201,13 +1201,13 @@ func TestAddOrUpdateStringInMapComponent(t *testing.T) {
 	err = AddOrUpdateStringInMapComponent("notRegistered", "testComponent", "testKey", "testValue3")
 
 	assert.NotNil(t, err)
-	assert.IsTypef(t, errors2.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
+	assert.IsTypef(t, errors.EntityNotFoundError{}, err, "error should be of type EntityNotFoundError")
 
 	// testing that an error is thrown if the component does not exist
 	err = AddOrUpdateStringInMapComponent("testEntity", "notRegistered", "testKey", "testValue3")
 
 	assert.NotNil(t, err)
-	assert.IsTypef(t, errors2.ComponentNotFoundError{}, err, "error should be of type ComponentNotFoundError")
+	assert.IsTypef(t, errors.ComponentNotFoundError{}, err, "error should be of type ComponentNotFoundError")
 
 	teardown()
 }

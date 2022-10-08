@@ -19,7 +19,6 @@ package registry
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/plugins/controllers/errors"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	sessionExists "github.com/mjolnir-mud/engine/plugins/sessions/events"
@@ -118,7 +117,7 @@ func remove(id string) {
 	_ = ecs.RemoveEntity(id)
 }
 
-func handlePlayerConnected(payload event.EventPayload) {
+func handlePlayerConnected(payload engine.EventPayload) {
 	log.Debug().Msg("handling player connected event")
 	newConnection := &sessionExists.PlayerConnectedEvent{}
 	err := payload.Unmarshal(newConnection)

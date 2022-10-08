@@ -1,7 +1,35 @@
 package engine
 
-import "testing"
+import (
+	"github.com/google/uuid"
+	"github.com/mjolnir-mud/engine/internal/redis"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-func TestInitialize(t *testing.T) {
-	Initialize("test", "test")
+func TestNew(t *testing.T) {
+	e := createEngineInstance()
+
+	assert.NotNil(t, e)
+}
+
+func createEngineInstance() *Engine {
+	puid, _  := uuid.NewRandom()
+	prefix := puid.String()
+
+
+	engine, err := New(&Configuration{
+		Redis: &redis.Configuration{
+			Host: "localhost",
+			Port: 6379,
+			DB: 1,
+		},
+		InstanceId: prefix,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return engine
 }

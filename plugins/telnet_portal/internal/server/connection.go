@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/logger"
 	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"net"
@@ -90,7 +89,7 @@ func (c *connection) Start() {
 		}
 	}()
 
-	sub := engine.Subscribe(events2.SessionRegistryStartedEvent{}, func(_ event.EventPayload) {
+	sub := engine.Subscribe(events2.SessionRegistryStartedEvent{}, func(_ engine.EventPayload) {
 		c.logger.Debug().Msg("handling session manager started event")
 		c.assertSession()
 
@@ -100,7 +99,7 @@ func (c *connection) Start() {
 
 	sub = engine.Subscribe(events2.PlayerOutputEvent{
 		Id: c.uuid,
-	}, func(e event.EventPayload) {
+	}, func(e engine.EventPayload) {
 		ev := &events2.PlayerOutputEvent{}
 		err := e.Unmarshal(ev)
 

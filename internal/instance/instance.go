@@ -18,7 +18,7 @@
 package instance
 
 import (
-	"github.com/mjolnir-mud/engine/config"
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/logger"
 	"os"
 	"os/signal"
@@ -31,7 +31,7 @@ import (
 
 var environment string
 var gameName string
-var cfg *config.Configuration
+var cfg *engine.Configuration
 var Running chan bool
 
 func SetEnv(n string) {

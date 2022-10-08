@@ -15,25 +15,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package errors
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+func TestEntityNotFoundError_Error(t *testing.T) {
+	err := EntityNotFoundError{
+		Id: "123",
+	}
 
-	assert.NotNil(t, Configs["testing"])
+	assert.Equal(t, "entity not found: 123", err.Error())
 }

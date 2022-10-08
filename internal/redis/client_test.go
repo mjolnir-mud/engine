@@ -15,25 +15,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package redis
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
+func TestNew(t *testing.T) {
+	c, err := New(&Configuration{
+		Host: "localhost",
+		Port: 6379,
+		DB: 1,
 	})
 
-	assert.NotNil(t, Configs["testing"])
+	assert.NoError(t, err)
+	assert.NotNil(t, c)
+
+	c.Close()
+
+	c, err = New(&Configuration{
+		Host: "wronghost",
+		Port: 6379,
+		DB: 1,
+	})
+
+	assert.Error(t, err)
+	assert.Nil(t, c)
 }

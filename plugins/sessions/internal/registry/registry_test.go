@@ -19,7 +19,6 @@ package registry
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	testing2 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/entities/session"
@@ -111,7 +110,7 @@ func TestSendLine(t *testing.T) {
 
 	add(NewSessionHandler("testSession"))
 
-	sub := engine.Subscribe(events2.PlayerOutputEvent{Id: "testSession"}, func(event event.EventPayload) {
+	sub := engine.Subscribe(events2.PlayerOutputEvent{Id: "testSession"}, func(event engine.EventPayload) {
 		go func() { ch <- true }()
 	})
 

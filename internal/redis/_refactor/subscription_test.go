@@ -15,25 +15,86 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package _refactor
 
 import (
+	"fmt"
 	"github.com/mjolnir-mud/engine"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
+type testEvent struct {
+	Value string
+}
+
+func (e testEvent) Topic() string {
+
+	return fmt.Sprintf("testing.%s", e.Value)
+}
+
+func setup() {
+	viper.Set("env", "testing")
+	Start("localhost", 6379, 1)
+}
+
+func teardown() {
+	Stop()
+}
+
+func TestSubscribe(t *testing.T) {
+	setup()
+	defer teardown()
+	ch := make(chan interface{})
+
+	s := NewSubscription(&testEvent{Value: "testing"}, func(payload engine.EventPayload) {
+		p := &testEvent{}
+
+		_ = payload.Unmarshal(p)
+
+		ch <- p
 	})
 
-	assert.NotNil(t, Configs["testing"])
+	err := Publish(&testEvent{
+		Value: "testing",
+	})
+
+	assert.Nil(t, err)
+
+	v := <-ch
+
+	assert.Equal(t, &testEvent{
+		Value: "testing",
+	}, v)
+
+	s.Stop()
+}
+
+func TestPSubscribe(t *testing.T) {
+	setup()
+	defer teardown()
+	ch := make(chan interface{})
+
+	s := NewPatternSubscription(&testEvent{Value: "*"}, func(payload engine.EventPayload) {
+		e := &testEvent{}
+		_ = payload.Unmarshal(e)
+
+		ch <- e
+	})
+
+	err := Publish(&testEvent{
+		Value: "testing",
+	})
+
+	assert.Nil(t, err)
+
+	v := <-ch
+
+	assert.Equal(t, &testEvent{
+		Value: "testing",
+	}, v)
+
+	s.Stop()
 }

@@ -19,7 +19,6 @@ package registry
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/event"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	events2 "github.com/mjolnir-mud/engine/plugins/sessions/events"
 	"github.com/rs/zerolog"
@@ -33,7 +32,7 @@ type sessionHandler struct {
 }
 
 func NewSessionHandler(id string) *sessionHandler {
-	ds := engine.Subscribe(events2.PlayerDisconnectedEvent{Id: id}, func(_ event.EventPayload) {
+	ds := engine.Subscribe(events2.PlayerDisconnectedEvent{Id: id}, func(_ engine.EventPayload) {
 		StopSession(id)
 	})
 
@@ -47,7 +46,7 @@ func NewSessionHandler(id string) *sessionHandler {
 		disconnectedSubscription: ds,
 	}
 
-	ls := engine.Subscribe(events2.PlayerInputEvent{Id: id}, func(payload event.EventPayload) {
+	ls := engine.Subscribe(events2.PlayerInputEvent{Id: id}, func(payload engine.EventPayload) {
 		e := &events2.PlayerInputEvent{}
 
 		err := payload.Unmarshal(e)

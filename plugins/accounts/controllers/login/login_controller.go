@@ -20,6 +20,7 @@ package login
 import (
 	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
+	"github.com/mjolnir-mud/engine/plugins/ecs"
 	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
 )
@@ -29,8 +30,17 @@ type controller struct{}
 
 var Controller = controller{}
 
-var AfterLoginCallback = func(id string) error {
-	err := controllers.Set(id, "game")
+var AfterLoginCallback = func(id string, accountId string) error {
+	err := ecs.AddMapComponentToEntity(id, "actingAs", map[string]interface{}{
+		"data_source": "accounts",
+		"id": accountId,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	err = controllers.Set(id, "game")
 
 	if err != nil {
 		return err
@@ -62,7 +72,7 @@ func (l controller) HandleInput(id string, input string) error {
 func Login(id string, accountId string) error {
 	_ = session.SetAccountId(id, accountId)
 
-	err := AfterLoginCallback(id)
+	err := AfterLoginCallback(id, accountId)
 
 	if err != nil {
 		return err

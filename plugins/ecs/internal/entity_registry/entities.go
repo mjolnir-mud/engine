@@ -15,25 +15,14 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package instance
+package entity_registry
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/mjolnir-mud/engine/internal/uid"
 )
 
-func TestConfigureForEnv(t *testing.T) {
-	ConfigureForEnv("testing", func(configuration *engine.Configuration) *engine.Configuration {
-		return &engine.Configuration{
-			Redis: engine.RedisConfiguration{
-				Host: "localhost",
-				Port: 6379,
-				Db:   0,
-			},
-		}
-	})
+func Add(id string, entityType string, entity map[string]interface{}) {
+	id = uid.FromString(id)
 
-	assert.NotNil(t, Configs["testing"])
+
 }
