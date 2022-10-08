@@ -32,14 +32,48 @@ type fakeEntity struct {
 	Value string
 }
 
+func TestEngine_AddComponent(t *testing.T) {
+	e := createEngineInstance()
+	defer teardown(e)
+
+	err := e.AddEntityWithId("123", fakeEntity{
+		Value: "test",
+	})
+
+	assert.Nil(t, err)
+
+	receivedMsg := make(chan EventMessage)
+
+	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+		receivedMsg <- event
+	})
+
+	err = e.AddComponent("123", "Value2", "test2")
+
+	assert.Nil(t, err)
+
+	msg := <-receivedMsg
+	ca := engineEvents.ComponentAddedEvent{}
+
+	err = msg.Unmarshal(&ca)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "123", ca.EntityId)
+	assert.Equal(t, "Value2", ca.Name)
+
+	exists, err := e.HasComponent("123", "Value2")
+
+	assert.Nil(t, err)
+	assert.True(t, exists)
+}
+
 func TestEngine_AddEntity(t *testing.T) {
-e := createEngineInstance()
+	e := createEngineInstance()
 	defer teardown(e)
 
 	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
 	})
-
 
 	assert.Nil(t, err)
 	assert.NotNil(t, id)
@@ -51,11 +85,11 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 
 	receivedMsg := make(chan EventMessage)
 
-	e.Subscribe(engineEvents.EntityAddedEvent{}, func (event EventMessage) {
+	e.Subscribe(engineEvents.EntityAddedEvent{}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
-	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: "123", Name: "Value"}, func (event EventMessage) {
+	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
@@ -80,7 +114,6 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 	assert.Equal(t, "123", ca.EntityId)
 	assert.Equal(t, "Value", ca.Name)
 
-
 	exists, err := e.redis.Do(
 		context.Background(),
 		e.redis.B().Exists().Key(e.stringToKey("123")).Build(),
@@ -92,8 +125,6 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 	err = e.AddEntityWithId("123", fakeEntity{
 		Value: "test",
 	})
-
-
 
 	assert.Error(t, err, "entity with id 123 already exists")
 }

@@ -21,9 +21,9 @@ import "fmt"
 
 type ComponentAddedEvent struct {
 	EntityId string
-	Name string
+	Name     string
 }
 
 func (e ComponentAddedEvent) Topic() string {
-	return fmt.Sprintf("%s:component:%s:added", e.EntityId, e.Name)
+	return fmt.Sprintf("%s:component:added", e.EntityId)
 }

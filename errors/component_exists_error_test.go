@@ -15,18 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package errors
 
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestComponentAddedEvent_Topic(t *testing.T) {
-	event := ComponentAddedEvent{
-		EntityId: "123",
-		Name:     "test",
+func TestAddComponentErrors_Error(t *testing.T) {
+	err := ComponentExistsError{
+		EntityId: "id",
+		Name:     "name",
 	}
 
-	assert.Equal(t, "123:component:added", event.Topic())
+	assert.Equal(t, "component id exists on entity name", err.Error())
 }

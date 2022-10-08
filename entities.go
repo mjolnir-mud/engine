@@ -29,7 +29,7 @@ import (
 )
 
 // EntityRecord is the record that is stored in Redis for an entity. It is stored as JSON using ReJSON.
-type EntityRecord struct{
+type EntityRecord struct {
 	// Id is the unique identifier for the entity.
 	Id string
 
@@ -39,7 +39,6 @@ type EntityRecord struct{
 	// Entity is the entity itself.
 	Entity interface{}
 }
-
 
 // AddComponent Adds a component to an entity. This will trigger the `events.ComponentAddedEvent` event to be published.
 // If the entity does not exist, an error will be returned. If the component already exists, an error will be returned.
@@ -53,6 +52,33 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 
 	if !exists {
 		return engineErrors.EntityNotFoundError{Id: entityId}
+	}
+
+	exists, err = e.HasComponent(entityId, componentName)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return engineErrors.ComponentExistsError{EntityId: entityId, Name: componentName}
+	}
+
+	eKey := e.stringToKey(entityId)
+
+	err = e.redis.Do(
+		context.Background(),
+		e.redis.B().JsonSet().Key(eKey).Path(fmt.Sprintf(".Entity.%s", componentName)).Value(rueidis.JSON(component)).Build(),
+	).Error()
+
+	if err != nil {
+		return err
+	}
+
+	err = e.publishComponentAdded(entityId, componentName)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -191,7 +217,14 @@ func (e *Engine) stringToKey(id string) string {
 	return e.uidToKey(uid.FromString(id))
 }
 
-func entityIsStruct(entity interface{}) bool{
+func (e *Engine) publishComponentAdded(entityId string, componentName string) error {
+	return e.Publish(engineEvents.ComponentAddedEvent{
+		EntityId: entityId,
+		Name:     componentName,
+	})
+}
+
+func entityIsStruct(entity interface{}) bool {
 	if entity == nil {
 		return false
 	}
