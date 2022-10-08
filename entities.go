@@ -19,7 +19,6 @@ package engine
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
@@ -46,7 +45,13 @@ type EntityRecord struct {
 // If the entity does not exist, an error will be returned. If the component already exists, an error will be returned.
 // If you wish to update a component, use the `UpdateComponent` method.
 func (e *Engine) AddComponent(entityId string, componentName string, component interface{}) error {
-	logger := e.Logger.With().Str("component", "entities").Str("entityId", entityId).Str("componentName", componentName).Logger()
+	logger := e.Logger.
+		With().
+		Str("component", "entities").
+		Str("entityId", entityId).
+		Str("componentName", componentName).
+		Logger()
+
 	logger.Debug().Msg("adding component")
 
 	logger.Trace().Msg("checking if entity exists")
@@ -120,8 +125,8 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 	return nil
 }
 
-// AddEntity adds an entity to the engine with a random id, returning the id. This will trigger the `events.EntityAddedEvent`
-// event to be published. Then entity must be a struct, otherwise an error will be returned.
+// AddEntity adds an entity to the engine with a random id, returning the id. This will trigger the
+// `events.EntityAddedEvent` event to be published. Then entity must be a struct, otherwise an error will be returned.
 func (e *Engine) AddEntity(entity interface{}) (string, error) {
 	id, err := uuid.NewRandom()
 
@@ -132,9 +137,9 @@ func (e *Engine) AddEntity(entity interface{}) (string, error) {
 	return id.String(), e.AddEntityWithId(id.String(), entity)
 }
 
-// AddEntityWithId adds an entity to the engine. This will trigger the `events.EntityAddedEvent` event to be published. If
-// the entity already exists, an error will be returned. The id will be converted to a Mjolnir UID before it is added.
-// Then entity must be a struct, otherwise an error will be returned.
+// AddEntityWithId adds an entity to the engine. This will trigger the `events.EntityAddedEvent` event to be published.
+// If the entity already exists, an error will be returned. The id will be converted to a Mjolnir UID before it is
+// added. Then entity must be a struct, otherwise an error will be returned.
 func (e *Engine) AddEntityWithId(id string, entity interface{}) error {
 	logger := e.Logger.With().Str("component", "entities").Str("entityId", id).Logger()
 	logger.Debug().Msg("adding entity")
@@ -213,7 +218,13 @@ func (e *Engine) FlushEntities() error {
 // GetComponent returns the named component for the given entity. If the entity or component does not exist, an error will
 // be returned. If the component is not found, an error will be returned.
 func (e *Engine) GetComponent(entityId string, componentName string, component interface{}) error {
-	logger := e.Logger.With().Str("component", "entities").Str("entityId", entityId).Str("componentName", componentName).Logger()
+	logger := e.Logger.
+		With().
+		Str("component", "entities").
+		Str("entityId", entityId).
+		Str("componentName", componentName).
+		Logger()
+
 	logger.Debug().Msg("getting component")
 
 	logger.Trace().Msg("checking if entity exists")
@@ -304,6 +315,82 @@ func (e *Engine) HasComponent(entityId string, componentName string) (bool, erro
 	return true, nil
 }
 
+// RemoveComponent removes the named component from the given entity. This will trigger the
+// `events.ComponentRemovedEvent` event. If the entity or component does not exist, an error will be returned. This
+// method requires that an empty component be passed in, this will be used to unmarshal and add the current component
+// value to the event.
+func (e *Engine) RemoveComponent(entityId string, componentName string, valueType interface{}) error {
+	logger := e.Logger.
+		With().
+		Str("component", "entities").
+		Str("entityId", entityId).
+		Str("componentName", componentName).
+		Logger()
+	logger.Debug().Msg("removing component")
+
+	logger.Trace().Msg("checking if entity exists")
+	exists, err := e.HasEntity(entityId)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("entity does not exist")
+		return engineErrors.EntityNotFoundError{
+			Id: entityId,
+		}
+	}
+
+	logger.Trace().Msg("checking if component exists")
+	exists, err = e.HasComponent(entityId, componentName)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("component does not exist")
+		return engineErrors.ComponentNotFoundError{
+			EntityId: entityId,
+			Name:     componentName,
+		}
+	}
+
+	logger.Trace().Msg("getting previous component value")
+	err = e.GetComponent(entityId, componentName, &valueType)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Trace().Msg("building redis commands")
+	commands := rueidis.Commands{
+		e.redis.B().JsonDel().Key(e.stringToKey(entityId)).Path(componentPath(componentName)).Build(),
+	}
+
+	logger.Trace().Msg("building publish commands for events")
+	commands = append(commands, e.GetPublishCommandsForEvents(
+		buildComponentRemovedEvent(entityId, componentName, valueType))...)
+
+	logger.Trace().Msg("executing redis commands")
+	results := e.redis.DoMulti(
+		context.Background(),
+		commands...,
+	)
+
+	logger.Trace().Msg("checking redis results")
+	for _, result := range results {
+		if result.Error() != nil {
+			logger.Error().Err(result.Error()).Msg("error removing component")
+		}
+	}
+
+	logger.Trace().Msg("component removed")
+
+	return nil
+}
+
 // UpdateComponent updates a component on an entity. This will trigger the `events.ComponentUpdatedEvent` event to be
 // published. If the entity does not exist, an error will be returned. If the component does not exist, an error will be
 // returned.
@@ -340,17 +427,9 @@ func (e *Engine) UpdateComponent(entityId string, componentName string, componen
 	}
 
 	logger.Trace().Msg("getting previous value")
-	p, err := e.redis.Do(
-		context.Background(),
-		e.redis.B().JsonGet().Key(e.stringToKey(entityId)).Paths(componentPath(componentName)).Build(),
-	).ToString()
-
-	if err != nil {
-		return err
-	}
-
 	prev := component
-	err = json.Unmarshal([]byte(p), &prev)
+
+	err = e.GetComponent(entityId, componentName, prev)
 
 	if err != nil {
 		return err
@@ -420,6 +499,14 @@ func buildComponentAddedEvents(entityId string, components map[string]interface{
 	}
 
 	return events
+}
+
+func buildComponentRemovedEvent(entityId string, componentName string, value interface{}) Event {
+	return engineEvents.ComponentRemovedEvent{
+		EntityId: entityId,
+		Name:     componentName,
+		Value:    value,
+	}
 }
 
 func buildEntityAddedEvent(entityId string) Event {

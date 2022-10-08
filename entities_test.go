@@ -196,3 +196,57 @@ func TestEngine_UpdateComponent(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, exists)
 }
+
+func TestEngine_GetComponent(t *testing.T) {
+	e := createEngineInstance()
+	defer teardown(e)
+
+	err := e.AddEntityWithId("123", fakeEntity{
+		Value: "test",
+	})
+
+	assert.Nil(t, err)
+
+	var component string
+
+	err = e.GetComponent("123", "Value", &component)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "test", component)
+}
+
+func TestEngine_RemoveComponent(t *testing.T) {
+	e := createEngineInstance()
+	defer teardown(e)
+
+	err := e.AddEntityWithId("123", fakeEntity{
+		Value: "test",
+	})
+
+	assert.Nil(t, err)
+
+	receivedMsg := make(chan EventMessage)
+
+	e.Subscribe(engineEvents.ComponentRemovedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+		receivedMsg <- event
+	})
+
+	err = e.RemoveComponent("123", "Value", "")
+
+	assert.Nil(t, err)
+
+	msg := <-receivedMsg
+	ca := engineEvents.ComponentRemovedEvent{}
+
+	err = msg.Unmarshal(&ca)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "123", ca.EntityId)
+	assert.Equal(t, "Value", ca.Name)
+	assert.Equal(t, "test", ca.Value)
+
+	exists, err := e.HasComponent("123", "Value")
+
+	assert.Nil(t, err)
+	assert.False(t, exists)
+}
