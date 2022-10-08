@@ -22,6 +22,7 @@ import "fmt"
 type ComponentAddedEvent struct {
 	EntityId string
 	Name     string
+	Value    interface{}
 }
 
 func (e ComponentAddedEvent) Topic() string {

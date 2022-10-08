@@ -45,6 +45,71 @@ type EntityRecord struct {
 // If the entity does not exist, an error will be returned. If the component already exists, an error will be returned.
 // If you wish to update a component, use the `UpdateComponent` method.
 func (e *Engine) AddComponent(entityId string, componentName string, component interface{}) error {
+	logger := e.Logger.With().Str("component", "entities").Str("entityId", entityId).Str("componentName", componentName).Logger()
+	logger.Debug().Msg("adding component")
+
+	logger.Trace().Msg("checking if entity exists")
+	exists, err := e.HasEntity(entityId)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("entity does not exist")
+		return engineErrors.EntityNotFoundError{
+			Id: entityId,
+		}
+	}
+
+	logger.Trace().Msg("checking if component exists")
+	exists, err = e.HasComponent(entityId, componentName)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		logger.Error().Msg("component already exists")
+		return engineErrors.ComponentExistsError{
+			EntityId: entityId,
+			Name:     componentName,
+		}
+	}
+
+	logger.Trace().Msg("building redis command")
+	commands := rueidis.Commands{
+		e.redis.
+			B().
+			JsonSet().
+			Key(e.stringToKey(entityId)).Path(componentPath(componentName)).
+			Value(rueidis.JSON(component)).
+			Build(),
+		e.redis.
+			B().
+			JsonNumincrby().
+			Key(e.stringToKey(entityId)).
+			Path(".Version").
+			Value(1).
+			Build(),
+	}
+
+	componentMap := map[string]interface{}{
+		componentName: component,
+	}
+
+	commands = append(commands, e.GetPublishCommandsForEvents(buildComponentAddedEvents(entityId, componentMap)...)...)
+
+	logger.Trace().Msg("executing redis command")
+	results := e.redis.DoMulti(context.Background(), commands...)
+
+	logger.Trace().Msg("checking redis results")
+	for _, result := range results {
+		if result.Error() != nil {
+			logger.Error().Err(result.Error()).Msg("error adding entity")
+		}
+	}
+
 	return nil
 }
 
@@ -65,6 +130,7 @@ func (e *Engine) AddEntity(entity interface{}) (string, error) {
 // Then entity must be a struct, otherwise an error will be returned.
 func (e *Engine) AddEntityWithId(id string, entity interface{}) error {
 	logger := e.Logger.With().Str("component", "entities").Str("entityId", id).Logger()
+	logger.Debug().Msg("adding entity")
 
 	if !entityIsStruct(entity) {
 		return engineErrors.EntityInvalidError{Id: id, Value: entity}
@@ -97,10 +163,12 @@ func (e *Engine) AddEntityWithId(id string, entity interface{}) error {
 		e.redis.B().JsonSet().Key(eKey).Path(".").Value(rueidis.JSON(record)).Build(),
 	}
 
-	componentNames := getComponentNames(entity)
-	logger.Trace().Strs("components", componentNames).Msg("building publish commands for components")
+	components := getComponentMap(entity)
+	logger.Trace().Interface("components", components).Msg("building publish commands for components")
 
-	commands = append(commands, e.GetPublishCommandsForEvents(buildEntityAndComponentAddedEvents(id, componentNames)...)...)
+	commands = append(commands, e.GetPublishCommandsForEvents(
+		buildEntityAndComponentAddedEvents(id, components)...)...,
+	)
 
 	logger.Trace().Msg("executing redis commands")
 	results := e.redis.DoMulti(
@@ -189,22 +257,15 @@ func (e *Engine) stringToKey(id string) string {
 	return e.uidToKey(uid.FromString(id))
 }
 
-func (e *Engine) publishComponentsAdded(entityId string, componentNames []string) error {
-	return e.Publish(buildComponentAddedEvents(entityId, componentNames)...)
-}
+func buildComponentAddedEvents(entityId string, components map[string]interface{}) []Event {
+	events := make([]Event, 0)
 
-func (e *Engine) publishEntityAndComponentsAdded(entityId string, componentNames []string) error {
-	return e.Publish(buildEntityAndComponentAddedEvents(entityId, componentNames)...)
-}
-
-func buildComponentAddedEvents(entityId string, componentNames []string) []Event {
-	events := make([]Event, len(componentNames))
-
-	for i, componentName := range componentNames {
-		events[i] = engineEvents.ComponentAddedEvent{
+	for name, value := range components {
+		events = append(events, engineEvents.ComponentAddedEvent{
 			EntityId: entityId,
-			Name:     componentName,
-		}
+			Name:     name,
+			Value:    value,
+		})
 	}
 
 	return events
@@ -216,15 +277,15 @@ func buildEntityAddedEvent(entityId string) Event {
 	}
 }
 
-func buildEntityAndComponentAddedEvents(entityId string, componentNames []string) []Event {
+func buildEntityAndComponentAddedEvents(entityId string, components map[string]interface{}) []Event {
 	events := []Event{
 		buildEntityAddedEvent(entityId),
 	}
-	return append(events, buildComponentAddedEvents(entityId, componentNames)...)
+	return append(events, buildComponentAddedEvents(entityId, components)...)
 }
 
-func getComponentNames(entity interface{}) []string {
-	return structs.Names(entity)
+func getComponentMap(entity interface{}) map[string]interface{} {
+	return structs.Map(entity)
 }
 
 func componentPath(componentName string) string {
