@@ -97,22 +97,11 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 		Value: "test",
 	})
 
-	msg := <-receivedMsg
-	ea := engineEvents.EntityAddedEvent{}
+	messages := make([]EventMessage, 0)
+	messages = append(messages, <-receivedMsg)
+	messages = append(messages, <-receivedMsg)
 
-	err = msg.Unmarshal(&ea)
-
-	assert.Nil(t, err)
-	assert.Equal(t, "123", ea.Id)
-
-	msg = <-receivedMsg
-	ca := engineEvents.ComponentAddedEvent{}
-
-	err = msg.Unmarshal(&ca)
-
-	assert.Nil(t, err)
-	assert.Equal(t, "123", ca.EntityId)
-	assert.Equal(t, "Value", ca.Name)
+	assert.Len(t, messages, 2)
 
 	exists, err := e.redis.Do(
 		context.Background(),

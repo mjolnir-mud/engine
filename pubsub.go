@@ -25,7 +25,6 @@ import (
 	"github.com/rueian/rueidis"
 )
 
-
 // EventMessage is a message received from a subscription. It can be used to unmarshall the event.
 type EventMessage struct {
 	message rueidis.PubSubMessage
@@ -50,12 +49,7 @@ func (e *Engine) Publish(events ...Event) error {
 	logger := e.Logger.With().Str("component", "publisher").Logger()
 
 	logger.Debug().Int("events", len(events)).Msg("publishing events")
-	commands := make(rueidis.Commands, len(events))
-
-	for i, event := range events {
-		logger.Trace().Str("topic", e.topicWithPrefix(event)).Msg("publishing event")
-		commands[i] = e.redis.B().Publish().Channel(e.topicWithPrefix(event)).Message(rueidis.JSON(event)).Build()
-	}
+	commands := e.GetPublishCommandsForEvents(events...)
 
 	results := e.redis.DoMulti(
 		context.Background(),
@@ -75,6 +69,18 @@ func (e *Engine) Publish(events ...Event) error {
 	}
 
 	return nil
+}
+
+// GetPublishCommandsForEvents returns a slice of commands that can be used to publish the provided events. This can be
+// used with `DoMulti` to publish multiple events along with other Redis commands in a single transaction.
+func (e *Engine) GetPublishCommandsForEvents(events ...Event) rueidis.Commands {
+	commands := make(rueidis.Commands, len(events))
+
+	for i, event := range events {
+		commands[i] = e.redis.B().Publish().Channel(e.topicWithPrefix(event)).Message(rueidis.JSON(event)).Build()
+	}
+
+	return commands
 }
 
 // Subscribe subscribes an event. The event must implement the `Event` interface. A callback function is to be provided
