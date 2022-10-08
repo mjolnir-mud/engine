@@ -15,19 +15,50 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package errors
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type ComponentUpdatedEvent struct {
-	EntityId      string
-	Name          string
-	Value         interface{}
-	PreviousValue interface{}
+func TestUpdateComponentErrors_Error(t *testing.T) {
+	e := UpdateComponentErrors{
+		Errors: []error{
+			fmt.Errorf("error 1"),
+		},
+	}
+
+	assert.Equal(t, "1 error(s) occurred while updating the component", e.Error())
 }
 
-func (e ComponentUpdatedEvent) Topic() string {
-	return fmt.Sprintf("%s:component:updated", e.EntityId)
+func TestUpdateComponentErrors_Errors(t *testing.T) {
+	e := UpdateComponentErrors{
+		Errors: []error{
+			fmt.Errorf("error 1"),
+		},
+	}
+
+	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
+}
+
+func TestUpdateComponentErrors_HasErrors(t *testing.T) {
+	e := UpdateComponentErrors{
+		Errors: []error{
+			fmt.Errorf("error 1"),
+		},
+	}
+
+	assert.True(t, e.HasErrors())
+}
+
+func TestUpdateComponentErrors_Add(t *testing.T) {
+	e := UpdateComponentErrors{
+		Errors: []error{},
+	}
+
+	e.Add(fmt.Errorf("error 1"))
+
+	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
 }

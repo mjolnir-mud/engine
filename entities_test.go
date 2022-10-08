@@ -159,3 +159,40 @@ func TestEngine_HasEntity(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, exists)
 }
+
+func TestEngine_UpdateComponent(t *testing.T) {
+	e := createEngineInstance()
+	defer teardown(e)
+
+	err := e.AddEntityWithId("123", fakeEntity{
+		Value: "test",
+	})
+
+	assert.Nil(t, err)
+
+	receivedMsg := make(chan EventMessage)
+
+	e.Subscribe(engineEvents.ComponentUpdatedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+		receivedMsg <- event
+	})
+
+	err = e.UpdateComponent("123", "Value", "test2")
+
+	assert.Nil(t, err)
+
+	msg := <-receivedMsg
+	ca := engineEvents.ComponentUpdatedEvent{}
+
+	err = msg.Unmarshal(&ca)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "123", ca.EntityId)
+	assert.Equal(t, "Value", ca.Name)
+	assert.Equal(t, "test2", ca.Value)
+	assert.Equal(t, "test", ca.PreviousValue)
+
+	exists, err := e.HasComponent("123", "Value")
+
+	assert.Nil(t, err)
+	assert.True(t, exists)
+}

@@ -15,19 +15,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package errors
 
 import (
 	"fmt"
 )
 
-type ComponentUpdatedEvent struct {
-	EntityId      string
-	Name          string
-	Value         interface{}
-	PreviousValue interface{}
+// UpdateComponentErrors is a collection of errors that occurred while adding components to an entity.
+type UpdateComponentErrors struct {
+	Errors []error
 }
 
-func (e ComponentUpdatedEvent) Topic() string {
-	return fmt.Sprintf("%s:component:updated", e.EntityId)
+func (e UpdateComponentErrors) Error() string {
+	errorStrings := make([]string, len(e.Errors))
+
+	for i, err := range e.Errors {
+		errorStrings[i] = err.Error()
+	}
+
+	return fmt.Sprintf("%d error(s) occurred while updating the component", len(e.Errors))
+}
+
+func (e UpdateComponentErrors) Add(err error) {
+	e.Errors = append(e.Errors, err)
+}
+
+func (e UpdateComponentErrors) HasErrors() bool {
+	return len(e.Errors) > 0
 }

@@ -19,6 +19,7 @@ package engine
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
@@ -209,6 +210,61 @@ func (e *Engine) FlushEntities() error {
 	return nil
 }
 
+// GetComponent returns the named component for the given entity. If the entity or component does not exist, an error will
+// be returned. If the component is not found, an error will be returned.
+func (e *Engine) GetComponent(entityId string, componentName string, component interface{}) error {
+	logger := e.Logger.With().Str("component", "entities").Str("entityId", entityId).Str("componentName", componentName).Logger()
+	logger.Debug().Msg("getting component")
+
+	logger.Trace().Msg("checking if entity exists")
+	exists, err := e.HasEntity(entityId)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("entity does not exist")
+		return engineErrors.EntityNotFoundError{
+			Id: entityId,
+		}
+	}
+
+	logger.Trace().Msg("checking if component exists")
+	exists, err = e.HasComponent(entityId, componentName)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("component does not exist")
+		return engineErrors.ComponentNotFoundError{
+			EntityId: entityId,
+			Name:     componentName,
+		}
+	}
+
+	logger.Trace().Msg("building redis command")
+	command := e.redis.B().JsonGet().Key(e.stringToKey(entityId)).Paths(componentPath(componentName)).Build()
+
+	logger.Trace().Msg("executing redis command")
+	result := e.redis.Do(context.Background(), command)
+
+	logger.Trace().Msg("checking redis result")
+	if result.Error() != nil {
+		return result.Error()
+	}
+
+	err = result.DecodeJSON(component)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // HasEntity returns true if the entity exists in the engine.
 func (e *Engine) HasEntity(id string) (bool, error) {
 	exists, err := e.redis.Do(context.Background(), e.redis.B().Exists().Key(e.stringToKey(id)).Build()).AsBool()
@@ -252,6 +308,95 @@ func (e *Engine) HasComponent(entityId string, componentName string) (bool, erro
 // published. If the entity does not exist, an error will be returned. If the component does not exist, an error will be
 // returned.
 func (e *Engine) UpdateComponent(entityId string, componentName string, component interface{}) error {
+	logger := e.Logger.With().
+		Str("component", "entities").
+		Str("entityId", entityId).
+		Str("componentName", componentName).Logger()
+
+	logger.Debug().Msg("updating component")
+
+	logger.Trace().Msg("checking if entity exists")
+	exists, err := e.HasEntity(entityId)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("entity does not exist")
+		return engineErrors.EntityNotFoundError{Id: entityId}
+	}
+
+	logger.Trace().Msg("checking if component exists")
+	exists, err = e.HasComponent(entityId, componentName)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		logger.Error().Msg("component does not exist")
+		return engineErrors.ComponentNotFoundError{EntityId: entityId, Name: componentName}
+	}
+
+	logger.Trace().Msg("getting previous value")
+	p, err := e.redis.Do(
+		context.Background(),
+		e.redis.B().JsonGet().Key(e.stringToKey(entityId)).Paths(componentPath(componentName)).Build(),
+	).ToString()
+
+	if err != nil {
+		return err
+	}
+
+	prev := component
+	err = json.Unmarshal([]byte(p), &prev)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Trace().Msg("building redis commands")
+	commands := rueidis.Commands{
+		e.redis.
+			B().
+			JsonSet().
+			Key(e.stringToKey(entityId)).
+			Path(componentPath(componentName)).
+			Value(rueidis.JSON(component)).
+			Build(),
+	}
+
+	logger.Trace().Msg("building publish commands for events")
+	commands = append(commands, e.GetPublishCommandsForEvents(
+		engineEvents.ComponentUpdatedEvent{
+			EntityId:      entityId,
+			Name:          componentName,
+			Value:         component,
+			PreviousValue: prev,
+		},
+	)...)
+
+	logger.Trace().Msg("executing redis commands")
+
+	results := e.redis.DoMulti(
+		context.Background(),
+		commands...,
+	)
+
+	cue := engineErrors.UpdateComponentErrors{}
+
+	logger.Trace().Msg("checking redis results")
+	for _, result := range results {
+		if result.Error() != nil {
+			cue.Add(result.Error())
+		}
+	}
+
+	if cue.HasErrors() {
+		return cue
+	}
+
 	return nil
 }
 
