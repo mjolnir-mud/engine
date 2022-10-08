@@ -104,10 +104,16 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 	results := e.redis.DoMulti(context.Background(), commands...)
 
 	logger.Trace().Msg("checking redis results")
+
+	cae := engineErrors.AddComponentErrors{}
 	for _, result := range results {
 		if result.Error() != nil {
-			logger.Error().Err(result.Error()).Msg("error adding entity")
+			cae.Add(result.Error())
 		}
+	}
+
+	if cae.HasErrors() {
+		return cae
 	}
 
 	return nil

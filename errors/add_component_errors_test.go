@@ -19,27 +19,46 @@ package errors
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-// AddComponentErrors is a collection of errors that occurred while adding components to an entity.
-type AddComponentErrors struct {
-	Errors []error
-}
-
-func (e AddComponentErrors) Error() string {
-	errorStrings := make([]string, len(e.Errors))
-
-	for i, err := range e.Errors {
-		errorStrings[i] = err.Error()
+func TestAddComponentErrors_Error(t *testing.T) {
+	e := AddComponentErrors{
+		Errors: []error{
+			fmt.Errorf("error 1"),
+		},
 	}
 
-	return fmt.Sprintf("%d error(s) occurred while adding the component", len(e.Errors))
+	assert.Equal(t, "1 error(s) occurred while adding the component", e.Error())
 }
 
-func (e AddComponentErrors) Add(err error) {
-	e.Errors = append(e.Errors, err)
+func TestAddComponentErrors_Errors(t *testing.T) {
+	e := AddComponentErrors{
+		Errors: []error{
+			fmt.Errorf("error 1"),
+		},
+	}
+
+	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
 }
 
-func (e AddComponentErrors) HasErrors() bool {
-	return len(e.Errors) > 0
+func TestAddComponentErrors_HasErrors(t *testing.T) {
+	e := AddComponentErrors{
+		Errors: []error{
+			fmt.Errorf("error 1"),
+		},
+	}
+
+	assert.True(t, e.HasErrors())
+}
+
+func TestAddComponentErrors_Add(t *testing.T) {
+	e := AddComponentErrors{
+		Errors: []error{},
+	}
+
+	e.Add(fmt.Errorf("error 1"))
+
+	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
 }

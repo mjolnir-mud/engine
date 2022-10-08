@@ -27,5 +27,5 @@ func TestEntityNotFoundError_Error(t *testing.T) {
 		Id: "123",
 	}
 
-	assert.Equal(t, "entity not found: 123", err.Error())
+	assert.Equal(t, "entity with id 123 does not exist", err.Error())
 }

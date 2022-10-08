@@ -22,7 +22,7 @@ import (
 	"testing"
 )
 
-func TestAddComponentErrors_Error(t *testing.T) {
+func TestComponentExistsError_Error(t *testing.T) {
 	err := ComponentExistsError{
 		EntityId: "id",
 		Name:     "name",
