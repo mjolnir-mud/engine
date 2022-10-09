@@ -21,8 +21,8 @@ import (
 	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
-	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	"github.com/mjolnir-mud/engine/plugins/templates"
+	"github.com/mjolnir-mud/engine/systems"
 )
 
 // controller is the login controller, responsible handling user logins.
@@ -33,7 +33,7 @@ var Controller = controller{}
 var AfterLoginCallback = func(id string, accountId string) error {
 	err := ecs.AddMapComponentToEntity(id, "actingAs", map[string]interface{}{
 		"data_source": "accounts",
-		"id": accountId,
+		"id":          accountId,
 	})
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (l controller) HandleInput(id string, input string) error {
 }
 
 func Login(id string, accountId string) error {
-	_ = session.SetAccountId(id, accountId)
+	_ = systems.SetAccountId(id, accountId)
 
 	err := AfterLoginCallback(id, accountId)
 
@@ -82,7 +82,7 @@ func Login(id string, accountId string) error {
 }
 
 func handleInput(id string, input string) error {
-	i, err := session.GetIntFromFlashWithDefault(id, "step", 1)
+	i, err := systems.GetIntFromFlashWithDefault(id, "step", 1)
 
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func handleUsername(id string, input string) error {
 		return nil
 	}
 
-	err := session.SetStringInFlash(id, "username", input)
+	err := systems.SetStringInFlash(id, "username", input)
 
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func handleUsername(id string, input string) error {
 }
 
 func handlePassword(id string, input string) error {
-	username, err := session.GetStringFromFlash(id, "username")
+	username, err := systems.GetStringFromFlash(id, "username")
 
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func handlePassword(id string, input string) error {
 	})
 
 	if err != nil {
-		err := session.Render(id, "login_invalid", nil)
+		err := systems.Render(id, "login_invalid", nil)
 
 		if err != nil {
 			return err
@@ -145,13 +145,13 @@ func handlePassword(id string, input string) error {
 }
 
 func promptPassword(id string) error {
-	err := session.SetIntInFlash(id, "step", 2)
+	err := systems.SetIntInFlash(id, "step", 2)
 
 	if err != nil {
 		return err
 	}
 
-	err = session.Render(id, "prompt_password", nil)
+	err = systems.Render(id, "prompt_password", nil)
 
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func promptPassword(id string) error {
 }
 
 func promptLoginUsername(id string) error {
-	err := session.SetIntInFlash(id, "step", 1)
+	err := systems.SetIntInFlash(id, "step", 1)
 
 	v, err := templates.RenderTemplate("prompt_username", nil)
 
@@ -168,7 +168,7 @@ func promptLoginUsername(id string) error {
 		return err
 	}
 
-	err = session.SendLine(id, v)
+	err = systems.SendLine(id, v)
 
 	if err != nil {
 		return err

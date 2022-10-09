@@ -15,43 +15,36 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package fakes
+package systems
 
-import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
-	"github.com/mjolnir-mud/engine/systems"
-)
+type sessionSystem struct{}
 
-type fakeController struct {
-	ControllerName    string
-	HandleInputCalled chan []string
+func (e sessionSystem) Name() string {
+	return "session"
 }
 
-func (c fakeController) Name() string {
-	return c.ControllerName
+func (e sessionSystem) Component() string {
+	return "session"
 }
 
-func (c fakeController) Start(id string) error {
-	return systems.SendLine(id, "testing")
+func (e sessionSystem) Match(_ string, _ interface{}) bool {
+	return true
 }
 
-func (c fakeController) Resume(_ string) error {
+func (e sessionSystem) ComponentAdded(_ string, _ string, _ interface{}) error { return nil }
+
+func (e sessionSystem) ComponentUpdated(_ string, _ string, _ interface{}, _ interface{}) error {
 	return nil
 }
 
-func (c fakeController) Stop(_ string) error {
+func (e sessionSystem) ComponentRemoved(_ string, _ string) error { return nil }
+
+func (e sessionSystem) MatchingComponentAdded(_ string, _ string, _ interface{}) error { return nil }
+
+func (e sessionSystem) MatchingComponentUpdated(_ string, _ string, _ interface{}, _ interface{}) error {
 	return nil
 }
 
-func (c fakeController) HandleInput(_ string, _ string) error {
-	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
+func (e sessionSystem) MatchingComponentRemoved(_ string, _ string) error { return nil }
 
-	return nil
-}
-
-func CreateFakeController(name string) controller.Controller {
-	return fakeController{
-		ControllerName:    name,
-		HandleInputCalled: make(chan []string),
-	}
-}
+var Session = sessionSystem{}

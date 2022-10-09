@@ -15,7 +15,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package session
+package systems
 
 import (
 	testing2 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
@@ -38,13 +38,13 @@ func setup() {
 
 	registry.Start()
 
-	ent, err := ecs.NewEntity("session", map[string]interface{}{})
+	ent, err := ecs.NewEntity("sessionSystem", map[string]interface{}{})
 
 	if err != nil {
 		panic(err)
 	}
 
-	err = ecs.AddEntityWithID("session", "testing", ent)
+	err = ecs.AddEntityWithID("sessionSystem", "testing", ent)
 
 	if err != nil {
 		panic(err)

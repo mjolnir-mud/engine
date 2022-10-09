@@ -27,10 +27,10 @@ import (
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	testing4 "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	mongoDataSourcesTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
-	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
 	testing2 "github.com/mjolnir-mud/engine/plugins/templates/testing"
+	"github.com/mjolnir-mud/engine/systems"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
@@ -150,12 +150,12 @@ func TestControllerHandlesInvalidLogin(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	i, err := session.GetIntFromFlash(id, "step")
+	i, err := systems.GetIntFromFlash(id, "step")
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, i)
 
-	s, err := session.GetStringFromFlash(id, "username")
+	s, err := systems.GetStringFromFlash(id, "username")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "testing", s)

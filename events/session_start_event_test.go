@@ -15,43 +15,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package fakes
+package events
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
-	"github.com/mjolnir-mud/engine/systems"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type fakeController struct {
-	ControllerName    string
-	HandleInputCalled chan []string
+func TestSessionStartEvent_Topic(t *testing.T) {
+	event := SessionStartEvent{}
+
+	assert.Equal(t, "session:start", event.Topic())
 }
 
-func (c fakeController) Name() string {
-	return c.ControllerName
-}
+func TestSessionStartEvent_AllTopics(t *testing.T) {
+	event := SessionStartEvent{}
 
-func (c fakeController) Start(id string) error {
-	return systems.SendLine(id, "testing")
-}
-
-func (c fakeController) Resume(_ string) error {
-	return nil
-}
-
-func (c fakeController) Stop(_ string) error {
-	return nil
-}
-
-func (c fakeController) HandleInput(_ string, _ string) error {
-	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
-
-	return nil
-}
-
-func CreateFakeController(name string) controller.Controller {
-	return fakeController{
-		ControllerName:    name,
-		HandleInputCalled: make(chan []string),
-	}
+	assert.Equal(t, "session:start", event.AllTopics())
 }

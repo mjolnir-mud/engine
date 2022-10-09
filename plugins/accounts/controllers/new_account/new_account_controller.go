@@ -3,7 +3,7 @@ package new_account
 import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/controllers/login"
 	"github.com/mjolnir-mud/engine/plugins/data_sources/constants"
-	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
+	"github.com/mjolnir-mud/engine/systems"
 	"strings"
 
 	accountSystem "github.com/mjolnir-mud/engine/plugins/accounts/systems/account"
@@ -40,7 +40,7 @@ func (n controller) Stop(_ string) error {
 }
 
 func (n controller) HandleInput(id string, input string) error {
-	step, err := session.GetIntFromFlashWithDefault(id, "step", 1)
+	step, err := systems.GetIntFromFlashWithDefault(id, "step", 1)
 
 	if err != nil {
 		return err
@@ -61,13 +61,13 @@ func (n controller) HandleInput(id string, input string) error {
 }
 
 func handlePassword(id string, input string) error {
-	username, err := session.GetStringFromFlash(id, "username")
+	username, err := systems.GetStringFromFlash(id, "username")
 
 	if err != nil {
 		return err
 	}
 
-	email, err := session.GetStringFromFlash(id, "email")
+	email, err := systems.GetStringFromFlash(id, "email")
 
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func handlePassword(id string, input string) error {
 	err = accountSystem.ValidatePassword(username, email, input)
 
 	if err != nil {
-		return session.SendLine(id, err.Error())
+		return systems.SendLine(id, err.Error())
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(input), 4)
@@ -85,7 +85,7 @@ func handlePassword(id string, input string) error {
 		return err
 	}
 
-	err = session.SetStringInFlash(id, "password", string(hash))
+	err = systems.SetStringInFlash(id, "password", string(hash))
 
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func handleEmail(id string, input string) error {
 	err := accountSystem.ValidateEmail(input)
 
 	if err != nil {
-		err := session.Render(id, "email_invalid", input)
+		err := systems.Render(id, "email_invalid", input)
 
 		if err != nil {
 			return err
@@ -118,7 +118,7 @@ func handleEmail(id string, input string) error {
 	}
 
 	if count > 0 {
-		err := session.Render(id, "email_taken", input)
+		err := systems.Render(id, "email_taken", input)
 
 		if err != nil {
 			return err
@@ -127,7 +127,7 @@ func handleEmail(id string, input string) error {
 		return promptNewEmail(id)
 	}
 
-	err = session.SetStringInFlash(id, "email", input)
+	err = systems.SetStringInFlash(id, "email", input)
 
 	if err != nil {
 		return err
@@ -146,7 +146,7 @@ func handleUsername(id, input string) error {
 	}
 
 	if count > int64(0) {
-		err := session.Render(id, "username_taken", input)
+		err := systems.Render(id, "username_taken", input)
 
 		if err != nil {
 			return err
@@ -158,10 +158,10 @@ func handleUsername(id, input string) error {
 	err = accountSystem.ValidateUsername(input)
 
 	if err != nil {
-		return session.SendLine(id, err.Error())
+		return systems.SendLine(id, err.Error())
 	}
 
-	err = session.SetStringInFlash(id, "username", input)
+	err = systems.SetStringInFlash(id, "username", input)
 
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func handleUsername(id, input string) error {
 }
 
 func handlePasswordConfirmation(id string, input string) error {
-	hashedPassword, err := session.GetStringFromFlash(id, "password")
+	hashedPassword, err := systems.GetStringFromFlash(id, "password")
 
 	if err != nil {
 		return err
@@ -180,7 +180,7 @@ func handlePasswordConfirmation(id string, input string) error {
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(input))
 
 	if err != nil {
-		err := session.Render(id, "password_match_fail", nil)
+		err := systems.Render(id, "password_match_fail", nil)
 
 		if err != nil {
 			return err
@@ -189,13 +189,13 @@ func handlePasswordConfirmation(id string, input string) error {
 		return promptNewPassword(id)
 	}
 
-	username, err := session.GetStringFromFlash(id, "username")
+	username, err := systems.GetStringFromFlash(id, "username")
 
 	if err != nil {
 		return err
 	}
 
-	email, err := session.GetStringFromFlash(id, "email")
+	email, err := systems.GetStringFromFlash(id, "email")
 
 	if err != nil {
 		return err
@@ -233,23 +233,23 @@ func handlePasswordConfirmation(id string, input string) error {
 }
 
 func promptNewUsername(id string) error {
-	err := session.SetIntInFlash(id, "step", 1)
+	err := systems.SetIntInFlash(id, "step", 1)
 
 	if err != nil {
 		return err
 	}
 
-	return session.Render(id, "prompt_new_username", nil)
+	return systems.Render(id, "prompt_new_username", nil)
 }
 
 func promptNewEmail(id string) error {
-	err := session.SetIntInFlash(id, "step", 2)
+	err := systems.SetIntInFlash(id, "step", 2)
 
 	if err != nil {
 		return err
 	}
 
-	err = session.Render(id, "prompt_new_email", nil)
+	err = systems.Render(id, "prompt_new_email", nil)
 
 	if err != nil {
 		return err
@@ -259,13 +259,13 @@ func promptNewEmail(id string) error {
 }
 
 func promptNewPassword(id string) error {
-	err := session.SetIntInFlash(id, "step", 3)
+	err := systems.SetIntInFlash(id, "step", 3)
 
 	if err != nil {
 		return err
 	}
 
-	err = session.Render(id, "prompt_new_password", nil)
+	err = systems.Render(id, "prompt_new_password", nil)
 
 	if err != nil {
 		return err
@@ -275,13 +275,13 @@ func promptNewPassword(id string) error {
 }
 
 func promptPasswordConfirmation(id string) error {
-	err := session.SetIntInFlash(id, "step", 4)
+	err := systems.SetIntInFlash(id, "step", 4)
 
 	if err != nil {
 		return err
 	}
 
-	err = session.Render(id, "prompt_password_confirmation", nil)
+	err = systems.Render(id, "prompt_password_confirmation", nil)
 
 	if err != nil {
 		return err

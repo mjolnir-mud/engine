@@ -22,8 +22,97 @@ import (
 	"encoding/json"
 	"fmt"
 	engineErrors "github.com/mjolnir-mud/engine/errors"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/rueian/rueidis"
 )
+
+type subscription struct {
+	id      *uid.UID
+	client  rueidis.DedicatedClient
+	topic   string
+	pattern bool
+}
+
+func newSubscription(client rueidis.DedicatedClient, topic string, pattern bool) *subscription {
+	return &subscription{
+		id:      uid.New(),
+		client:  client,
+		topic:   topic,
+		pattern: pattern,
+	}
+}
+
+func (s *subscription) Unsubscribe() {
+	if s.pattern {
+		s.client.Do(context.Background(), s.client.B().Punsubscribe().Pattern(s.topic).Build())
+	} else {
+		s.client.Do(context.Background(), s.client.B().Unsubscribe().Channel(s.topic).Build())
+	}
+}
+
+type subscriptionRegistry struct {
+	subscriptions map[*uid.UID]*subscription
+	engine        *Engine
+}
+
+func newSubscriptionRegistry(engine *Engine) *subscriptionRegistry {
+	return &subscriptionRegistry{
+		subscriptions: make(map[*uid.UID]*subscription),
+		engine:        engine,
+	}
+}
+
+func (r *subscriptionRegistry) Subscribe(topic string, pattern bool, callback func(event EventMessage)) *uid.UID {
+	client, cancel := r.engine.redis.Dedicate()
+
+	go func() {
+		defer cancel()
+
+		wait := client.SetPubSubHooks(rueidis.PubSubHooks{
+			OnMessage: func(m rueidis.PubSubMessage) {
+				logger := r.engine.Logger.With().Str("subscription", m.Channel).Logger()
+				logger.Debug().Msg("received message")
+
+				callback(EventMessage{message: m})
+			},
+		})
+
+		<-wait
+	}()
+
+	if pattern {
+		client.Do(context.Background(), client.B().Psubscribe().Pattern(topic).Build())
+	} else {
+		client.Do(context.Background(), client.B().Subscribe().Channel(topic).Build())
+	}
+
+	sub := newSubscription(client, topic, pattern)
+
+	r.add(sub)
+
+	return sub.id
+}
+
+func (r *subscriptionRegistry) Unsubscribe(id *uid.UID) {
+	sub, ok := r.subscriptions[id]
+
+	if !ok {
+		return
+	}
+
+	sub.Unsubscribe()
+	r.remove(id)
+}
+
+func (r *subscriptionRegistry) add(s *subscription) {
+	r.subscriptions[s.id] = s
+}
+
+func (r *subscriptionRegistry) remove(id *uid.UID) {
+	if _, ok := r.subscriptions[id]; ok {
+		delete(r.subscriptions, id)
+	}
+}
 
 // EventMessage is a message received from a subscription. It can be used to unmarshall the event.
 type EventMessage struct {
@@ -86,79 +175,27 @@ func (e *Engine) GetPublishCommandsForEvents(events ...Event) rueidis.Commands {
 // Subscribe subscribes an event. The event must implement the `Event` interface. A callback function is to be provided
 // which will be called when the event is published, the callback will be passed an `EventMessage` which can be used to
 // unmarshall the event.
-func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) {
+func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) *uid.UID {
 	e.Logger.Debug().Str("topic", e.topicWithPrefix(event)).Msg("subscribing to topic")
-
-	client, cancel := e.redis.Dedicate()
-
-	go func() {
-		defer cancel()
-
-		wait := client.SetPubSubHooks(rueidis.PubSubHooks{
-			OnMessage: func(m rueidis.PubSubMessage) {
-				logger := e.Logger.With().Str("subscription", m.Channel).Logger()
-				logger.Debug().Msg("received message")
-
-				callback(EventMessage{message: m})
-			},
-		})
-
-		<-wait
-	}()
-
-	client.Do(
-		context.Background(),
-		client.B().Subscribe().Channel(e.topicWithPrefix(event)).Build(),
-	)
+	return e.subscriptionRegistry.Subscribe(e.topicWithPrefix(event), false, callback)
 }
 
 // PSubscribe subscribes to a pattern as returned by the `AllTopics` method on an `Event`. A callback function is to be
 // provided which will be called when the event is published, the callback will be passed an `EventMessage` which can be
 // used to unmarshall the event.
-func (e *Engine) PSubscribe(event Event, callback func(event EventMessage)) {
+func (e *Engine) PSubscribe(event Event, callback func(event EventMessage)) *uid.UID {
 	e.Logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("subscribing to topic")
-
-	client, cancel := e.redis.Dedicate()
-
-	go func() {
-		defer cancel()
-
-		wait := client.SetPubSubHooks(rueidis.PubSubHooks{
-			OnMessage: func(m rueidis.PubSubMessage) {
-				logger := e.Logger.With().Str("subscription", m.Channel).Logger()
-				logger.Debug().Msg("received message")
-
-				callback(EventMessage{message: m})
-			},
-		})
-
-		<-wait
-	}()
-
-	client.Do(
-		context.Background(),
-		client.B().Psubscribe().Pattern(e.allTopicsWithPrefix(event)).Build(),
-	)
+	return e.subscriptionRegistry.Subscribe(e.allTopicsWithPrefix(event), true, callback)
 }
 
 // Unsubscribe unsubscribes an event. The event must implement the `Event` interface.
-func (e *Engine) Unsubscribe(event Event) {
-	e.Logger.Debug().Str("topic", e.topicWithPrefix(event)).Msg("unsubscribing from topic")
-
-	e.redis.Do(
-		context.Background(),
-		e.redis.B().Unsubscribe().Channel(e.topicWithPrefix(event)).Build(),
-	)
+func (e *Engine) Unsubscribe(id *uid.UID) {
+	e.subscriptionRegistry.Unsubscribe(id)
 }
 
 // PUnsubscribe unsubscribes from a pattern as returned by the `AllTopics` method on an `Event`.
-func (e *Engine) PUnsubscribe(event Event) {
-	e.Logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("unsubscribing from topic")
-
-	e.redis.Do(
-		context.Background(),
-		e.redis.B().Punsubscribe().Pattern(e.allTopicsWithPrefix(event)).Build(),
-	)
+func (e *Engine) PUnsubscribe(id *uid.UID) {
+	e.subscriptionRegistry.Unsubscribe(id)
 }
 
 func (e *Engine) topicWithPrefix(event Event) string {

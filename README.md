@@ -1,8 +1,11 @@
 ## Overview
 
-Mjolnir is a [MUD](https://en.wikipedia.org/wiki/MUD) engine written in [Go](https://golang.org/),
-with a goal of providing a flexible and extensible framework for writing MUDs. This repository
-contains the core engine and plugins. For a quick start, see the [Mjolnir MUD Engine Template](https://github.com/fugufish/altreum).
+Mjolnir is a general purpose, extensible, and highly customizable [GoLang](https://golang.org/) framework for building
+server side persistent game worlds. It is designed to be highly modular and extensible, allowing for the creation of
+custom game worlds with minimal effort.
+
+## Features
+* Fully baked [Entity Component System](https://en.wikipedia.org/wiki/Entity_component_system) architecture
 
 ## Documentation
 

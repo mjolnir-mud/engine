@@ -25,10 +25,12 @@ import (
 
 // Engine is an instance of the Mjolnir game engine.
 type Engine struct {
-	redis          rueidis.Client
-	instanceId     string
-	systemRegistry *systemRegistry
-	config         *Configuration
+	redis                rueidis.Client
+	instanceId           string
+	systemRegistry       *systemRegistry
+	sessionRegistry      *sessionRegistry
+	subscriptionRegistry *subscriptionRegistry
+	config               *Configuration
 
 	// Logger is the logger for the engine. Plugins can use this logger to create their own tagged loggers. See
 	// [zerolog](https://github.com/rs/zerolog) for more information.
@@ -44,6 +46,8 @@ func New(config *Configuration) *Engine {
 	}
 
 	e.systemRegistry = newSystemRegistry(e)
+	e.sessionRegistry = newSessionRegistry(e)
+	e.subscriptionRegistry = newSubscriptionRegistry(e)
 
 	return e
 }
@@ -65,6 +69,7 @@ func (e *Engine) Start() error {
 	e.redis = redisClient
 
 	e.systemRegistry.Start()
+	e.sessionRegistry.Start()
 
 	return nil
 }

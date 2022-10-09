@@ -11,10 +11,10 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing"
 	mongoDataSourceTesting "github.com/mjolnir-mud/engine/plugins/mongo_data_source/testing"
-	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
 	sessionsTesting "github.com/mjolnir-mud/engine/plugins/sessions/testing"
 	"github.com/mjolnir-mud/engine/plugins/sessions/testing/helpers"
 	testing2 "github.com/mjolnir-mud/engine/plugins/templates/testing"
+	"github.com/mjolnir-mud/engine/systems"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
 	"testing"
 
@@ -234,7 +234,7 @@ func TestInvalidEmail(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = session.SetIntInFlash(id, "step", EmailStep)
+	err = systems.SetIntInFlash(id, "step", EmailStep)
 
 	assert.NoError(t, err)
 
@@ -259,15 +259,15 @@ func TestPasswordTooShort(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = session.SetIntInFlash(id, "step", PasswordStep)
+	err = systems.SetIntInFlash(id, "step", PasswordStep)
 
 	assert.NoError(t, err)
 
-	err = session.SetStringInFlash(id, "username", "New_Account")
+	err = systems.SetStringInFlash(id, "username", "New_Account")
 
 	assert.NoError(t, err)
 
-	err = session.SetStringInFlash(id, "email", "test_account@email.com")
+	err = systems.SetStringInFlash(id, "email", "test_account@email.com")
 
 	assert.NoError(t, err)
 

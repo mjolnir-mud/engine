@@ -15,43 +15,34 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package fakes
+package engine
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
-	"github.com/mjolnir-mud/engine/systems"
+	engineEvents "github.com/mjolnir-mud/engine/events"
+	"github.com/mjolnir-mud/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type fakeController struct {
-	ControllerName    string
-	HandleInputCalled chan []string
-}
+func TestSessionRegistryStartsSessions(t *testing.T) {
+	engine := createEngineInstance()
+	defer engine.Stop()
 
-func (c fakeController) Name() string {
-	return c.ControllerName
-}
+	sessId := uid.New()
 
-func (c fakeController) Start(id string) error {
-	return systems.SendLine(id, "testing")
-}
+	ready := make(chan bool)
 
-func (c fakeController) Resume(_ string) error {
-	return nil
-}
+	engine.Subscribe(engineEvents.SessionStartedEvent{Id: sessId}, func(_ EventMessage) {
+		ready <- true
+	})
 
-func (c fakeController) Stop(_ string) error {
-	return nil
-}
+	err := engine.Publish(engineEvents.SessionStartEvent{
+		Id: sessId,
+	})
 
-func (c fakeController) HandleInput(_ string, _ string) error {
-	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
+	assert.Nil(t, err)
 
-	return nil
-}
+	<-ready
 
-func CreateFakeController(name string) controller.Controller {
-	return fakeController{
-		ControllerName:    name,
-		HandleInputCalled: make(chan []string),
-	}
+	assert.Equal(t, 1, len(engine.sessionRegistry.sessions))
 }

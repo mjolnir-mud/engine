@@ -19,13 +19,17 @@ package engine
 
 import (
 	engineEvents "github.com/mjolnir-mud/engine/events"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/rs/zerolog"
 )
 
 type systemRegistry struct {
-	logger  zerolog.Logger
-	systems map[string]System
-	engine  *Engine
+	logger                       zerolog.Logger
+	systems                      map[string]System
+	engine                       *Engine
+	componentAddedSubscription   *uid.UID
+	componentRemovedSubscription *uid.UID
+	componentUpdatedSubscription *uid.UID
 }
 
 func newSystemRegistry(e *Engine) *systemRegistry {
@@ -49,17 +53,17 @@ func (r *systemRegistry) Register(s System) {
 // Start starts the system registry.
 func (r *systemRegistry) Start() {
 	r.logger.Info().Msg("starting")
-	r.engine.PSubscribe(engineEvents.ComponentAddedEvent{}, r.onComponentAdded)
-	r.engine.PSubscribe(engineEvents.ComponentRemovedEvent{}, r.onComponentRemoved)
-	r.engine.PSubscribe(engineEvents.ComponentUpdatedEvent{}, r.onComponentUpdated)
+	r.componentAddedSubscription = r.engine.PSubscribe(engineEvents.ComponentAddedEvent{}, r.onComponentAdded)
+	r.componentRemovedSubscription = r.engine.PSubscribe(engineEvents.ComponentRemovedEvent{}, r.onComponentRemoved)
+	r.componentUpdatedSubscription = r.engine.PSubscribe(engineEvents.ComponentUpdatedEvent{}, r.onComponentUpdated)
 }
 
 // Stop stops the system registry.
 func (r *systemRegistry) Stop() {
 	r.logger.Info().Msg("stopping system registry")
-	r.engine.PUnsubscribe(engineEvents.ComponentAddedEvent{})
-	r.engine.PUnsubscribe(engineEvents.ComponentRemovedEvent{})
-	r.engine.PUnsubscribe(engineEvents.ComponentUpdatedEvent{})
+	r.engine.PUnsubscribe(r.componentAddedSubscription)
+	r.engine.PUnsubscribe(r.componentRemovedSubscription)
+	r.engine.PUnsubscribe(r.componentUpdatedSubscription)
 }
 
 func (r *systemRegistry) onComponentAdded(e EventMessage) {

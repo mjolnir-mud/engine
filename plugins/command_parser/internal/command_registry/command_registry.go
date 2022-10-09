@@ -19,7 +19,7 @@ package command_registry
 
 import (
 	"github.com/mjolnir-mud/engine/plugins/command_parser/command_set"
-	"github.com/mjolnir-mud/engine/plugins/sessions/systems/session"
+	"github.com/mjolnir-mud/engine/systems"
 	"strings"
 
 	"github.com/alecthomas/kong"
@@ -49,7 +49,7 @@ func ParseCommand(sets []string, sessId string, input string) {
 		k, ok := registry.commandSets[set]
 
 		if !ok {
-			err := session.SendLine(sessId, "I'm confused.")
+			err := systems.SendLine(sessId, "I'm confused.")
 
 			if err != nil {
 				panic(err)
@@ -69,7 +69,7 @@ func ParseCommand(sets []string, sessId string, input string) {
 			err = ctx.Run(sessId)
 
 			if err != nil {
-				err := session.SendLine(sessId, err.Error())
+				err := systems.SendLine(sessId, err.Error())
 
 				if err != nil {
 					panic(err)
@@ -81,7 +81,7 @@ func ParseCommand(sets []string, sessId string, input string) {
 			return
 		}
 	}
-	err := session.SendLine(sessId, "I'm not sure what you mean.")
+	err := systems.SendLine(sessId, "I'm not sure what you mean.")
 
 	if err != nil {
 		panic(err)
