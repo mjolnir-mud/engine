@@ -17,10 +17,20 @@
 
 package events
 
+import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
+)
+
+// EntityAddedEvent is an event that is fired when an entity is added to the engine.
 type EntityAddedEvent struct {
-	Id    string
+	Id *uid.UID
 }
 
 func (e EntityAddedEvent) Topic() string {
-	return "engine:entity:added"
+	return fmt.Sprintf("entity:%s:added", e.Id)
+}
+
+func (e EntityAddedEvent) AllTopics() string {
+	return "entity:*:added"
 }

@@ -14,22 +14,18 @@ func TestNew(t *testing.T) {
 }
 
 func createEngineInstance() *Engine {
-	puid, _  := uuid.NewRandom()
+	puid, _ := uuid.NewRandom()
 	prefix := puid.String()
 
-
-	engine, err := New(&Configuration{
+	engine := New(&Configuration{
 		Redis: &redis.Configuration{
 			Host: "localhost",
 			Port: 6379,
-			DB: 1,
+			DB:   1,
 		},
 		InstanceId: prefix,
 	})
 
-	if err != nil {
-		panic(err)
-	}
-
+	_ = engine.Start()
 	return engine
 }

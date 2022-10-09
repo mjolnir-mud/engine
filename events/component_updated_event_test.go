@@ -18,17 +18,27 @@
 package events
 
 import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestComponentUpdatedEvent_Topic(t *testing.T) {
+	id := uid.New()
+
 	e := ComponentUpdatedEvent{
-		EntityId:      "123",
+		EntityId:      id,
 		Name:          "test",
 		Value:         "test",
 		PreviousValue: "test",
 	}
 
-	assert.Equal(t, "123:component:updated", e.Topic())
+	assert.Equal(t, fmt.Sprintf("entity:%s:component:test:updated", id), e.Topic())
+}
+
+func TestComponentUpdatedEvent_AllTopics(t *testing.T) {
+	e := ComponentUpdatedEvent{}
+
+	assert.Equal(t, "entity:*:component:*:updated", e.AllTopics())
 }

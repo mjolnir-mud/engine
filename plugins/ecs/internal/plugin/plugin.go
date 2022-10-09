@@ -21,8 +21,6 @@ import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/entity_registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/logger"
-	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/system"
 )
 
 type plugin struct{}
@@ -35,12 +33,12 @@ func (p plugin) Registered() error {
 	engine.RegisterAfterServiceStartCallback("world", func() {
 		logger.Start()
 		entity_registry.Start()
-		system_registry.Start()
+		engine.Start()
 	})
 
 	engine.RegisterBeforeServiceStopCallback("world", func() {
 		entity_registry.Stop()
-		system_registry.Stop()
+		engine.Stop()
 	})
 
 	return nil
@@ -273,8 +271,8 @@ func IsEntityTypeRegistered(entityType string) bool {
 
 // RegisterSystem registers a system with the registry. If a system with the same name is already registered, it will be
 // overwritten.
-func RegisterSystem(system system.System) {
-	system_registry.Register(system)
+func RegisterSystem(system engine.System) {
+	engine.Register(system)
 }
 
 // RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` data_source. It is

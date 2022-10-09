@@ -15,25 +15,50 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package uid
 
 import (
-	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"testing"
 )
 
-// ComponentUpdatedEvent is an event that is fired when a component is updated on an entity.
-type ComponentUpdatedEvent struct {
-	EntityId      *uid.UID
-	Name          string
-	Value         interface{}
-	PreviousValue interface{}
+func TestNew(t *testing.T) {
+	uid := New()
+
+	assert.Len(t, uid.String(), 24)
 }
 
-func (e ComponentUpdatedEvent) Topic() string {
-	return fmt.Sprintf("entity:%s:component:%s:updated", e.EntityId, e.Name)
+func TestFromString(t *testing.T) {
+	uid, err := FromString("123456789012345678901234")
+
+	assert.Nil(t, err)
+	assert.Equal(t, "123456789012345678901234", uid.String())
 }
 
-func (e ComponentUpdatedEvent) AllTopics() string {
-	return "entity:*:component:*:updated"
+func TestFromString_Invalid(t *testing.T) {
+	_, err := FromString("12345678901234567890123")
+
+	assert.NotNil(t, err)
+}
+
+func TestFromBSON(t *testing.T) {
+	bson, err := primitive.ObjectIDFromHex("123456789012345678901234")
+	assert.Nil(t, err)
+
+	uid := FromBSON(bson)
+
+	assert.Equal(t, "123456789012345678901234", uid.String())
+}
+
+func TestUID_BSON(t *testing.T) {
+	uid := New()
+	bson := uid.BSON()
+
+	assert.Len(t, bson.Hex(), 24)
+}
+
+func TestUID_String(t *testing.T) {
+	uid := New()
+	assert.Len(t, uid.String(), 24)
 }

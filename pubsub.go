@@ -112,6 +112,35 @@ func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) {
 	)
 }
 
+// PSubscribe subscribes to a pattern as returned by the `AllTopics` method on an `Event`. A callback function is to be
+// provided which will be called when the event is published, the callback will be passed an `EventMessage` which can be
+// used to unmarshall the event.
+func (e *Engine) PSubscribe(event Event, callback func(event EventMessage)) {
+	e.Logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("subscribing to topic")
+
+	client, cancel := e.redis.Dedicate()
+
+	go func() {
+		defer cancel()
+
+		wait := client.SetPubSubHooks(rueidis.PubSubHooks{
+			OnMessage: func(m rueidis.PubSubMessage) {
+				logger := e.Logger.With().Str("subscription", m.Channel).Logger()
+				logger.Debug().Msg("received message")
+
+				callback(EventMessage{message: m})
+			},
+		})
+
+		<-wait
+	}()
+
+	client.Do(
+		context.Background(),
+		client.B().Psubscribe().Pattern(e.allTopicsWithPrefix(event)).Build(),
+	)
+}
+
 // Unsubscribe unsubscribes an event. The event must implement the `Event` interface.
 func (e *Engine) Unsubscribe(event Event) {
 	e.Logger.Debug().Str("topic", e.topicWithPrefix(event)).Msg("unsubscribing from topic")
@@ -122,6 +151,20 @@ func (e *Engine) Unsubscribe(event Event) {
 	)
 }
 
+// PUnsubscribe unsubscribes from a pattern as returned by the `AllTopics` method on an `Event`.
+func (e *Engine) PUnsubscribe(event Event) {
+	e.Logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("unsubscribing from topic")
+
+	e.redis.Do(
+		context.Background(),
+		e.redis.B().Punsubscribe().Pattern(e.allTopicsWithPrefix(event)).Build(),
+	)
+}
+
 func (e *Engine) topicWithPrefix(event Event) string {
 	return fmt.Sprintf("%s:%s", e.instanceId, event.Topic())
+}
+
+func (e *Engine) allTopicsWithPrefix(event Event) string {
+	return fmt.Sprintf("%s:%s", e.instanceId, event.AllTopics())
 }

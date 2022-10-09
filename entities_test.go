@@ -20,6 +20,7 @@ package engine
 import (
 	"context"
 	engineEvents "github.com/mjolnir-mud/engine/events"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -36,7 +37,9 @@ func TestEngine_AddComponent(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	id := uid.New()
+
+	err := e.AddEntityWithId(id, fakeEntity{
 		Value: "test",
 	})
 
@@ -44,11 +47,11 @@ func TestEngine_AddComponent(t *testing.T) {
 
 	receivedMsg := make(chan EventMessage)
 
-	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
-	err = e.AddComponent("123", "Value2", "test2")
+	err = e.AddComponent(id, "Value2", "test2")
 
 	assert.Nil(t, err)
 
@@ -61,7 +64,7 @@ func TestEngine_AddComponent(t *testing.T) {
 	assert.Equal(t, "123", ca.EntityId)
 	assert.Equal(t, "Value2", ca.Name)
 
-	exists, err := e.HasComponent("123", "Value2")
+	exists, err := e.HasComponent(id, "Value2")
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
@@ -82,6 +85,7 @@ func TestEngine_AddEntity(t *testing.T) {
 func TestEngine_AddEntityWithId(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
+	id := uid.New()
 
 	receivedMsg := make(chan EventMessage)
 
@@ -89,11 +93,11 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 		receivedMsg <- event
 	})
 
-	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	err := e.AddEntityWithId(id, fakeEntity{
 		Value: "test",
 	})
 
@@ -105,13 +109,13 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 
 	exists, err := e.redis.Do(
 		context.Background(),
-		e.redis.B().Exists().Key(e.stringToKey("123")).Build(),
+		e.redis.B().Exists().Key(id.String()).Build(),
 	).AsBool()
 
 	assert.NoError(t, err)
 	assert.True(t, exists)
 
-	err = e.AddEntityWithId("123", fakeEntity{
+	err = e.AddEntityWithId(id, fakeEntity{
 		Value: "test",
 	})
 
@@ -122,18 +126,18 @@ func TestEngine_HasComponent(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
 	})
 
 	assert.Nil(t, err)
 
-	exists, err := e.HasComponent("123", "Value")
+	exists, err := e.HasComponent(id, "Value")
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
 
-	exists, err = e.HasComponent("123", "Value2")
+	exists, err = e.HasComponent(id, "Value2")
 
 	assert.Nil(t, err)
 	assert.False(t, exists)
@@ -143,18 +147,18 @@ func TestEngine_HasEntity(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
 	})
 
 	assert.Nil(t, err)
 
-	exists, err := e.HasEntity("123")
+	exists, err := e.HasEntity(id)
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
 
-	exists, err = e.HasEntity("1234")
+	exists, err = e.HasEntity(id)
 
 	assert.Nil(t, err)
 	assert.False(t, exists)
@@ -164,7 +168,7 @@ func TestEngine_UpdateComponent(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
 	})
 
@@ -172,11 +176,11 @@ func TestEngine_UpdateComponent(t *testing.T) {
 
 	receivedMsg := make(chan EventMessage)
 
-	e.Subscribe(engineEvents.ComponentUpdatedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+	e.Subscribe(engineEvents.ComponentUpdatedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
-	err = e.UpdateComponent("123", "Value", "test2")
+	err = e.UpdateComponent(id, "Value", "test2")
 
 	assert.Nil(t, err)
 
@@ -191,7 +195,7 @@ func TestEngine_UpdateComponent(t *testing.T) {
 	assert.Equal(t, "test2", ca.Value)
 	assert.Equal(t, "test", ca.PreviousValue)
 
-	exists, err := e.HasComponent("123", "Value")
+	exists, err := e.HasComponent(id, "Value")
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
@@ -201,7 +205,7 @@ func TestEngine_GetComponent(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	id, err := e.AddEntity(&fakeEntity{
 		Value: "test",
 	})
 
@@ -209,7 +213,7 @@ func TestEngine_GetComponent(t *testing.T) {
 
 	var component string
 
-	err = e.GetComponent("123", "Value", &component)
+	err = e.GetComponent(id, "Value", &component)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "test", component)
@@ -219,7 +223,7 @@ func TestEngine_RemoveComponent(t *testing.T) {
 	e := createEngineInstance()
 	defer teardown(e)
 
-	err := e.AddEntityWithId("123", fakeEntity{
+	id, err := e.AddEntity(&fakeEntity{
 		Value: "test",
 	})
 
@@ -227,11 +231,11 @@ func TestEngine_RemoveComponent(t *testing.T) {
 
 	receivedMsg := make(chan EventMessage)
 
-	e.Subscribe(engineEvents.ComponentRemovedEvent{EntityId: "123", Name: "Value"}, func(event EventMessage) {
+	e.Subscribe(engineEvents.ComponentRemovedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
-	err = e.RemoveComponent("123", "Value", "")
+	err = e.RemoveComponent(id, "Value", "")
 
 	assert.Nil(t, err)
 
@@ -241,11 +245,11 @@ func TestEngine_RemoveComponent(t *testing.T) {
 	err = msg.Unmarshal(&ca)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "123", ca.EntityId)
+	assert.Equal(t, id.String(), ca.EntityId)
 	assert.Equal(t, "Value", ca.Name)
 	assert.Equal(t, "test", ca.Value)
 
-	exists, err := e.HasComponent("123", "Value")
+	exists, err := e.HasComponent(id, "Value")
 
 	assert.Nil(t, err)
 	assert.False(t, exists)

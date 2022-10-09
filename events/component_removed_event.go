@@ -17,14 +17,22 @@
 
 package events
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
+)
 
+// ComponentRemovedEvent is an event that is fired when a component is removed from an entity.
 type ComponentRemovedEvent struct {
-	EntityId string
+	EntityId *uid.UID
 	Name     string
 	Value    interface{}
 }
 
 func (e ComponentRemovedEvent) Topic() string {
-	return fmt.Sprintf("%s:component:removed", e.EntityId)
+	return fmt.Sprintf("entity:%s:component:%s:removed", e.EntityId, e.Name)
+}
+
+func (e ComponentRemovedEvent) AllTopics() string {
+	return "entity:*:component:*:removed"
 }

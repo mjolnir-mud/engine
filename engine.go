@@ -25,8 +25,10 @@ import (
 
 // Engine is an instance of the Mjolnir game engine.
 type Engine struct {
-	redis      rueidis.Client
-	instanceId string
+	redis          rueidis.Client
+	instanceId     string
+	systemRegistry *systemRegistry
+	config         *Configuration
 
 	// Logger is the logger for the engine. Plugins can use this logger to create their own tagged loggers. See
 	// [zerolog](https://github.com/rs/zerolog) for more information.
@@ -34,16 +36,41 @@ type Engine struct {
 }
 
 // New creates a new instance of the Mjolnir game engine. If the redis connection fails, an error is returned.
-func New(config *Configuration) (*Engine, error) {
-	redisClient, err := redis.New(config.Redis)
-
-	if err != nil {
-		return nil, err
+func New(config *Configuration) *Engine {
+	e := &Engine{
+		instanceId: config.InstanceId,
+		config:     config,
+		Logger:     newLogger(config.Log),
 	}
 
-	return &Engine{
-		redis:      redisClient,
-		instanceId: config.InstanceId,
-		Logger:     newLogger(config.Log),
-	}, nil
+	e.systemRegistry = newSystemRegistry(e)
+
+	return e
+}
+
+// RegisterSystem registers a system with the engine. System should implement the `System` interface.
+func (e *Engine) RegisterSystem(system System) {
+	e.systemRegistry.Register(system)
+}
+
+// Start starts the Mjolnir game engine. If the redis connection fails, an error is returned.
+func (e *Engine) Start() error {
+	e.Logger.Info().Msg("starting engine")
+	redisClient, err := redis.New(e.config.Redis)
+
+	if err != nil {
+		e.Logger.Fatal().Err(err).Msg("failed to connect to redis")
+		return err
+	}
+	e.redis = redisClient
+
+	e.systemRegistry.Start()
+
+	return nil
+}
+
+// Stop stops the Mjolnir game engine.
+func (e *Engine) Stop() {
+	e.Logger.Info().Msg("stopping engine")
+	e.systemRegistry.Stop()
 }

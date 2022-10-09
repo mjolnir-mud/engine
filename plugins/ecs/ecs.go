@@ -20,8 +20,6 @@ package ecs
 import (
 	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/ecs/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/ecs/internal/system_registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs/system"
 )
 
 // AddEntity adds an entity to the entity registry. It takes the entity id, and a map of arguments to be passed to the entity
@@ -258,8 +256,8 @@ func IsEntityTypeRegistered(entityType string) bool {
 
 // RegisterSystem registers a system with the registry. If a system with the same name is already registered, it will be
 // overwritten.
-func RegisterSystem(system system.System) {
-	system_registry.Register(system)
+func RegisterSystem(system engine.System) {
+	engine.Register(system)
 }
 
 // RegisterEntityType registers an entity type. Entity Types must implmeent the `EntityType` data_source. It is

@@ -15,25 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package fakes
 
-import (
-	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
-)
+import "github.com/jaswdr/faker"
 
-// ComponentUpdatedEvent is an event that is fired when a component is updated on an entity.
-type ComponentUpdatedEvent struct {
-	EntityId      *uid.UID
-	Name          string
-	Value         interface{}
-	PreviousValue interface{}
+type FakeEntity struct {
+	FirstName string
+	LastName  string
 }
 
-func (e ComponentUpdatedEvent) Topic() string {
-	return fmt.Sprintf("entity:%s:component:%s:updated", e.EntityId, e.Name)
-}
-
-func (e ComponentUpdatedEvent) AllTopics() string {
-	return "entity:*:component:*:updated"
+func NewFakeEntity() *FakeEntity {
+	return &FakeEntity{
+		FirstName: faker.New().Person().FirstName(),
+		LastName:  faker.New().Person().LastName(),
+	}
 }

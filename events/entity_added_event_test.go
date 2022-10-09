@@ -18,12 +18,22 @@
 package events
 
 import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestEntityAddedEvent_Topic(t *testing.T) {
+	event := EntityAddedEvent{
+		Id: uid.New(),
+	}
+
+	assert.Equal(t, fmt.Sprintf("entity:%s:added", event.Id), event.Topic())
+}
+
+func TestEntityAddedEvent_AllTopics(t *testing.T) {
 	event := EntityAddedEvent{}
 
-	assert.Equal(t, "engine:entity:added", event.Topic())
+	assert.Equal(t, "entity:*:added", event.AllTopics())
 }

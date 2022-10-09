@@ -15,22 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uid
+package events
 
 import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	uid := New()
+func TestComponentAddedEvent_Topic(t *testing.T) {
+	id := uid.New()
 
-	assert.Len(t, uid, 24)
+	event := ComponentAddedEvent{
+		EntityId: id,
+		Name:     "test",
+	}
+
+	assert.Equal(t, fmt.Sprintf("entity:%s:component:%s:added", id, event.Name), event.Topic())
 }
 
-func TestFromString(t *testing.T) {
-	uid := FromString("test")
+func TestComponentAddedEvent_AllTopics(t *testing.T) {
+	event := ComponentAddedEvent{}
 
-	assert.Len(t, uid, 24)
-	assert.Equal(t, "9f86d081884c7d659a2feaa0", uid)
+	assert.Equal(t, "entity:*:component:*:added", event.AllTopics())
 }

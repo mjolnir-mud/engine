@@ -18,11 +18,10 @@
 package entity_registry
 
 import (
-	"github.com/mjolnir-mud/engine/internal/uid"
+	"github.com/mjolnir-mud/engine/uid"
 )
 
 func Add(id string, entityType string, entity map[string]interface{}) {
 	id = uid.FromString(id)
-
 
 }

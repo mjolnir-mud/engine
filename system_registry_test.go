@@ -15,18 +15,47 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package engine
 
 import (
+	"github.com/mjolnir-mud/engine/testing/fakes"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestComponentAddedEvent_Topic(t *testing.T) {
-	event := ComponentAddedEvent{
-		EntityId: "123",
-		Name:     "test",
-	}
+func TestSystemRegistry_Register(t *testing.T) {
+	engine := createEngineInstance()
+	fakeSystem := fakes.NewFakeSystem()
+	err := engine.Start()
 
-	assert.Equal(t, "123:component:added", event.Topic())
+	assert.Nil(t, err)
+
+	defer engine.Stop()
+
+	engine.RegisterSystem(fakeSystem)
+
+	assert.Equal(t, 1, len(engine.systemRegistry.systems))
+}
+
+func TestSystemRegistry_ComponentAdded(t *testing.T) {
+	engine := createEngineInstance()
+	fakeSystem := fakes.NewFakeSystem()
+	err := engine.Start()
+
+	assert.Nil(t, err)
+
+	defer engine.Stop()
+
+	engine.RegisterSystem(fakeSystem)
+	id, err := engine.AddEntity(fakes.NewFakeEntity())
+
+	assert.Nil(t, err)
+	err = engine.AddComponent(id, fakeSystem.Component(), "test")
+
+	assert.Nil(t, err)
+
+	v := <-fakeSystem.ComponentAddedCalled
+
+	assert.Equal(t, id, v.EntityId)
+
 }

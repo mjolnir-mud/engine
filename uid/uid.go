@@ -15,31 +15,79 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// Package uid is used for creating a mjolnir UID within the game engine.
 package uid
 
 import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// A UID is a unique identifier for a mjolnir entity. UIDs are designed to be compatible with Mongo ObjectIDs so that
+// they can be used interchangeably.
+type UID struct {
+	// The UID string.
+	UID string `json:"uid"`
+}
+
 // New returns a new random UID.
-func New() string {
+func New() *UID {
 	id, err := uuid.NewRandom()
 
 	if err != nil {
 		panic(err)
 	}
 
-	return FromString(id.String())
-}
-
-// FromString returns a new UID from a string.
-func FromString(s string) string {
 	hash := sha256.New()
-	hash.Write([]byte(s))
+	hash.Write([]byte(id.String()))
 	sha := hash.Sum(nil)
 
 	final := sha[:12]
-	return fmt.Sprintf("%x", final)
+
+	return &UID{
+		UID: fmt.Sprintf("%x", final),
+	}
+}
+
+// String returns the string representation of the UID.
+func (u *UID) String() string {
+	return u.UID
+}
+
+// BSON returns the BSON representation of the UID.
+func (u *UID) BSON() primitive.ObjectID {
+	val, err := primitive.ObjectIDFromHex(u.UID)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return val
+}
+
+// FromString returns a UID from a string.
+func FromString(s string) (*UID, error) {
+	err := validateUID(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &UID{
+		UID: s,
+	}, nil
+}
+
+// FromBSON returns a UID from a BSON ObjectID.
+func FromBSON(id primitive.ObjectID) *UID {
+	return &UID{
+		UID: id.Hex(),
+	}
+}
+
+func validateUID(uid string) error {
+	_, err := primitive.ObjectIDFromHex(uid)
+	return err
 }

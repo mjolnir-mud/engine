@@ -30,11 +30,13 @@ func (e FakeEvent) Topic() string {
 	return "engine:fake:event"
 }
 
+func (e FakeEvent) AllTopics() string {
+	return "engine:*:event"
+}
+
 func TestEngine_PubSub(t *testing.T) {
 	engine := createEngineInstance()
 	ch := make(chan string)
-
-
 
 	engine.Subscribe(FakeEvent{}, func(event EventMessage) {
 		fakeEvent := &FakeEvent{}

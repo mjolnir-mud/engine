@@ -21,12 +21,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/fatih/structs"
-	"github.com/google/uuid"
 	engineErrors "github.com/mjolnir-mud/engine/errors"
 	engineEvents "github.com/mjolnir-mud/engine/events"
-	"github.com/mjolnir-mud/engine/internal/uid"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/rueian/rueidis"
-	"reflect"
 )
 
 // EntityRecord is the record that is stored in Redis for an entity. It is stored as JSON using ReJSON.
@@ -44,11 +42,11 @@ type EntityRecord struct {
 // AddComponent Adds a component to an entity. This will trigger the `events.ComponentAddedEvent` event to be published.
 // If the entity does not exist, an error will be returned. If the component already exists, an error will be returned.
 // If you wish to update a component, use the `UpdateComponent` method.
-func (e *Engine) AddComponent(entityId string, componentName string, component interface{}) error {
+func (e *Engine) AddComponent(entityId *uid.UID, componentName string, component interface{}) error {
 	logger := e.Logger.
 		With().
 		Str("component", "entities").
-		Str("entityId", entityId).
+		Str("entityId", entityId.String()).
 		Str("componentName", componentName).
 		Logger()
 
@@ -64,7 +62,7 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 	if !exists {
 		logger.Error().Msg("entity does not exist")
 		return engineErrors.EntityNotFoundError{
-			Id: entityId,
+			Id: entityId.String(),
 		}
 	}
 
@@ -78,7 +76,7 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 	if exists {
 		logger.Error().Msg("component already exists")
 		return engineErrors.ComponentExistsError{
-			EntityId: entityId,
+			EntityId: entityId.String(),
 			Name:     componentName,
 		}
 	}
@@ -88,13 +86,13 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 		e.redis.
 			B().
 			JsonSet().
-			Key(e.stringToKey(entityId)).Path(componentPath(componentName)).
+			Key(entityId.String()).Path(componentPath(componentName)).
 			Value(rueidis.JSON(component)).
 			Build(),
 		e.redis.
 			B().
 			JsonNumincrby().
-			Key(e.stringToKey(entityId)).
+			Key(entityId.String()).
 			Path(".Version").
 			Value(1).
 			Build(),
@@ -127,25 +125,21 @@ func (e *Engine) AddComponent(entityId string, componentName string, component i
 
 // AddEntity adds an entity to the engine with a random id, returning the id. This will trigger the
 // `events.EntityAddedEvent` event to be published. Then entity must be a struct, otherwise an error will be returned.
-func (e *Engine) AddEntity(entity interface{}) (string, error) {
-	id, err := uuid.NewRandom()
+func (e *Engine) AddEntity(entity interface{}) (*uid.UID, error) {
+	id := uid.New()
 
-	if err != nil {
-		return "", err
-	}
-
-	return id.String(), e.AddEntityWithId(id.String(), entity)
+	return id, e.AddEntityWithId(id, entity)
 }
 
 // AddEntityWithId adds an entity to the engine. This will trigger the `events.EntityAddedEvent` event to be published.
 // If the entity already exists, an error will be returned. The id will be converted to a Mjolnir UID before it is
 // added. Then entity must be a struct, otherwise an error will be returned.
-func (e *Engine) AddEntityWithId(id string, entity interface{}) error {
-	logger := e.Logger.With().Str("component", "entities").Str("entityId", id).Logger()
+func (e *Engine) AddEntityWithId(id *uid.UID, entity interface{}) error {
+	logger := e.Logger.With().Str("component", "entities").Str("entityId", id.String()).Logger()
 	logger.Debug().Msg("adding entity")
 
 	if !entityIsStruct(entity) {
-		return engineErrors.EntityInvalidError{Id: id, Value: entity}
+		return engineErrors.EntityInvalidError{Id: id.String(), Value: entity}
 	}
 
 	logger.Trace().Msg("checking if entity exists")
@@ -158,21 +152,19 @@ func (e *Engine) AddEntityWithId(id string, entity interface{}) error {
 	if exists {
 		logger.Error().Msg("entity already exists")
 		return engineErrors.EntityExistsError{
-			Id: id,
+			Id: id.String(),
 		}
 	}
 
-	eKey := e.stringToKey(id)
-
 	record := EntityRecord{
-		Id:      eKey,
+		Id:      id.String(),
 		Version: 1,
 		Entity:  entity,
 	}
 
 	logger.Trace().Msg("building redis commands")
 	commands := rueidis.Commands{
-		e.redis.B().JsonSet().Key(eKey).Path(".").Value(rueidis.JSON(record)).Build(),
+		e.redis.B().JsonSet().Key(id.String()).Path(".").Value(rueidis.JSON(record)).Build(),
 	}
 
 	components := getComponentMap(entity)
@@ -201,27 +193,28 @@ func (e *Engine) AddEntityWithId(id string, entity interface{}) error {
 }
 
 // FlushEntities removes all entities from the engine.
+// TODO: This should actually do something.
 func (e *Engine) FlushEntities() error {
-	keys, err := e.redis.Do(context.Background(), e.redis.B().Keys().Pattern(e.uidToKey("*")).Build()).AsStrSlice()
-
-	for _, key := range keys {
-		_, err = e.redis.Do(context.Background(), e.redis.B().Del().Key(key).Build()).AsBool()
-
-		if err != nil {
-			return err
-		}
-	}
+	//keys, err := e.redis.Do(context.Background(), e.redis.B().Keys().Pattern(e.uidToKey("*")).Build()).AsStrSlice()
+	//
+	//for _, key := range keys {
+	//	_, err = e.redis.Do(context.Background(), e.redis.B().Del().Key(key).Build()).AsBool()
+	//
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 
 	return nil
 }
 
 // GetComponent returns the named component for the given entity. If the entity or component does not exist, an error will
 // be returned. If the component is not found, an error will be returned.
-func (e *Engine) GetComponent(entityId string, componentName string, component interface{}) error {
+func (e *Engine) GetComponent(entityId *uid.UID, componentName string, component interface{}) error {
 	logger := e.Logger.
 		With().
 		Str("component", "entities").
-		Str("entityId", entityId).
+		Str("entityId", entityId.String()).
 		Str("componentName", componentName).
 		Logger()
 
@@ -237,7 +230,7 @@ func (e *Engine) GetComponent(entityId string, componentName string, component i
 	if !exists {
 		logger.Error().Msg("entity does not exist")
 		return engineErrors.EntityNotFoundError{
-			Id: entityId,
+			Id: entityId.String(),
 		}
 	}
 
@@ -251,13 +244,13 @@ func (e *Engine) GetComponent(entityId string, componentName string, component i
 	if !exists {
 		logger.Error().Msg("component does not exist")
 		return engineErrors.ComponentNotFoundError{
-			EntityId: entityId,
+			EntityId: entityId.String(),
 			Name:     componentName,
 		}
 	}
 
 	logger.Trace().Msg("building redis command")
-	command := e.redis.B().JsonGet().Key(e.stringToKey(entityId)).Paths(componentPath(componentName)).Build()
+	command := e.redis.B().JsonGet().Key(entityId.String()).Paths(componentPath(componentName)).Build()
 
 	logger.Trace().Msg("executing redis command")
 	result := e.redis.Do(context.Background(), command)
@@ -276,9 +269,9 @@ func (e *Engine) GetComponent(entityId string, componentName string, component i
 	return nil
 }
 
-// HasEntity returns true if the entity exists in the engine.
-func (e *Engine) HasEntity(id string) (bool, error) {
-	exists, err := e.redis.Do(context.Background(), e.redis.B().Exists().Key(e.stringToKey(id)).Build()).AsBool()
+// HasEntity returns true if the entity exists in the engine. Any id passed will be
+func (e *Engine) HasEntity(id *uid.UID) (bool, error) {
+	exists, err := e.redis.Do(context.Background(), e.redis.B().Exists().Key(id.String()).Build()).AsBool()
 
 	if err != nil {
 		return false, err
@@ -288,10 +281,10 @@ func (e *Engine) HasEntity(id string) (bool, error) {
 }
 
 // HasComponent returns true if the component exists on the entity.
-func (e *Engine) HasComponent(entityId string, componentName string) (bool, error) {
+func (e *Engine) HasComponent(entityId *uid.UID, componentName string) (bool, error) {
 	res, err := e.redis.Do(
 		context.Background(),
-		e.redis.B().JsonGet().Key(e.stringToKey(entityId)).Paths(componentPath(componentName)).Build(),
+		e.redis.B().JsonGet().Key(entityId.String()).Paths(componentPath(componentName)).Build(),
 	).ToMessage()
 
 	if err != nil {
@@ -319,11 +312,11 @@ func (e *Engine) HasComponent(entityId string, componentName string) (bool, erro
 // `events.ComponentRemovedEvent` event. If the entity or component does not exist, an error will be returned. This
 // method requires that an empty component be passed in, this will be used to unmarshal and add the current component
 // value to the event.
-func (e *Engine) RemoveComponent(entityId string, componentName string, valueType interface{}) error {
+func (e *Engine) RemoveComponent(entityId *uid.UID, componentName string, valueType interface{}) error {
 	logger := e.Logger.
 		With().
 		Str("component", "entities").
-		Str("entityId", entityId).
+		Str("entityId", entityId.String()).
 		Str("componentName", componentName).
 		Logger()
 	logger.Debug().Msg("removing component")
@@ -338,7 +331,7 @@ func (e *Engine) RemoveComponent(entityId string, componentName string, valueTyp
 	if !exists {
 		logger.Error().Msg("entity does not exist")
 		return engineErrors.EntityNotFoundError{
-			Id: entityId,
+			Id: entityId.String(),
 		}
 	}
 
@@ -352,7 +345,7 @@ func (e *Engine) RemoveComponent(entityId string, componentName string, valueTyp
 	if !exists {
 		logger.Error().Msg("component does not exist")
 		return engineErrors.ComponentNotFoundError{
-			EntityId: entityId,
+			EntityId: entityId.String(),
 			Name:     componentName,
 		}
 	}
@@ -366,7 +359,7 @@ func (e *Engine) RemoveComponent(entityId string, componentName string, valueTyp
 
 	logger.Trace().Msg("building redis commands")
 	commands := rueidis.Commands{
-		e.redis.B().JsonDel().Key(e.stringToKey(entityId)).Path(componentPath(componentName)).Build(),
+		e.redis.B().JsonDel().Key(entityId.String()).Path(componentPath(componentName)).Build(),
 	}
 
 	logger.Trace().Msg("building publish commands for events")
@@ -394,10 +387,10 @@ func (e *Engine) RemoveComponent(entityId string, componentName string, valueTyp
 // UpdateComponent updates a component on an entity. This will trigger the `events.ComponentUpdatedEvent` event to be
 // published. If the entity does not exist, an error will be returned. If the component does not exist, an error will be
 // returned.
-func (e *Engine) UpdateComponent(entityId string, componentName string, component interface{}) error {
+func (e *Engine) UpdateComponent(entityId *uid.UID, componentName string, component interface{}) error {
 	logger := e.Logger.With().
 		Str("component", "entities").
-		Str("entityId", entityId).
+		Str("entityId", entityId.String()).
 		Str("componentName", componentName).Logger()
 
 	logger.Debug().Msg("updating component")
@@ -411,7 +404,7 @@ func (e *Engine) UpdateComponent(entityId string, componentName string, componen
 
 	if !exists {
 		logger.Error().Msg("entity does not exist")
-		return engineErrors.EntityNotFoundError{Id: entityId}
+		return engineErrors.EntityNotFoundError{Id: entityId.String()}
 	}
 
 	logger.Trace().Msg("checking if component exists")
@@ -423,7 +416,7 @@ func (e *Engine) UpdateComponent(entityId string, componentName string, componen
 
 	if !exists {
 		logger.Error().Msg("component does not exist")
-		return engineErrors.ComponentNotFoundError{EntityId: entityId, Name: componentName}
+		return engineErrors.ComponentNotFoundError{EntityId: entityId.String(), Name: componentName}
 	}
 
 	logger.Trace().Msg("getting previous value")
@@ -440,7 +433,7 @@ func (e *Engine) UpdateComponent(entityId string, componentName string, componen
 		e.redis.
 			B().
 			JsonSet().
-			Key(e.stringToKey(entityId)).
+			Key(entityId.String()).
 			Path(componentPath(componentName)).
 			Value(rueidis.JSON(component)).
 			Build(),
@@ -479,15 +472,7 @@ func (e *Engine) UpdateComponent(entityId string, componentName string, componen
 	return nil
 }
 
-func (e *Engine) uidToKey(id string) string {
-	return fmt.Sprintf("%s:entity:%s", e.instanceId, id)
-}
-
-func (e *Engine) stringToKey(id string) string {
-	return e.uidToKey(uid.FromString(id))
-}
-
-func buildComponentAddedEvents(entityId string, components map[string]interface{}) []Event {
+func buildComponentAddedEvents(entityId *uid.UID, components map[string]interface{}) []Event {
 	events := make([]Event, 0)
 
 	for name, value := range components {
@@ -501,7 +486,7 @@ func buildComponentAddedEvents(entityId string, components map[string]interface{
 	return events
 }
 
-func buildComponentRemovedEvent(entityId string, componentName string, value interface{}) Event {
+func buildComponentRemovedEvent(entityId *uid.UID, componentName string, value interface{}) Event {
 	return engineEvents.ComponentRemovedEvent{
 		EntityId: entityId,
 		Name:     componentName,
@@ -509,13 +494,13 @@ func buildComponentRemovedEvent(entityId string, componentName string, value int
 	}
 }
 
-func buildEntityAddedEvent(entityId string) Event {
+func buildEntityAddedEvent(entityId *uid.UID) Event {
 	return engineEvents.EntityAddedEvent{
 		Id: entityId,
 	}
 }
 
-func buildEntityAndComponentAddedEvents(entityId string, components map[string]interface{}) []Event {
+func buildEntityAndComponentAddedEvents(entityId *uid.UID, components map[string]interface{}) []Event {
 	events := []Event{
 		buildEntityAddedEvent(entityId),
 	}
@@ -535,5 +520,5 @@ func entityIsStruct(entity interface{}) bool {
 		return false
 	}
 
-	return reflect.TypeOf(entity).Kind() == reflect.Struct
+	return structs.IsStruct(entity)
 }

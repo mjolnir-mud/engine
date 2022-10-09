@@ -17,14 +17,22 @@
 
 package events
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
+)
 
+// ComponentAddedEvent is an event that is fired when a component is added to an entity.
 type ComponentAddedEvent struct {
-	EntityId string
+	EntityId *uid.UID
 	Name     string
 	Value    interface{}
 }
 
 func (e ComponentAddedEvent) Topic() string {
-	return fmt.Sprintf("%s:component:added", e.EntityId)
+	return fmt.Sprintf("entity:%s:component:%s:added", e.EntityId, e.Name)
+}
+
+func (e ComponentAddedEvent) AllTopics() string {
+	return "entity:*:component:*:added"
 }
