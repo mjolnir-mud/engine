@@ -15,24 +15,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package events
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-var Plugin = plugin.Plugin
+func TestSessionSendData_Topic(t *testing.T) {
+	event := SessionSendDataEvent{
+		Id: uid.New(),
+	}
 
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", controllerName)
+	assert.Equal(t, fmt.Sprintf("session:%s:send-data", event.Id), event.Topic())
 }
 
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller engine.Controller) {
-	registry.Register(controller)
+func TestSessionSendData_AllTopics(t *testing.T) {
+	event := SessionSendDataEvent{
+		Id: uid.New(),
+	}
+
+	assert.Equal(t, "session:*:send-data", event.AllTopics())
 }

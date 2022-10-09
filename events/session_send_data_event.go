@@ -15,24 +15,23 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package events
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
 )
 
-var Plugin = plugin.Plugin
-
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", controllerName)
+// SessionSendDataEvent is an event that is published when a session needs to send data to the client.
+type SessionSendDataEvent struct {
+	Id   *uid.UID
+	Data interface{}
 }
 
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller engine.Controller) {
-	registry.Register(controller)
+func (s SessionSendDataEvent) Topic() string {
+	return fmt.Sprintf("session:%s:send-data", s.Id)
+}
+
+func (s SessionSendDataEvent) AllTopics() string {
+	return "session:*:send-data"
 }

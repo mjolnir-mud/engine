@@ -15,24 +15,42 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package fakes
 
 import (
 	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
 
-var Plugin = plugin.Plugin
-
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", controllerName)
+type fakeController struct {
+	ControllerName    string
+	HandleInputCalled chan []string
 }
 
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller engine.Controller) {
-	registry.Register(controller)
+func (c fakeController) Name() string {
+	return c.ControllerName
+}
+
+func (c fakeController) Start(_ *engine.ControllerContext) error {
+	return nil
+}
+
+func (c fakeController) Resume(_ *engine.ControllerContext) error {
+	return nil
+}
+
+func (c fakeController) Stop(_ *engine.ControllerContext) error {
+	return nil
+}
+
+func (c fakeController) HandleInput(_ *engine.ControllerContext, _ string) error {
+	go func() { c.HandleInputCalled <- []string{"testing", "testing"} }()
+
+	return nil
+}
+
+func NewFakeController(name string) engine.Controller {
+	return fakeController{
+		ControllerName:    name,
+		HandleInputCalled: make(chan []string),
+	}
 }

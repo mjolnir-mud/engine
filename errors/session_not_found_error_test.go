@@ -15,36 +15,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package systems
+package errors
 
-type sessionSystem struct{}
+import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-func (e sessionSystem) Name() string {
-	return "session"
+func TestSessionNotFoundError_Error(t *testing.T) {
+	id := uid.New()
+
+	err := SessionNotFoundError{
+		Id: id,
+	}
+
+	assert.Equal(t, fmt.Sprintf("session not found: %s", id.String()), err.Error())
 }
-
-func (e sessionSystem) Component() string {
-	return "session"
-}
-
-func (e sessionSystem) Match(_ string, _ interface{}) bool {
-	return true
-}
-
-func (e sessionSystem) ComponentAdded(_ string, _ string, _ interface{}) error { return nil }
-
-func (e sessionSystem) ComponentUpdated(_ string, _ string, _ interface{}, _ interface{}) error {
-	return nil
-}
-
-func (e sessionSystem) ComponentRemoved(_ string, _ string) error { return nil }
-
-func (e sessionSystem) MatchingComponentAdded(_ string, _ string, _ interface{}) error { return nil }
-
-func (e sessionSystem) MatchingComponentUpdated(_ string, _ string, _ interface{}, _ interface{}) error {
-	return nil
-}
-
-func (e sessionSystem) MatchingComponentRemoved(_ string, _ string) error { return nil }
-
-var Session = sessionSystem{}

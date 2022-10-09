@@ -15,24 +15,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package engine
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-var Plugin = plugin.Plugin
+type fakeController struct{}
 
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", controllerName)
+func (f fakeController) Name() string {
+	return "fake"
 }
 
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller engine.Controller) {
-	registry.Register(controller)
+func (f fakeController) Start(_ *ControllerContext) error {
+	return nil
+}
+
+func (f fakeController) Resume(_ *ControllerContext) error {
+	return nil
+}
+
+func (f fakeController) Stop(_ *ControllerContext) error {
+	return nil
+}
+
+func (f fakeController) HandleInput(_ *ControllerContext, _ string) error {
+	return nil
+}
+
+func TestControllerRegistry_Register(t *testing.T) {
+	engine := createEngineInstance()
+
+	engine.RegisterController(fakeController{})
+
+	assert.Len(t, engine.controllerRegistry.controllers, 1)
 }

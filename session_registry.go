@@ -18,6 +18,7 @@
 package engine
 
 import (
+	engineErrors "github.com/mjolnir-mud/engine/errors"
 	engineEvents "github.com/mjolnir-mud/engine/events"
 	"github.com/mjolnir-mud/engine/uid"
 	"github.com/rs/zerolog"
@@ -121,4 +122,19 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 	}
 
 	r.add(session)
+}
+
+// SendToSession sends data to a session. The data can be anything that can be marshalled to JSON. This will dispatch
+// a SessionSendDataEvent. If the session does not exist, this will return an error.
+func (e *Engine) SendToSession(sessionId *uid.UID, data interface{}) error {
+	if _, ok := e.sessionRegistry.sessions[sessionId]; !ok {
+		return engineErrors.SessionNotFoundError{
+			Id: sessionId,
+		}
+	}
+
+	return e.Publish(engineEvents.SessionSendDataEvent{
+		Id:   sessionId,
+		Data: data,
+	})
 }

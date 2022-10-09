@@ -17,16 +17,34 @@
 
 package engine
 
-// EntityType is a constructor for entities. The Create function should return a map of the components for the entity
-// that when passed to the `ecs.AddEntity` function will create the entity by adding the returned key value pairs
-// as components.
-type EntityType interface {
-	// Name returns the name of the entity type.
+// ControllerContext is a context that is passed to a controller.
+type ControllerContext struct {
+	Session *Session
+}
+
+func newControllerContext(session *Session) *ControllerContext {
+	return &ControllerContext{
+		Session: session,
+	}
+}
+
+// Controller is the data_source for a session controller. A session controller handles interactions from the player
+// session to the game world
+type Controller interface {
+	// Name returns the name of the controller. If multiple controllers of the same name are registered with the world
+	// then the last one registered will be used. This enables the developer to override specific controllers with their
+	// own implementation.
 	Name() string
 
-	// New returns a map of the components for the entity that can then be added to the game instance.
-	New(args map[string]interface{}) map[string]interface{}
+	// Start is called when the controller is set.
+	Start(context *ControllerContext) error
 
-	// Validate returns an error if the args are invalid for the entity type.
-	Validate(args map[string]interface{}) error
+	// Resume called when the world restarts, causing the portal to reset-assert the session.
+	Resume(context *ControllerContext) error
+
+	// Stop is called when the controller is unset.
+	Stop(context *ControllerContext) error
+
+	// HandleInput is called when the player sends input to the world.
+	HandleInput(context *ControllerContext, input string) error
 }

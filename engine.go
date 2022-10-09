@@ -27,6 +27,7 @@ import (
 type Engine struct {
 	redis                rueidis.Client
 	instanceId           string
+	controllerRegistry   *controllerRegistry
 	systemRegistry       *systemRegistry
 	sessionRegistry      *sessionRegistry
 	subscriptionRegistry *subscriptionRegistry
@@ -48,6 +49,7 @@ func New(config *Configuration) *Engine {
 	e.systemRegistry = newSystemRegistry(e)
 	e.sessionRegistry = newSessionRegistry(e)
 	e.subscriptionRegistry = newSubscriptionRegistry(e)
+	e.controllerRegistry = newControllerRegistry(e)
 
 	return e
 }

@@ -38,104 +38,10 @@ type ComponentRemovedCall struct {
 	Value    interface{}
 }
 
-type FakeSystem struct {
-	ComponentAddedCalled   chan ComponentAddedCall
-	ComponentUpdatedCalled chan ComponentUpdatedCall
-	ComponentRemovedCalled chan ComponentRemovedCall
-}
-
 func NewFakeSystem() *FakeSystem {
 	return &FakeSystem{
 		ComponentAddedCalled:   make(chan ComponentAddedCall),
 		ComponentUpdatedCalled: make(chan ComponentUpdatedCall),
 		ComponentRemovedCalled: make(chan ComponentRemovedCall),
 	}
-}
-
-func (s FakeSystem) Name() string {
-	return "testing"
-}
-
-func (s FakeSystem) Component() string {
-	return "testComponent"
-}
-
-func (s FakeSystem) Match(_ string, _ interface{}) bool {
-	return true
-}
-
-func (s FakeSystem) WorldStarted() {}
-
-func (s FakeSystem) ComponentAdded(entityId *uid.UID, key string, value interface{}) error {
-	go func() {
-		s.ComponentAddedCalled <- ComponentAddedCall{
-			EntityId: entityId,
-			Key:      key,
-			Value:    value,
-		}
-	}()
-
-	return nil
-}
-
-func (s FakeSystem) ComponentUpdated(entityId *uid.UID, key string, oldValue interface{}, newValue interface{}) error {
-	go func() {
-		s.ComponentUpdatedCalled <- ComponentUpdatedCall{
-			EntityId: entityId,
-			Key:      key,
-			OldValue: oldValue,
-			NewValue: newValue,
-		}
-	}()
-
-	return nil
-}
-
-func (s FakeSystem) ComponentRemoved(entityId *uid.UID, key string, value interface{}) error {
-	go func() {
-		s.ComponentRemovedCalled <- ComponentRemovedCall{
-			EntityId: entityId,
-			Key:      key,
-			Value:    value,
-		}
-	}()
-
-	return nil
-}
-
-func (s FakeSystem) MatchingComponentAdded(entityId *uid.UID, value interface{}) error {
-	go func() {
-		s.ComponentAddedCalled <- ComponentAddedCall{
-			EntityId: entityId,
-			Key:      s.Component(),
-			Value:    value,
-		}
-	}()
-
-	return nil
-}
-
-func (s FakeSystem) MatchingComponentUpdated(entityId *uid.UID, oldValue interface{}, newValue interface{}) error {
-	go func() {
-		s.ComponentUpdatedCalled <- ComponentUpdatedCall{
-			EntityId: entityId,
-			Key:      s.Component(),
-			OldValue: oldValue,
-			NewValue: newValue,
-		}
-	}()
-
-	return nil
-}
-
-func (s FakeSystem) MatchingComponentRemoved(entityId *uid.UID, value interface{}) error {
-	go func() {
-		s.ComponentRemovedCalled <- ComponentRemovedCall{
-			EntityId: entityId,
-			Key:      s.Component(),
-			Value:    value,
-		}
-	}()
-
-	return nil
 }

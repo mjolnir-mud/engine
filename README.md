@@ -6,6 +6,10 @@ custom game worlds with minimal effort.
 
 ## Features
 * Fully baked [Entity Component System](https://en.wikipedia.org/wiki/Entity_component_system) architecture
+* Plugin based. Add new features to your game world by simply adding (or creating) new plugin that supports the features
+  and functionality you need.
+* Multi-server instance support. Multiple server instances can be run at once, allowing the game to scale to meet
+  demand.
 
 ## Documentation
 

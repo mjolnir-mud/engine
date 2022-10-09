@@ -15,24 +15,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package controllers
+package errors
 
 import (
-	"github.com/mjolnir-mud/engine"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/plugin"
-	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
-	"github.com/mjolnir-mud/engine/plugins/ecs"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-var Plugin = plugin.Plugin
+func TestControllerNotFoundError_Error(t *testing.T) {
+	err := ControllerNotFoundError{
+		Name: "test",
+	}
 
-// Set sets the controller for the provided entity
-func Set(entityId string, controllerName string) error {
-	return ecs.AddOrUpdateStringComponentToEntity(entityId, "controller", controllerName)
-}
-
-// Register registers a controller with the registry. If a controller with the same name already exists, it will be
-// overwritten.
-func Register(controller engine.Controller) {
-	registry.Register(controller)
+	assert.Equal(t, "controller not found: test", err.Error())
 }

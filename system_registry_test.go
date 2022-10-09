@@ -18,43 +18,165 @@
 package engine
 
 import (
-	"github.com/mjolnir-mud/engine/testing/fakes"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
+type componentAddedCall struct {
+	EntityId *uid.UID
+	Key      string
+	Value    interface{}
+}
+
+type componentUpdatedCall struct {
+	EntityId *uid.UID
+	Key      string
+	OldValue interface{}
+	NewValue interface{}
+}
+
+type componentRemovedCall struct {
+	EntityId *uid.UID
+	Key      string
+	Value    interface{}
+}
+
+type fakeSystem struct {
+	ComponentAddedCalled   chan componentAddedCall
+	ComponentUpdatedCalled chan componentUpdatedCall
+	ComponentRemovedCalled chan componentRemovedCall
+}
+
+func (s fakeSystem) Name() string {
+	return "testing"
+}
+
+func (s fakeSystem) Component() string {
+	return "testComponent"
+}
+
+func (s fakeSystem) Match(_ string, _ interface{}) bool {
+	return true
+}
+
+func (s fakeSystem) ComponentAdded(entityId *uid.UID, key string, value interface{}) error {
+	go func() {
+		s.ComponentAddedCalled <- componentAddedCall{
+			EntityId: entityId,
+			Key:      key,
+			Value:    value,
+		}
+	}()
+
+	return nil
+}
+
+func (s fakeSystem) ComponentUpdated(entityId *uid.UID, key string, oldValue interface{}, newValue interface{}) error {
+	go func() {
+		s.ComponentUpdatedCalled <- componentUpdatedCall{
+			EntityId: entityId,
+			Key:      key,
+			OldValue: oldValue,
+			NewValue: newValue,
+		}
+	}()
+
+	return nil
+}
+
+func (s fakeSystem) ComponentRemoved(entityId *uid.UID, key string, value interface{}) error {
+	go func() {
+		s.ComponentRemovedCalled <- componentRemovedCall{
+			EntityId: entityId,
+			Key:      key,
+			Value:    value,
+		}
+	}()
+
+	return nil
+}
+
+func (s fakeSystem) MatchingComponentAdded(entityId *uid.UID, value interface{}) error {
+	go func() {
+		s.ComponentAddedCalled <- componentAddedCall{
+			EntityId: entityId,
+			Key:      s.Component(),
+			Value:    value,
+		}
+	}()
+
+	return nil
+}
+
+func (s fakeSystem) MatchingComponentUpdated(entityId *uid.UID, oldValue interface{}, newValue interface{}) error {
+	go func() {
+		s.ComponentUpdatedCalled <- componentUpdatedCall{
+			EntityId: entityId,
+			Key:      s.Component(),
+			OldValue: oldValue,
+			NewValue: newValue,
+		}
+	}()
+
+	return nil
+}
+
+func (s fakeSystem) MatchingComponentRemoved(entityId *uid.UID, value interface{}) error {
+	go func() {
+		s.ComponentRemovedCalled <- componentRemovedCall{
+			EntityId: entityId,
+			Key:      s.Component(),
+			Value:    value,
+		}
+	}()
+
+	return nil
+}
+
 func TestSystemRegistry_Register(t *testing.T) {
 	engine := createEngineInstance()
-	fakeSystem := fakes.NewFakeSystem()
 	err := engine.Start()
 
 	assert.Nil(t, err)
 
 	defer engine.Stop()
 
-	engine.RegisterSystem(fakeSystem)
+	engine.RegisterSystem(fakeSystem{
+		ComponentAddedCalled:   make(chan componentAddedCall),
+		ComponentUpdatedCalled: make(chan componentUpdatedCall),
+		ComponentRemovedCalled: make(chan componentRemovedCall),
+	})
 
 	assert.Equal(t, 1, len(engine.systemRegistry.systems))
 }
 
 func TestSystemRegistry_ComponentAdded(t *testing.T) {
 	engine := createEngineInstance()
-	fakeSystem := fakes.NewFakeSystem()
 	err := engine.Start()
 
 	assert.Nil(t, err)
 
 	defer engine.Stop()
 
-	engine.RegisterSystem(fakeSystem)
-	id, err := engine.AddEntity(fakes.NewFakeEntity())
+	fs := fakeSystem{
+		ComponentAddedCalled:   make(chan componentAddedCall),
+		ComponentUpdatedCalled: make(chan componentUpdatedCall),
+		ComponentRemovedCalled: make(chan componentRemovedCall),
+	}
+
+	engine.RegisterSystem(fs)
+
+	id, err := engine.AddEntity(fakeEntity{
+		Value: "test",
+	})
 
 	assert.Nil(t, err)
-	err = engine.AddComponent(id, fakeSystem.Component(), "test")
+	err = engine.AddComponent(id, fs.Component(), "test")
 
 	assert.Nil(t, err)
 
-	v := <-fakeSystem.ComponentAddedCalled
+	v := <-fs.ComponentAddedCalled
 
 	assert.Equal(t, id, v.EntityId)
 

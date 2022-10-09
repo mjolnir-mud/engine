@@ -18,7 +18,7 @@
 package systems
 
 import (
-	"github.com/mjolnir-mud/engine/plugins/controllers/controller"
+	"github.com/mjolnir-mud/engine"
 	"github.com/mjolnir-mud/engine/plugins/controllers/internal/registry"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 )
@@ -84,7 +84,7 @@ func (s controllerSystem) MatchingComponentRemoved(_ string) error {
 var ControllerSystem = controllerSystem{}
 
 // GetController returns the Name for the session. If the session does not exist, an error will be returned.
-func GetController(name string) (controller.Controller, error) {
+func GetController(name string) (engine.Controller, error) {
 	return registry.Get(name)
 }
 

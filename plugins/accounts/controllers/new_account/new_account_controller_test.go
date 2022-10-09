@@ -6,7 +6,6 @@ import (
 	"github.com/mjolnir-mud/engine/plugins/accounts/templates"
 	"github.com/mjolnir-mud/engine/plugins/controllers"
 	testing3 "github.com/mjolnir-mud/engine/plugins/controllers/testing"
-	"github.com/mjolnir-mud/engine/plugins/controllers/testing/fakes"
 	dataSourcesTesting "github.com/mjolnir-mud/engine/plugins/data_sources/testing"
 	"github.com/mjolnir-mud/engine/plugins/ecs"
 	ecsTesting "github.com/mjolnir-mud/engine/plugins/ecs/testing"
@@ -16,6 +15,7 @@ import (
 	testing2 "github.com/mjolnir-mud/engine/plugins/templates/testing"
 	"github.com/mjolnir-mud/engine/systems"
 	engineTesting "github.com/mjolnir-mud/engine/testing"
+	"github.com/mjolnir-mud/engine/testing/fakes"
 	"testing"
 
 	"github.com/mjolnir-mud/engine"
