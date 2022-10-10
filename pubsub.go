@@ -70,7 +70,7 @@ func (r *subscriptionRegistry) Subscribe(topic string, pattern bool, callback fu
 
 		wait := client.SetPubSubHooks(rueidis.PubSubHooks{
 			OnMessage: func(m rueidis.PubSubMessage) {
-				logger := r.engine.Logger.With().Str("subscription", m.Channel).Logger()
+				logger := r.engine.logger.With().Str("subscription", m.Channel).Logger()
 				logger.Debug().Msg("received message")
 
 				callback(EventMessage{message: m})
@@ -135,7 +135,7 @@ func (e EventMessage) Unmarshal(event interface{}) error {
 // Topic method. If there is an error publishing the event. This will return a `PublishErrors` error, which contains
 // a slice of errors for each event that failed to publish.
 func (e *Engine) Publish(events ...Event) error {
-	logger := e.Logger.With().Str("component", "publisher").Logger()
+	logger := e.logger.With().Str("component", "publisher").Logger()
 
 	logger.Debug().Int("events", len(events)).Msg("publishing events")
 	commands := e.GetPublishCommandsForEvents(events...)
@@ -176,7 +176,7 @@ func (e *Engine) GetPublishCommandsForEvents(events ...Event) rueidis.Commands {
 // which will be called when the event is published, the callback will be passed an `EventMessage` which can be used to
 // unmarshall the event.
 func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) *uid.UID {
-	e.Logger.Debug().Str("topic", e.topicWithPrefix(event)).Msg("subscribing to topic")
+	e.logger.Debug().Str("topic", e.topicWithPrefix(event)).Msg("subscribing to topic")
 	return e.subscriptionRegistry.Subscribe(e.topicWithPrefix(event), false, callback)
 }
 
@@ -184,7 +184,7 @@ func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) *uid.
 // provided which will be called when the event is published, the callback will be passed an `EventMessage` which can be
 // used to unmarshall the event.
 func (e *Engine) PSubscribe(event Event, callback func(event EventMessage)) *uid.UID {
-	e.Logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("subscribing to topic")
+	e.logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("subscribing to topic")
 	return e.subscriptionRegistry.Subscribe(e.allTopicsWithPrefix(event), true, callback)
 }
 

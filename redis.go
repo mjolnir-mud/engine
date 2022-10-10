@@ -29,7 +29,7 @@ type RedisConfiguration struct {
 }
 
 func newRedisClient(engine *Engine) (rueidis.Client, error) {
-	logger := engine.Logger.With().
+	logger := engine.logger.With().
 		Str("component", "redis").
 		Str("host", engine.config.Redis.Host).
 		Int("port", engine.config.Redis.Port).

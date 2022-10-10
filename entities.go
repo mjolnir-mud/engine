@@ -43,7 +43,7 @@ type EntityRecord struct {
 // If the entity does not exist, an error will be returned. If the component already exists, an error will be returned.
 // If you wish to update a component, use the `UpdateComponent` method.
 func (e *Engine) AddComponent(entityId *uid.UID, componentName string, component interface{}) error {
-	logger := e.Logger.
+	logger := e.logger.
 		With().
 		Str("component", "entities").
 		Str("entityId", entityId.String()).
@@ -135,7 +135,7 @@ func (e *Engine) AddEntity(entity interface{}) (*uid.UID, error) {
 // If the entity already exists, an error will be returned. The id will be converted to a Mjolnir UID before it is
 // added. Then entity must be a struct, otherwise an error will be returned.
 func (e *Engine) AddEntityWithId(id *uid.UID, entity interface{}) error {
-	logger := e.Logger.With().Str("component", "entities").Str("entityId", id.String()).Logger()
+	logger := e.logger.With().Str("component", "entities").Str("entityId", id.String()).Logger()
 	logger.Debug().Msg("adding entity")
 
 	if !entityIsStruct(entity) {
@@ -211,7 +211,7 @@ func (e *Engine) FlushEntities() error {
 // GetComponent returns the named component for the given entity. If the entity or component does not exist, an error will
 // be returned. If the component is not found, an error will be returned.
 func (e *Engine) GetComponent(entityId *uid.UID, componentName string, component interface{}) error {
-	logger := e.Logger.
+	logger := e.logger.
 		With().
 		Str("component", "entities").
 		Str("entityId", entityId.String()).
@@ -313,7 +313,7 @@ func (e *Engine) HasComponent(entityId *uid.UID, componentName string) (bool, er
 // method requires that an empty component be passed in, this will be used to unmarshal and add the current component
 // value to the event.
 func (e *Engine) RemoveComponent(entityId *uid.UID, componentName string, valueType interface{}) error {
-	logger := e.Logger.
+	logger := e.logger.
 		With().
 		Str("component", "entities").
 		Str("entityId", entityId.String()).
@@ -388,7 +388,7 @@ func (e *Engine) RemoveComponent(entityId *uid.UID, componentName string, valueT
 // published. If the entity does not exist, an error will be returned. If the component does not exist, an error will be
 // returned.
 func (e *Engine) UpdateComponent(entityId *uid.UID, componentName string, component interface{}) error {
-	logger := e.Logger.With().
+	logger := e.logger.With().
 		Str("component", "entities").
 		Str("entityId", entityId.String()).
 		Str("componentName", componentName).Logger()

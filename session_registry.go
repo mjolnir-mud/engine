@@ -83,19 +83,17 @@ func newSessionRegistry(engine *Engine) *sessionRegistry {
 	return &sessionRegistry{
 		engine:   engine,
 		sessions: make(map[*uid.UID]*sessionHandler),
-		logger:   engine.Logger.With().Str("component", "session_registry").Logger(),
+		logger:   engine.logger.With().Str("component", "session_registry").Logger(),
 	}
 }
 
-// Start starts the session registry.
-func (r *sessionRegistry) Start() {
+func (r *sessionRegistry) start() {
 	r.logger.Info().Msg("starting session registry")
 
 	r.engine.Subscribe(engineEvents.SessionStartEvent{}, r.handleSessionStartEvent)
 }
 
-// Stop stops the session registry.
-func (r *sessionRegistry) Stop() {
+func (r *sessionRegistry) stop() {
 	r.logger.Info().Msg("stopping session registry")
 
 	r.engine.Unsubscribe(r.sessionStartSubscription)

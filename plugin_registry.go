@@ -15,31 +15,36 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package redis
+package engine
 
-import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
+import "github.com/rs/zerolog"
 
-func TestNew(t *testing.T) {
-	c, err := New(&Configuration{
-		Host: "localhost",
-		Port: 6379,
-		DB: 1,
-	})
+type pluginRegistry struct {
+	plugins map[string]Plugin
+	engine  *Engine
+	logger  zerolog.Logger
+}
 
-	assert.NoError(t, err)
-	assert.NotNil(t, c)
+func newPluginRegistry(engine *Engine) *pluginRegistry {
+	return &pluginRegistry{
+		plugins: make(map[string]Plugin),
+		engine:  engine,
+		logger:  engine.logger.With().Str("component", "plugin_registry").Logger(),
+	}
+}
 
-	c.Close()
+func (r *pluginRegistry) start() {
+}
 
-	c, err = New(&Configuration{
-		Host: "wronghost",
-		Port: 6379,
-		DB: 1,
-	})
+func (r *pluginRegistry) stop() {
+}
 
-	assert.Error(t, err)
-	assert.Nil(t, c)
+func (r *pluginRegistry) register(plugin Plugin) {
+	r.logger.Debug().Str("name", plugin.Name()).Msg("registering plugin")
+	r.plugins[plugin.Name()] = plugin
+}
+
+// RegisterPlugin registers a plugin with the engine.
+func (r *Engine) RegisterPlugin(plugin Plugin) {
+	r.pluginRegistry.register(plugin)
 }

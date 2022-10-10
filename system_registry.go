@@ -34,7 +34,7 @@ type systemRegistry struct {
 
 func newSystemRegistry(e *Engine) *systemRegistry {
 	registry := &systemRegistry{
-		logger:  e.Logger.With().Str("component", "system_registry").Logger(),
+		logger:  e.logger.With().Str("component", "system_registry").Logger(),
 		systems: make(map[string]System),
 		engine:  e,
 	}
@@ -44,22 +44,19 @@ func newSystemRegistry(e *Engine) *systemRegistry {
 	return registry
 }
 
-// Register a system with the engine. If a system with the same name is already registered, it will be overwritten.
-func (r *systemRegistry) Register(s System) {
+func (r *systemRegistry) register(s System) {
 	r.logger.Info().Str("system", s.Name()).Msg("registering system")
 	r.systems[s.Name()] = s
 }
 
-// Start starts the system registry.
-func (r *systemRegistry) Start() {
+func (r *systemRegistry) start() {
 	r.logger.Info().Msg("starting")
 	r.componentAddedSubscription = r.engine.PSubscribe(engineEvents.ComponentAddedEvent{}, r.onComponentAdded)
 	r.componentRemovedSubscription = r.engine.PSubscribe(engineEvents.ComponentRemovedEvent{}, r.onComponentRemoved)
 	r.componentUpdatedSubscription = r.engine.PSubscribe(engineEvents.ComponentUpdatedEvent{}, r.onComponentUpdated)
 }
 
-// Stop stops the system registry.
-func (r *systemRegistry) Stop() {
+func (r *systemRegistry) stop() {
 	r.logger.Info().Msg("stopping system registry")
 	r.engine.PUnsubscribe(r.componentAddedSubscription)
 	r.engine.PUnsubscribe(r.componentRemovedSubscription)

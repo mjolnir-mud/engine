@@ -15,12 +15,4 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package redis
-
-import (
-	"github.com/rs/zerolog"
-)
-
-var logger zerolog.Logger
-
-// New creates a new redis client. It accepts a `redis.Configuration` struct which defines the host, port, and database
+package engine

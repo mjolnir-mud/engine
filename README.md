@@ -11,10 +11,6 @@ custom game worlds with minimal effort.
 * Multi-server instance support. Multiple server instances can be run at once, allowing the game to scale to meet
   demand.
 
-## Documentation
-
-The engine documentation can be found within the Wiki for this repository.
-
 ## Contributing
 
 When contributing to this repository, please first discuss the change you wish to make via issue,

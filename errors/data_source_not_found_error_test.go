@@ -15,25 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
+package errors
 
-// Plugin is the interface that must be implemented by a Mjolnir plugin.
-type Plugin interface {
-	// Name returns the name of the plugin. Plugin names must be unique. If two plugins are registered with the same
-	// name, an error will be returned.
-	Name() string
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-	// BeforeStart is called before the engine starts. This is the appropriate time to create any connections to any
-	// external services that the plugin needs to use, or other setup items. This is effectively the plugin's
-	// constructor.
-	BeforeStart() error
+func TestDataSourceNotFoundError_Error(t *testing.T) {
+	err := DataSourceNotFoundError{Name: "test"}
 
-	// AfterStart is called after the engine starts. This is the appropriate time register any resources that the plugin
-	// may provide to the engine. For example, a plugin may register a data source, or a controller.
-	AfterStart() error
-
-	// BeforeStop is called before the engine stops. This is the appropriate time to close any connections to any
-	// external services that the plugin needs to use, or other cleanup items. This is effectively the plugin's
-	// destructor.
-	BeforeStop() error
+	assert.Equal(t, "data source not found: test", err.Error())
 }

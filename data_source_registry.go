@@ -15,10 +15,36 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package redis
+package engine
 
-type Configuration struct {
-	Host string
-	Port int
-	DB  int
+import "github.com/rs/zerolog"
+
+type dataSourceRegistry struct {
+	dataSources map[string]DataSource
+	engine      *Engine
+	logger      zerolog.Logger
+}
+
+func newDataSourceRegistry(engine *Engine) *dataSourceRegistry {
+	return &dataSourceRegistry{
+		dataSources: make(map[string]DataSource),
+		engine:      engine,
+		logger:      engine.logger.With().Str("component", "data_sources_registry").Logger(),
+	}
+}
+
+func (r *dataSourceRegistry) register(dataSource DataSource) {
+	r.logger.Debug().Str("name", dataSource.Name()).Msg("registering data source")
+	r.dataSources[dataSource.Name()] = dataSource
+}
+
+func (r *dataSourceRegistry) start() {
+}
+
+func (r *dataSourceRegistry) stop() {
+}
+
+// RegisterDataSource registers a data source with the engine.
+func (r *Engine) RegisterDataSource(dataSource DataSource) {
+	r.dataSourceRegistry.register(dataSource)
 }

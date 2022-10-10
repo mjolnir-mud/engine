@@ -17,23 +17,53 @@
 
 package engine
 
-// Plugin is the interface that must be implemented by a Mjolnir plugin.
-type Plugin interface {
-	// Name returns the name of the plugin. Plugin names must be unique. If two plugins are registered with the same
-	// name, an error will be returned.
-	Name() string
+import (
+	"github.com/mjolnir-engine/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-	// BeforeStart is called before the engine starts. This is the appropriate time to create any connections to any
-	// external services that the plugin needs to use, or other setup items. This is effectively the plugin's
-	// constructor.
-	BeforeStart() error
+type fakeDataSource struct{}
 
-	// AfterStart is called after the engine starts. This is the appropriate time register any resources that the plugin
-	// may provide to the engine. For example, a plugin may register a data source, or a controller.
-	AfterStart() error
+func (f fakeDataSource) Name() string {
+	return "fake"
+}
 
-	// BeforeStop is called before the engine stops. This is the appropriate time to close any connections to any
-	// external services that the plugin needs to use, or other cleanup items. This is effectively the plugin's
-	// destructor.
-	BeforeStop() error
+func (f fakeDataSource) FindOne(map[string]interface{}) (interface{}, error) {
+	panic("implement me")
+}
+
+func (f fakeDataSource) Find(map[string]interface{}) ([]interface{}, error) {
+	panic("implement me")
+}
+
+func (f fakeDataSource) Save(interface{}) (*uid.UID, error) {
+	panic("implement me")
+}
+
+func (f fakeDataSource) Count(map[string]interface{}) (int64, error) {
+	panic("implement me")
+}
+
+func (f fakeDataSource) Delete(map[string]interface{}) error {
+	panic("implement me")
+}
+
+func (f fakeDataSource) All() ([]interface{}, error) {
+	panic("implement me")
+}
+
+func (f fakeDataSource) Start() error {
+	panic("implement me")
+}
+
+func (f fakeDataSource) Stop() error {
+	panic("implement me")
+}
+
+func TestEngine_RegisterDataSource(t *testing.T) {
+	e := createEngineInstance()
+	e.RegisterDataSource(fakeDataSource{})
+
+	assert.Len(t, e.dataSourceRegistry.dataSources, 1)
 }

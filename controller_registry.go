@@ -35,17 +35,17 @@ type controllerRegistry struct {
 func newControllerRegistry(engine *Engine) *controllerRegistry {
 	return &controllerRegistry{
 		controllers: make(map[string]Controller),
-		logger:      engine.Logger.With().Str("component", "controller-registry").Logger(),
+		logger:      engine.logger.With().Str("component", "controller-registry").Logger(),
 		engine:      engine,
 	}
 }
 
-func (c *controllerRegistry) Register(controller Controller) {
+func (c *controllerRegistry) register(controller Controller) {
 	c.logger.Info().Str("controller", controller.Name()).Msg("registering controller")
 	c.controllers[controller.Name()] = controller
 }
 
-func (c *controllerRegistry) Start() {
+func (c *controllerRegistry) start() {
 	c.logger.Info().Msg("starting")
 
 	id := c.engine.PSubscribe(engineEvents.SessionStartedEvent{}, func(message EventMessage) {
@@ -83,12 +83,12 @@ func (c *controllerRegistry) Start() {
 	c.sessionStartedSubscription = id
 }
 
-func (r *controllerRegistry) Stop() {
+func (r *controllerRegistry) stop() {
 	r.logger.Info().Msg("stopping")
 	r.engine.Unsubscribe(r.sessionStartedSubscription)
 }
 
-func (c *controllerRegistry) Get(name string) (Controller, error) {
+func (c *controllerRegistry) get(name string) (Controller, error) {
 	controller, ok := c.controllers[name]
 	if !ok {
 		return nil, engineErrors.ControllerNotFoundError{Name: name}
@@ -99,10 +99,10 @@ func (c *controllerRegistry) Get(name string) (Controller, error) {
 // RegisterController registers a controller with the engine. Controllers must implement the `Controller` interface. If
 // a controller with the same name is already registered, it will be overwritten.
 func (e *Engine) RegisterController(controller Controller) {
-	e.controllerRegistry.Register(controller)
+	e.controllerRegistry.register(controller)
 }
 
 // GetController returns a controller by name. If the controller is not found, an error is returned.
 func (e *Engine) GetController(name string) (Controller, error) {
-	return e.controllerRegistry.Get(name)
+	return e.controllerRegistry.get(name)
 }
