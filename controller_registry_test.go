@@ -19,8 +19,8 @@ package engine
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/events"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/events"
+	"github.com/mjolnir-engine/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

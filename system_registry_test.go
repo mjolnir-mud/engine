@@ -18,7 +18,7 @@
 package engine
 
 import (
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

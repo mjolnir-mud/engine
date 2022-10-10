@@ -18,9 +18,9 @@
 package engine
 
 import (
-	engineErrors "github.com/mjolnir-mud/engine/errors"
-	engineEvents "github.com/mjolnir-mud/engine/events"
-	"github.com/mjolnir-mud/engine/uid"
+	engineErrors "github.com/mjolnir-engine/engine/errors"
+	engineEvents "github.com/mjolnir-engine/engine/events"
+	"github.com/mjolnir-engine/engine/uid"
 	"github.com/rs/zerolog"
 )
 

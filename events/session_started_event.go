@@ -19,7 +19,7 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/uid"
 )
 
 // SessionStartedEvent is an event that is fired when a session has been started.

@@ -21,8 +21,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	engineErrors "github.com/mjolnir-mud/engine/errors"
-	"github.com/mjolnir-mud/engine/uid"
+	engineErrors "github.com/mjolnir-engine/engine/errors"
+	"github.com/mjolnir-engine/engine/uid"
 	"github.com/rueian/rueidis"
 )
 

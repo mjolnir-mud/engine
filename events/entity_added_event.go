@@ -19,7 +19,7 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/uid"
 )
 
 // EntityAddedEvent is an event that is fired when an entity is added to the engine.

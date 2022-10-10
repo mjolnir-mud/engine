@@ -18,8 +18,8 @@
 package engine
 
 import (
-	engineEvents "github.com/mjolnir-mud/engine/events"
-	"github.com/mjolnir-mud/engine/uid"
+	engineEvents "github.com/mjolnir-engine/engine/events"
+	"github.com/mjolnir-engine/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

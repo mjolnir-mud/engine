@@ -19,7 +19,7 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/uid"
 )
 
 // SessionSendDataEvent is an event that is published when a session needs to send data to the client.

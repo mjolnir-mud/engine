@@ -17,7 +17,7 @@
 
 package engine
 
-import "github.com/mjolnir-mud/engine/uid"
+import "github.com/mjolnir-engine/engine/uid"
 
 type Session struct {
 	Id         *uid.UID

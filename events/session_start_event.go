@@ -17,7 +17,7 @@
 
 package events
 
-import "github.com/mjolnir-mud/engine/uid"
+import "github.com/mjolnir-engine/engine/uid"
 
 // SessionStartEvent is an event that is fired when a session should be started.
 type SessionStartEvent struct {

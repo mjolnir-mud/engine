@@ -18,7 +18,6 @@
 package engine
 
 import (
-	"github.com/mjolnir-mud/engine/internal/redis"
 	"github.com/rs/zerolog"
 	"github.com/rueian/rueidis"
 )
@@ -62,7 +61,7 @@ func (e *Engine) RegisterSystem(system System) {
 // Start starts the Mjolnir game engine. If the redis connection fails, an error is returned.
 func (e *Engine) Start() error {
 	e.Logger.Info().Msg("starting engine")
-	redisClient, err := redis.New(e.config.Redis)
+	redisClient, err := newRedisClient(e)
 
 	if err != nil {
 		e.Logger.Fatal().Err(err).Msg("failed to connect to redis")

@@ -19,7 +19,7 @@ package errors
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/uid"
 )
 
 type SessionNotFoundError struct {

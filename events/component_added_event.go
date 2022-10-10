@@ -19,7 +19,7 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-mud/engine/uid"
+	"github.com/mjolnir-engine/engine/uid"
 )
 
 // ComponentAddedEvent is an event that is fired when a component is added to an entity.

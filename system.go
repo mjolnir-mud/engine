@@ -17,7 +17,7 @@
 
 package engine
 
-import "github.com/mjolnir-mud/engine/uid"
+import "github.com/mjolnir-engine/engine/uid"
 
 // System is the interface that all systems must implement. They are reactive to changes in components that match
 // the systems `Component` method.

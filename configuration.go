@@ -17,8 +17,6 @@
 
 package engine
 
-import "github.com/mjolnir-mud/engine/internal/redis"
-
 // Configuration represents the Mjolnir configuration
 type Configuration struct {
 	// DefaultController is the default controller to use when a session is created.
@@ -31,5 +29,5 @@ type Configuration struct {
 	Log *LogConfiguration
 
 	// Redis is the configuration for the Redis connection.
-	Redis *redis.Configuration
+	Redis *RedisConfiguration
 }

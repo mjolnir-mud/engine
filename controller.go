@@ -17,7 +17,7 @@
 
 package engine
 
-import "github.com/mjolnir-mud/engine/uid"
+import "github.com/mjolnir-engine/engine/uid"
 
 // ControllerContext is a context that is passed to a controller.
 type ControllerContext struct {
