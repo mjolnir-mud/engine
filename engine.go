@@ -72,6 +72,7 @@ func (e *Engine) Start() error {
 
 	e.systemRegistry.Start()
 	e.sessionRegistry.Start()
+	e.controllerRegistry.Start()
 
 	return nil
 }

@@ -18,17 +18,26 @@
 package engine
 
 import (
+	"fmt"
+	"github.com/mjolnir-mud/engine/events"
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-type fakeController struct{}
-
-func (f fakeController) Name() string {
-	return "fake"
+type fakeController struct {
+	StartCalled chan *uid.UID
 }
 
-func (f fakeController) Start(_ *ControllerContext) error {
+func (f fakeController) Name() string {
+	return "test"
+}
+
+func (f fakeController) Start(c *ControllerContext) error {
+	fmt.Print("starting")
+
+	f.StartCalled <- c.SessionId
+
 	return nil
 }
 
@@ -50,4 +59,38 @@ func TestControllerRegistry_Register(t *testing.T) {
 	engine.RegisterController(fakeController{})
 
 	assert.Len(t, engine.controllerRegistry.controllers, 1)
+}
+
+func TestEngine_GetController(t *testing.T) {
+	engine := createEngineInstance()
+	defer engine.Stop()
+
+	engine.RegisterController(fakeController{})
+
+	controller, err := engine.GetController("test")
+
+	assert.Nil(t, err)
+	assert.NotNil(t, controller)
+}
+
+func TestControllerRegistry_NewSession(t *testing.T) {
+	engine := createEngineInstance()
+	defer engine.Stop()
+
+	fc := fakeController{
+		StartCalled: make(chan *uid.UID),
+	}
+
+	engine.RegisterController(fc)
+
+	id := uid.New()
+
+	err := engine.Publish(events.SessionStartEvent{
+		Id: id,
+	})
+
+	called := <-fc.StartCalled
+
+	assert.Nil(t, err)
+	assert.Equal(t, id, called)
 }

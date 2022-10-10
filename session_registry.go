@@ -25,7 +25,7 @@ import (
 )
 
 type sessionHandler struct {
-	session  *Session
+	id       *uid.UID
 	logger   zerolog.Logger
 	engine   *Engine
 	registry *sessionRegistry
@@ -35,18 +35,41 @@ type sessionHandler struct {
 func (h *sessionHandler) Start() {
 	h.logger.Info().Msg("starting session handler")
 	err := h.engine.Publish(engineEvents.SessionStartedEvent{
-		Id: h.session.Id,
+		Id: h.id,
 	})
 
 	if err != nil {
-		h.registry.remove(h.session)
+		h.registry.remove(h.id)
 	}
 }
 
 // Stop stops the session handler.
 func (h *sessionHandler) Stop() {
 	h.logger.Info().Msg("stopping session registry")
-	h.registry.remove(h.session)
+	h.registry.remove(h.id)
+}
+
+func (h *sessionHandler) getController() Controller {
+	var controllerName string
+	err := h.engine.GetComponent(h.id, "Controller", &controllerName)
+
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to get controller name")
+		h.Stop()
+
+		return nil
+	}
+
+	controller, err := h.engine.GetController(controllerName)
+
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to get controller")
+		h.Stop()
+
+		return nil
+	}
+
+	return controller
 }
 
 type sessionRegistry struct {
@@ -80,17 +103,17 @@ func (r *sessionRegistry) Stop() {
 
 func (r *sessionRegistry) add(session *Session) {
 	handler := &sessionHandler{
-		session: session,
-		logger:  r.logger.With().Str("sessionId", session.Id.String()).Logger(),
-		engine:  r.engine,
+		id:     session.Id,
+		logger: r.logger.With().Str("sessionId", session.Id.String()).Logger(),
+		engine: r.engine,
 	}
 
 	r.sessions[session.Id] = handler
 	handler.Start()
 }
 
-func (r *sessionRegistry) remove(session *Session) {
-	handler := r.sessions[session.Id]
+func (r *sessionRegistry) remove(id *uid.UID) {
+	handler := r.sessions[id]
 
 	if handler == nil {
 		return
@@ -98,7 +121,7 @@ func (r *sessionRegistry) remove(session *Session) {
 
 	handler.Stop()
 
-	delete(r.sessions, session.Id)
+	delete(r.sessions, id)
 }
 
 func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
@@ -111,7 +134,8 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 
 	r.logger.Debug().Str("sessionId", sessionStartEvent.Id.String()).Msg("session started")
 	session := &Session{
-		Id: sessionStartEvent.Id,
+		Id:         sessionStartEvent.Id,
+		Controller: r.engine.config.DefaultController,
 	}
 
 	err := r.engine.AddEntityWithId(sessionStartEvent.Id, session)
@@ -127,7 +151,13 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 // SendToSession sends data to a session. The data can be anything that can be marshalled to JSON. This will dispatch
 // a SessionSendDataEvent. If the session does not exist, this will return an error.
 func (e *Engine) SendToSession(sessionId *uid.UID, data interface{}) error {
-	if _, ok := e.sessionRegistry.sessions[sessionId]; !ok {
+	exists, err := e.HasEntity(sessionId)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return engineErrors.SessionNotFoundError{
 			Id: sessionId,
 		}
@@ -137,4 +167,23 @@ func (e *Engine) SendToSession(sessionId *uid.UID, data interface{}) error {
 		Id:   sessionId,
 		Data: data,
 	})
+}
+
+// GetSessionController gets the controller for a session. If the session does not exist, this will return an error.
+func (e *Engine) GetSessionController(id *uid.UID) (Controller, error) {
+	var name string
+	err := e.GetComponent(id, "Controller", &name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	controller, err := e.GetController(name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return controller, nil
+
 }

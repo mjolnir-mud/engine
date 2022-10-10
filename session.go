@@ -20,5 +20,6 @@ package engine
 import "github.com/mjolnir-mud/engine/uid"
 
 type Session struct {
-	Id *uid.UID
+	Id         *uid.UID
+	Controller string
 }

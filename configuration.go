@@ -21,12 +21,15 @@ import "github.com/mjolnir-mud/engine/internal/redis"
 
 // Configuration represents the Mjolnir configuration
 type Configuration struct {
-	// Redis is the configuration for the Redis connection.
-	Redis *redis.Configuration
+	// DefaultController is the default controller to use when a session is created.
+	DefaultController string
 
 	// InstanceId is the prefix for all entity keys in Redis.
 	InstanceId string
 
 	// Log is the configuration for the logger.
 	Log *LogConfiguration
+
+	// Redis is the configuration for the Redis connection.
+	Redis *redis.Configuration
 }

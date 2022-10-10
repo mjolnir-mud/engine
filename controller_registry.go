@@ -19,13 +19,17 @@ package engine
 
 import (
 	engineErrors "github.com/mjolnir-mud/engine/errors"
+	engineEvents "github.com/mjolnir-mud/engine/events"
+
+	"github.com/mjolnir-mud/engine/uid"
 	"github.com/rs/zerolog"
 )
 
 type controllerRegistry struct {
-	controllers map[string]Controller
-	logger      zerolog.Logger
-	engine      *Engine
+	controllers                map[string]Controller
+	logger                     zerolog.Logger
+	engine                     *Engine
+	sessionStartedSubscription *uid.UID
 }
 
 func newControllerRegistry(engine *Engine) *controllerRegistry {
@@ -41,6 +45,57 @@ func (c *controllerRegistry) Register(controller Controller) {
 	c.controllers[controller.Name()] = controller
 }
 
+func (c *controllerRegistry) Start() {
+	c.logger.Info().Msg("starting")
+
+	id := c.engine.PSubscribe(engineEvents.SessionStartedEvent{}, func(message EventMessage) {
+		event := engineEvents.SessionStartedEvent{}
+		err := message.Unmarshal(&event)
+
+		if err != nil {
+			c.logger.Error().Err(err).Msg("error unmarshalling event")
+			return
+		}
+
+		controller, err := c.engine.GetSessionController(event.Id)
+
+		if err != nil {
+			c.logger.
+				Error().
+				Err(err).
+				Str("sessionId", event.Id.String()).
+				Msg("error getting session controller")
+			return
+		}
+
+		context := &ControllerContext{
+			SessionId: event.Id,
+		}
+
+		err = controller.Start(context)
+
+		if err != nil {
+			c.logger.Error().Err(err).Msg("error starting controller")
+			return
+		}
+	})
+
+	c.sessionStartedSubscription = id
+}
+
+func (r *controllerRegistry) Stop() {
+	r.logger.Info().Msg("stopping")
+	r.engine.Unsubscribe(r.sessionStartedSubscription)
+}
+
+func (c *controllerRegistry) Get(name string) (Controller, error) {
+	controller, ok := c.controllers[name]
+	if !ok {
+		return nil, engineErrors.ControllerNotFoundError{Name: name}
+	}
+	return controller, nil
+}
+
 // RegisterController registers a controller with the engine. Controllers must implement the `Controller` interface. If
 // a controller with the same name is already registered, it will be overwritten.
 func (e *Engine) RegisterController(controller Controller) {
@@ -49,10 +104,5 @@ func (e *Engine) RegisterController(controller Controller) {
 
 // GetController returns a controller by name. If the controller is not found, an error is returned.
 func (e *Engine) GetController(name string) (Controller, error) {
-	if controller, ok := e.controllerRegistry.controllers[name]; ok {
-		return controller, nil
-	}
-	return nil, engineErrors.ControllerNotFoundError{
-		Name: name,
-	}
+	return e.controllerRegistry.Get(name)
 }

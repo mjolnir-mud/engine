@@ -17,14 +17,16 @@
 
 package engine
 
+import "github.com/mjolnir-mud/engine/uid"
+
 // ControllerContext is a context that is passed to a controller.
 type ControllerContext struct {
-	Session *Session
+	SessionId *uid.UID
 }
 
-func newControllerContext(session *Session) *ControllerContext {
+func newControllerContext(sessionId *uid.UID) *ControllerContext {
 	return &ControllerContext{
-		Session: session,
+		SessionId: sessionId,
 	}
 }
 

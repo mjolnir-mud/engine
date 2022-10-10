@@ -23,7 +23,8 @@ func createEngineInstance() *Engine {
 			Port: 6379,
 			DB:   1,
 		},
-		InstanceId: prefix,
+		InstanceId:        prefix,
+		DefaultController: "test",
 	})
 
 	_ = engine.Start()
