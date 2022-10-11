@@ -26,6 +26,7 @@ import (
 
 func TestSessionRegistryStartsSessions(t *testing.T) {
 	engine := createEngineInstance()
+	engine.Start("test")
 	defer engine.Stop()
 
 	sessId := uid.New()

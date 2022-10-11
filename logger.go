@@ -26,26 +26,36 @@ import (
 // LogConfiguration represents the Mjolnir logging configuration.
 type LogConfiguration struct {
 	// Level is the logging level.
-	Level zerolog.Level
+	Level  zerolog.Level
 	Writer io.Writer
 }
 
 // newLogger creates a new logger. It accepts a `LogConfiguration` struct as its only argument.
-func newLogger(config *LogConfiguration) zerolog.Logger {
-	if config == nil {
-		config = &LogConfiguration{
-			Level: zerolog.TraceLevel,
+func newLogger(config *Configuration) zerolog.Logger {
+	logConfiguration := config.Log
+	if logConfiguration == nil {
+		logConfiguration = &LogConfiguration{
 			Writer: os.Stdout,
 		}
 	}
 
-	if config.Writer == nil {
-		config.Writer = zerolog.ConsoleWriter{Out: os.Stdout}
+	if logConfiguration.Writer == nil {
+		logConfiguration.Writer = zerolog.ConsoleWriter{Out: os.Stdout}
 	}
 
-	if config.Level == zerolog.NoLevel {
-		config.Level = zerolog.InfoLevel
+	if logConfiguration.Level == 0 {
+		logConfiguration.Level = zerolog.InfoLevel
 	}
 
-	return zerolog.New(config.Writer).With().Timestamp().Logger().Level(config.Level)
+	if config.Environment == "test" {
+		logConfiguration.Level = zerolog.TraceLevel
+		logConfiguration.Writer = zerolog.ConsoleWriter{Out: os.Stdout}
+	}
+
+	if config.Environment == "development" {
+		logConfiguration.Level = zerolog.DebugLevel
+		logConfiguration.Writer = zerolog.ConsoleWriter{Out: os.Stdout}
+	}
+
+	return zerolog.New(logConfiguration.Writer).With().Timestamp().Logger().Level(logConfiguration.Level)
 }

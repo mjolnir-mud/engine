@@ -19,29 +19,71 @@ package engine
 
 import "github.com/rs/zerolog"
 
+type pluginRecord struct {
+	plugin Plugin
+	failed bool
+}
+
 type pluginRegistry struct {
-	plugins map[string]Plugin
+	plugins []*pluginRecord
 	engine  *Engine
 	logger  zerolog.Logger
 }
 
 func newPluginRegistry(engine *Engine) *pluginRegistry {
 	return &pluginRegistry{
-		plugins: make(map[string]Plugin),
+		plugins: make([]*pluginRecord, 0),
 		engine:  engine,
 		logger:  engine.logger.With().Str("component", "plugin_registry").Logger(),
 	}
 }
 
 func (r *pluginRegistry) start() {
+	for _, record := range r.plugins {
+		r.logger.Info().Str("name", record.plugin.Name()).Msg("starting plugin")
+		err := record.plugin.Start(r.engine)
+		if err != nil {
+			r.logger.Error().Str("name", record.plugin.Name()).Err(err).Msg("failed to start plugin")
+			record.failed = true
+		}
+	}
 }
 
 func (r *pluginRegistry) stop() {
+	for _, record := range r.plugins {
+		if record.failed {
+			continue
+		}
+
+		r.logger.Info().Str("name", record.plugin.Name()).Msg("stopping plugin")
+		err := record.plugin.Stop(r.engine)
+		if err != nil {
+			r.logger.Error().Str("name", record.plugin.Name()).Err(err).Msg("failed to stop plugin")
+		}
+	}
 }
 
 func (r *pluginRegistry) register(plugin Plugin) {
+	if r.hasPlugin(plugin.Name()) {
+		r.logger.Warn().Str("plugin", plugin.Name()).Msg("plugin already registered")
+		return
+	}
+
 	r.logger.Debug().Str("name", plugin.Name()).Msg("registering plugin")
-	r.plugins[plugin.Name()] = plugin
+	r.plugins = append(r.plugins, &pluginRecord{
+		plugin: plugin,
+		failed: false,
+	})
+}
+
+func (r *pluginRegistry) hasPlugin(name string) bool {
+	for _, record := range r.plugins {
+		if record.plugin.Name() == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 // RegisterPlugin registers a plugin with the engine.

@@ -136,9 +136,7 @@ func (s fakeSystem) MatchingComponentRemoved(entityId *uid.UID, value interface{
 
 func TestSystemRegistry_Register(t *testing.T) {
 	engine := createEngineInstance()
-	err := engine.Start()
-
-	assert.Nil(t, err)
+	engine.Start("test")
 
 	defer engine.Stop()
 
@@ -153,10 +151,7 @@ func TestSystemRegistry_Register(t *testing.T) {
 
 func TestSystemRegistry_ComponentAdded(t *testing.T) {
 	engine := createEngineInstance()
-	err := engine.Start()
-
-	assert.Nil(t, err)
-
+	engine.Start("test")
 	defer engine.Stop()
 
 	fs := fakeSystem{

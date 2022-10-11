@@ -23,17 +23,13 @@ type Plugin interface {
 	// name, an error will be returned.
 	Name() string
 
-	// BeforeStart is called before the engine starts. This is the appropriate time to create any connections to any
-	// external services that the plugin needs to use, or other setup items. This is effectively the plugin's
-	// constructor.
-	BeforeStart() error
+	// Start is called when the plugin is started. This is where the plugin should initialize itself and start any
+	// of its own components. This method is called after the rest of the Mjolnir engine has been started. It will be
+	// passed the `Engine` instance that it is running in as a parameter.
+	Start(engine *Engine) error
 
-	// AfterStart is called after the engine starts. This is the appropriate time register any resources that the plugin
-	// may provide to the engine. For example, a plugin may register a data source, or a controller.
-	AfterStart() error
-
-	// BeforeStop is called before the engine stops. This is the appropriate time to close any connections to any
-	// external services that the plugin needs to use, or other cleanup items. This is effectively the plugin's
-	// destructor.
-	BeforeStop() error
+	// Stop is called when the plugin is stopped. This is where the plugin should stop any of its own components. This
+	// method should not return until all components have been stopped. It will be passed the `Engine` instance that
+	// it is running in as a parameter.
+	Stop(engine *Engine) error
 }

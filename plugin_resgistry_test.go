@@ -16,3 +16,61 @@
  */
 
 package engine
+
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+type fakePlugin struct {
+	StartCalled chan *Engine
+	StopCalled  chan *Engine
+}
+
+func (f fakePlugin) Name() string {
+	return "fake"
+}
+
+func (f fakePlugin) Start(e *Engine) error {
+	go func() { f.StartCalled <- e }()
+
+	return nil
+}
+
+func (f fakePlugin) Stop(e *Engine) error {
+	go func() { f.StopCalled <- e }()
+
+	return nil
+}
+
+func TestEngine_StartsPlugins(t *testing.T) {
+	engine := createEngineInstance()
+	fp := fakePlugin{
+		StartCalled: make(chan *Engine, 1),
+	}
+
+	engine.RegisterPlugin(fp)
+
+	engine.Start("test")
+	defer engine.Stop()
+
+	e := <-fp.StartCalled
+
+	assert.Equal(t, engine, e)
+}
+
+func TestEngine_StopsPlugins(t *testing.T) {
+	engine := createEngineInstance()
+	fp := fakePlugin{
+		StopCalled: make(chan *Engine, 1),
+	}
+
+	engine.RegisterPlugin(fp)
+
+	engine.Start("test")
+	engine.Stop()
+
+	e := <-fp.StopCalled
+
+	assert.Equal(t, engine, e)
+}

@@ -63,7 +63,11 @@ func (f fakeDataSource) Stop() error {
 
 func TestEngine_RegisterDataSource(t *testing.T) {
 	e := createEngineInstance()
+
 	e.RegisterDataSource(fakeDataSource{})
+
+	e.Start("test")
+	defer e.Stop()
 
 	assert.Len(t, e.dataSourceRegistry.dataSources, 1)
 }

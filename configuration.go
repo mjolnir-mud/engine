@@ -30,4 +30,7 @@ type Configuration struct {
 
 	// Redis is the configuration for the Redis connection.
 	Redis *RedisConfiguration
+
+	// Environment is the environment in which Mjolnir is running, e.g. "dev", "prod", etc.
+	Environment string
 }

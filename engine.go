@@ -20,6 +20,7 @@ package engine
 import (
 	"github.com/rs/zerolog"
 	"github.com/rueian/rueidis"
+	"os"
 )
 
 // Engine is an instance of the Mjolnir game engine.
@@ -33,6 +34,8 @@ type Engine struct {
 	dataSourceRegistry   *dataSourceRegistry
 	pluginRegistry       *pluginRegistry
 	config               *Configuration
+	services             []string
+	service              string
 
 	// logger is the logger for the engine. Plugins can use this logger to create their own tagged loggers. See
 	// [zerolog](https://github.com/rs/zerolog) for more information.
@@ -41,10 +44,20 @@ type Engine struct {
 
 // New creates a new instance of the Mjolnir game engine. If the redis connection fails, an error is returned.
 func New(config *Configuration) *Engine {
+	if config.Environment == "" {
+		env := os.Getenv("MJOLNIR_ENV")
+
+		if env == "" {
+			config.Environment = "development"
+		} else {
+			config.Environment = env
+		}
+	}
+
 	e := &Engine{
 		instanceId: config.InstanceId,
 		config:     config,
-		logger:     newLogger(config.Log),
+		logger:     newLogger(config),
 	}
 
 	e.systemRegistry = newSystemRegistry(e)
@@ -57,20 +70,47 @@ func New(config *Configuration) *Engine {
 	return e
 }
 
+// GetEnv returns the current environment.
+func (e *Engine) GetEnv() string {
+	return e.config.Environment
+}
+
+// GetService returns the current service.
+func (e *Engine) GetService() string {
+	return e.service
+}
+
+// RegisterService registers a service with the engine. Services individual processes that can be started and stopped
+// independently of each other. The engine has a single default service called `engine`.
+func (e *Engine) RegisterService(service string) {
+	e.logger.Info().Str("service", service).Msg("registering service")
+	e.services = append(e.services, service)
+}
+
 // RegisterSystem registers a system with the engine. System should implement the `System` interface.
 func (e *Engine) RegisterSystem(system System) {
 	e.systemRegistry.register(system)
 }
 
 // Start starts the Mjolnir game engine. If the redis connection fails, an error is returned.
-func (e *Engine) Start() error {
+func (e *Engine) Start(service string) {
+	e.RegisterService("engine")
+
+	if !e.hasService(service) {
+		e.logger.Fatal().Str("service", service).Msg("unknown service")
+		panic("unknown service")
+	}
+
+	e.service = service
+
 	e.logger.Info().Msg("starting engine")
 	redisClient, err := newRedisClient(e)
 
 	if err != nil {
 		e.logger.Fatal().Err(err).Msg("failed to connect to redis")
-		return err
+		panic(err)
 	}
+
 	e.redis = redisClient
 
 	e.systemRegistry.start()
@@ -78,7 +118,10 @@ func (e *Engine) Start() error {
 	e.controllerRegistry.start()
 	e.dataSourceRegistry.start()
 
-	return nil
+	// starts all the registered plugins
+	e.pluginRegistry.start()
+
+	e.service = service
 }
 
 // Stop stops the Mjolnir game engine.
@@ -88,4 +131,16 @@ func (e *Engine) Stop() {
 	e.sessionRegistry.stop()
 	e.controllerRegistry.stop()
 	e.dataSourceRegistry.stop()
+
+	// stops all the registered plugins
+	e.pluginRegistry.stop()
+}
+
+func (e *Engine) hasService(name string) bool {
+	for _, service := range e.services {
+		if service == name {
+			return true
+		}
+	}
+	return false
 }

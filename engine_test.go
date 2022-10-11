@@ -41,8 +41,10 @@ func createEngineInstance() *Engine {
 		},
 		InstanceId:        prefix,
 		DefaultController: "test",
+		Environment:       "test",
 	})
 
-	_ = engine.Start()
+	engine.RegisterService("test")
+
 	return engine
 }
