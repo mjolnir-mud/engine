@@ -25,17 +25,14 @@ import (
 	"testing"
 )
 
-func teardown(e *Engine) {
-	_ = e.FlushEntities()
-}
-
 type fakeEntity struct {
 	Value string
 }
 
 func TestEngine_AddComponent(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
 
 	id := uid.New()
 
@@ -47,7 +44,7 @@ func TestEngine_AddComponent(t *testing.T) {
 
 	receivedMsg := make(chan EventMessage)
 
-	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
+	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value2"}, func(event EventMessage) {
 		receivedMsg <- event
 	})
 
@@ -61,7 +58,7 @@ func TestEngine_AddComponent(t *testing.T) {
 	err = msg.Unmarshal(&ca)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "123", ca.EntityId)
+	assert.Equal(t, id, ca.EntityId)
 	assert.Equal(t, "Value2", ca.Name)
 
 	exists, err := e.HasComponent(id, "Value2")
@@ -72,7 +69,8 @@ func TestEngine_AddComponent(t *testing.T) {
 
 func TestEngine_AddEntity(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
 
 	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
@@ -84,28 +82,32 @@ func TestEngine_AddEntity(t *testing.T) {
 
 func TestEngine_AddEntityWithId(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
+
 	id := uid.New()
 
-	receivedMsg := make(chan EventMessage)
+	entityAdded := make(chan EventMessage, 0)
+	componentAdded := make(chan EventMessage, 0)
 
-	e.Subscribe(engineEvents.EntityAddedEvent{}, func(event EventMessage) {
-		receivedMsg <- event
+	e.Subscribe(engineEvents.EntityAddedEvent{
+		Id: id,
+	}, func(event EventMessage) {
+		go func() { entityAdded <- event }()
 	})
 
 	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
-		receivedMsg <- event
+		go func() { componentAdded <- event }()
 	})
 
 	err := e.AddEntityWithId(id, fakeEntity{
 		Value: "test",
 	})
 
-	messages := make([]EventMessage, 0)
-	messages = append(messages, <-receivedMsg)
-	messages = append(messages, <-receivedMsg)
+	assert.Nil(t, err)
 
-	assert.Len(t, messages, 2)
+	assert.NotNil(t, <-entityAdded)
+	assert.NotNil(t, <-componentAdded)
 
 	exists, err := e.redis.Do(
 		context.Background(),
@@ -124,7 +126,8 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 
 func TestEngine_HasComponent(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
 
 	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
@@ -145,7 +148,14 @@ func TestEngine_HasComponent(t *testing.T) {
 
 func TestEngine_HasEntity(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
+
+	added := make(chan EventMessage, 0)
+
+	e.PSubscribe(engineEvents.ComponentAddedEvent{}, func(event EventMessage) {
+		go func() { added <- event }()
+	})
 
 	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
@@ -153,12 +163,14 @@ func TestEngine_HasEntity(t *testing.T) {
 
 	assert.Nil(t, err)
 
+	<-added
+
 	exists, err := e.HasEntity(id)
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
 
-	exists, err = e.HasEntity(id)
+	exists, err = e.HasEntity(uid.New())
 
 	assert.Nil(t, err)
 	assert.False(t, exists)
@@ -166,7 +178,8 @@ func TestEngine_HasEntity(t *testing.T) {
 
 func TestEngine_UpdateComponent(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
 
 	id, err := e.AddEntity(fakeEntity{
 		Value: "test",
@@ -203,7 +216,8 @@ func TestEngine_UpdateComponent(t *testing.T) {
 
 func TestEngine_GetComponent(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
 
 	id, err := e.AddEntity(&fakeEntity{
 		Value: "test",
@@ -221,7 +235,8 @@ func TestEngine_GetComponent(t *testing.T) {
 
 func TestEngine_RemoveComponent(t *testing.T) {
 	e := createEngineInstance()
-	defer teardown(e)
+	e.Start("test")
+	defer e.Stop()
 
 	id, err := e.AddEntity(&fakeEntity{
 		Value: "test",

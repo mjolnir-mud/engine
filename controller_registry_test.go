@@ -75,6 +75,7 @@ func TestEngine_GetController(t *testing.T) {
 
 func TestControllerRegistry_NewSession(t *testing.T) {
 	engine := createEngineInstance()
+	engine.Start("test")
 	defer engine.Stop()
 
 	fc := fakeController{
