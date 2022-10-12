@@ -422,7 +422,7 @@ func (e *Engine) UpdateComponent(entityId *uid.UID, componentName string, compon
 	logger.Trace().Msg("getting previous value")
 	prev := component
 
-	err = e.GetComponent(entityId, componentName, prev)
+	err = e.GetComponent(entityId, componentName, &prev)
 
 	if err != nil {
 		return err

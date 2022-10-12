@@ -23,21 +23,21 @@ import (
 
 // AddComponentErrors is a collection of errors that occurred while adding components to an entity.
 type AddComponentErrors struct {
-	Errors []error
+	Errors []string
 }
 
 func (e AddComponentErrors) Error() string {
 	errorStrings := make([]string, len(e.Errors))
 
 	for i, err := range e.Errors {
-		errorStrings[i] = err.Error()
+		errorStrings[i] = err
 	}
 
 	return fmt.Sprintf("%d error(s) occurred while adding the component", len(e.Errors))
 }
 
-func (e AddComponentErrors) Add(err error) {
-	e.Errors = append(e.Errors, err)
+func (e *AddComponentErrors) Add(err error) {
+	e.Errors = append(e.Errors, err.Error())
 }
 
 func (e AddComponentErrors) HasErrors() bool {

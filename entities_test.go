@@ -190,7 +190,7 @@ func TestEngine_UpdateComponent(t *testing.T) {
 	receivedMsg := make(chan EventMessage)
 
 	e.Subscribe(engineEvents.ComponentUpdatedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
-		receivedMsg <- event
+		go func() { receivedMsg <- event }()
 	})
 
 	err = e.UpdateComponent(id, "Value", "test2")
@@ -203,7 +203,7 @@ func TestEngine_UpdateComponent(t *testing.T) {
 	err = msg.Unmarshal(&ca)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "123", ca.EntityId)
+	assert.Equal(t, id, ca.EntityId)
 	assert.Equal(t, "Value", ca.Name)
 	assert.Equal(t, "test2", ca.Value)
 	assert.Equal(t, "test", ca.PreviousValue)
@@ -260,7 +260,7 @@ func TestEngine_RemoveComponent(t *testing.T) {
 	err = msg.Unmarshal(&ca)
 
 	assert.Nil(t, err)
-	assert.Equal(t, id.String(), ca.EntityId)
+	assert.Equal(t, id, ca.EntityId)
 	assert.Equal(t, "Value", ca.Name)
 	assert.Equal(t, "test", ca.Value)
 

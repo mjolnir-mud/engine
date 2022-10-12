@@ -25,8 +25,8 @@ import (
 
 func TestUpdateComponentErrors_Error(t *testing.T) {
 	e := UpdateComponentErrors{
-		Errors: []error{
-			fmt.Errorf("error 1"),
+		Errors: []string{
+			"error 1",
 		},
 	}
 
@@ -35,18 +35,18 @@ func TestUpdateComponentErrors_Error(t *testing.T) {
 
 func TestUpdateComponentErrors_Errors(t *testing.T) {
 	e := UpdateComponentErrors{
-		Errors: []error{
-			fmt.Errorf("error 1"),
+		Errors: []string{
+			"error 1",
 		},
 	}
 
-	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
+	assert.Equal(t, []string{"error 1"}, e.Errors)
 }
 
 func TestUpdateComponentErrors_HasErrors(t *testing.T) {
 	e := UpdateComponentErrors{
-		Errors: []error{
-			fmt.Errorf("error 1"),
+		Errors: []string{
+			"error 1",
 		},
 	}
 
@@ -55,10 +55,10 @@ func TestUpdateComponentErrors_HasErrors(t *testing.T) {
 
 func TestUpdateComponentErrors_Add(t *testing.T) {
 	e := UpdateComponentErrors{
-		Errors: []error{},
+		Errors: []string{},
 	}
 
 	e.Add(fmt.Errorf("error 1"))
 
-	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
+	assert.Equal(t, []string{"error 1"}, e.Errors)
 }

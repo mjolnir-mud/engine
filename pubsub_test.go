@@ -36,6 +36,9 @@ func (e FakeEvent) AllTopics() string {
 
 func TestEngine_PubSub(t *testing.T) {
 	engine := createEngineInstance()
+	engine.Start("test")
+	defer engine.Stop()
+
 	ch := make(chan string)
 
 	engine.Subscribe(FakeEvent{}, func(event EventMessage) {

@@ -25,8 +25,8 @@ import (
 
 func TestAddComponentErrors_Error(t *testing.T) {
 	e := AddComponentErrors{
-		Errors: []error{
-			fmt.Errorf("error 1"),
+		Errors: []string{
+			"error 1",
 		},
 	}
 
@@ -35,18 +35,18 @@ func TestAddComponentErrors_Error(t *testing.T) {
 
 func TestAddComponentErrors_Errors(t *testing.T) {
 	e := AddComponentErrors{
-		Errors: []error{
-			fmt.Errorf("error 1"),
+		Errors: []string{
+			"error 1",
 		},
 	}
 
-	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
+	assert.Equal(t, []string{"error 1"}, e.Errors)
 }
 
 func TestAddComponentErrors_HasErrors(t *testing.T) {
 	e := AddComponentErrors{
-		Errors: []error{
-			fmt.Errorf("error 1"),
+		Errors: []string{
+			"error 1",
 		},
 	}
 
@@ -55,10 +55,10 @@ func TestAddComponentErrors_HasErrors(t *testing.T) {
 
 func TestAddComponentErrors_Add(t *testing.T) {
 	e := AddComponentErrors{
-		Errors: []error{},
+		Errors: make([]string, 0),
 	}
 
 	e.Add(fmt.Errorf("error 1"))
 
-	assert.Equal(t, []error{fmt.Errorf("error 1")}, e.Errors)
+	assert.Equal(t, "1 error(s) occurred while adding the component", e.Error())
 }

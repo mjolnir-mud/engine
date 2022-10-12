@@ -23,21 +23,21 @@ import (
 
 // UpdateComponentErrors is a collection of errors that occurred while adding components to an entity.
 type UpdateComponentErrors struct {
-	Errors []error
+	Errors []string
 }
 
 func (e UpdateComponentErrors) Error() string {
 	errorStrings := make([]string, len(e.Errors))
 
 	for i, err := range e.Errors {
-		errorStrings[i] = err.Error()
+		errorStrings[i] = err
 	}
 
 	return fmt.Sprintf("%d error(s) occurred while updating the component", len(e.Errors))
 }
 
-func (e UpdateComponentErrors) Add(err error) {
-	e.Errors = append(e.Errors, err)
+func (e *UpdateComponentErrors) Add(err error) {
+	e.Errors = append(e.Errors, err.Error())
 }
 
 func (e UpdateComponentErrors) HasErrors() bool {
