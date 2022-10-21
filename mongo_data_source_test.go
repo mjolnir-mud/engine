@@ -114,4 +114,6 @@ func TestMongoDataSource_Find(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Len(t, results, 1)
+
+	assert.Equal(t, "test", results[0].Value)
 }
