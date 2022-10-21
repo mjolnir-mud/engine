@@ -58,41 +58,6 @@ func (u UID) ToBSON() primitive.ObjectID {
 	return val
 }
 
-//func (u *UID) MarshalJSON() ([]byte, error) {
-//	return []byte(fmt.Sprintf("\"%s\"", u.uid)), nil
-//}
-//
-//func (u *UID) UnmarshalJSON(b []byte) error {
-//	uid, err := FromString(string(b))
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	u.uid = uid.uid
-//
-//	return nil
-//}
-//
-//func (u *UID) MarshalBSON() ([]byte, error) {
-//	b := u.uid
-//
-//	return []byte(b), nil
-//}
-//
-//func (u *UID) UnmarshalBSON(b []byte) error {
-//	id, err := primitive.ObjectIDFromHex(string(b))
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	u.uid = id.Hex()
-//
-//	return nil
-//}
-//
-
 // FromBSON returns a UID from a BSON ObjectID.
 func FromBSON(id primitive.ObjectID) UID {
 	var uid UID

@@ -48,32 +48,3 @@ func TestUID_ToBSON(t *testing.T) {
 
 	assert.Len(t, bson.Hex(), 24)
 }
-
-//
-//func TestUID_String(t *testing.T) {
-//	uid := New()
-//	assert.Len(t, uid.String(), 24)
-//}
-//
-//
-//func TestUID_MarshalBSON(t *testing.T) {
-//	uid := New()
-//	b, err := uid.MarshalBSON()
-//
-//	assert.Nil(t, err)
-//	assert.Len(t, b, 24)
-//
-//	fake := &fakeEntity{
-//		Id: uid,
-//	}
-//
-//
-//	marshalled, err := bson.Marshal(fake)
-//
-//	assert.Nil(t, err)
-//
-//	unmarshalledFake := &fakeEntity{}
-//	err = bson.Unmarshal(marshalled, unmarshalledFake)
-//
-//	assert.NoError(t, err)
-//}
