@@ -34,7 +34,7 @@ type DataSource interface {
 
 	// Find returns a list of entities from executing a search against a provided map. It returns a list of entities as
 	// a map keyed by their ids.
-	Find(map[string]interface{}) ([]interface{}, error)
+	Find(map[string]interface{}, interface{}) error
 
 	// FindOne finds a single entity from executing a search against a provided map, decoding the result into the
 	// provided entity.

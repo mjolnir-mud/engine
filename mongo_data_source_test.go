@@ -18,8 +18,12 @@
 package engine
 
 import (
+	"context"
+	"fmt"
 	"github.com/mjolnir-engine/engine/uid"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"testing"
 )
 
@@ -39,15 +43,41 @@ func setup() (DataSource, *Engine) {
 	return ds, engine
 }
 
+func teardown(ds DataSource, engine *Engine) {
+	c, err := mongo.NewClient(options.
+		Client().
+		ApplyURI(fmt.Sprintf("mongodb://%s:%d", engine.config.Mongo.Host, engine.config.Mongo.Port)),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = c.Connect(context.Background())
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = c.Database(engine.config.Mongo.Database).Drop(context.Background())
+
+	if err != nil {
+		panic(err)
+	}
+
+	engine.Stop()
+}
+
 func TestMongoDataSource_Name(t *testing.T) {
-	ds, _ := setup()
+	ds, e := setup()
+	defer teardown(ds, e)
 
 	assert.Equal(t, "test", ds.Name())
 }
 
 func TestMongoDataSource_Save(t *testing.T) {
 	ds, engine := setup()
-	defer engine.Stop()
+	defer teardown(ds, engine)
 
 	entity := &TestMongoEntity{
 		Value: "test",
@@ -64,4 +94,24 @@ func TestMongoDataSource_Save(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "test", entity.Value)
+}
+
+func TestMongoDataSource_Find(t *testing.T) {
+	ds, engine := setup()
+	defer teardown(ds, engine)
+
+	entity := &TestMongoEntity{
+		Value: "test",
+	}
+
+	_, err := ds.Save(&entity)
+
+	assert.Nil(t, err)
+
+	var results []TestMongoEntity
+
+	err = ds.Find(map[string]interface{}{"value": "test"}, &results)
+
+	assert.Nil(t, err)
+	assert.Len(t, results, 1)
 }

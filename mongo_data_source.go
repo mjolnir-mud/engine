@@ -128,22 +128,23 @@ func (m MongoDataSource) FindOne(search map[string]interface{}, entity interface
 	return nil
 }
 
-func (m MongoDataSource) Find(search map[string]interface{}) ([]interface{}, error) {
+func (m MongoDataSource) Find(search map[string]interface{}, entities interface{}) error {
 	m.logger.Debug().Msg("searching entities")
+	search = parseMongoSearch(search)
 
-	cursor, err := m.getCollection().Find(context.Background(), parseMongoSearch(search))
-	if err != nil {
-		return nil, err
-	}
-
-	var results []interface{}
-	err = cursor.All(context.Background(), &results)
+	cursor, err := m.getCollection().Find(context.Background(), search)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return results, nil
+	err = cursor.All(context.Background(), entities)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m MongoDataSource) Name() string {

@@ -33,7 +33,7 @@ func (f fakeDataSource) FindOne(map[string]interface{}, interface{}) error {
 	panic("implement me")
 }
 
-func (f fakeDataSource) Find(map[string]interface{}) ([]interface{}, error) {
+func (f fakeDataSource) Find(map[string]interface{}, interface{}) error {
 	panic("implement me")
 }
 
