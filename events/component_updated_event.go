@@ -24,7 +24,7 @@ import (
 
 // ComponentUpdatedEvent is an event that is fired when a component is updated on an entity.
 type ComponentUpdatedEvent struct {
-	EntityId      *uid.UID
+	EntityId      uid.UID
 	Name          string
 	Value         interface{}
 	PreviousValue interface{}

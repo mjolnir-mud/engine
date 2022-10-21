@@ -24,20 +24,20 @@ import (
 )
 
 type componentAddedCall struct {
-	EntityId *uid.UID
+	EntityId uid.UID
 	Key      string
 	Value    interface{}
 }
 
 type componentUpdatedCall struct {
-	EntityId *uid.UID
+	EntityId uid.UID
 	Key      string
 	OldValue interface{}
 	NewValue interface{}
 }
 
 type componentRemovedCall struct {
-	EntityId *uid.UID
+	EntityId uid.UID
 	Key      string
 	Value    interface{}
 }
@@ -60,7 +60,7 @@ func (s fakeSystem) Match(_ string, _ interface{}) bool {
 	return true
 }
 
-func (s fakeSystem) ComponentAdded(entityId *uid.UID, key string, value interface{}) error {
+func (s fakeSystem) ComponentAdded(entityId uid.UID, key string, value interface{}) error {
 	go func() {
 		s.ComponentAddedCalled <- componentAddedCall{
 			EntityId: entityId,
@@ -72,7 +72,7 @@ func (s fakeSystem) ComponentAdded(entityId *uid.UID, key string, value interfac
 	return nil
 }
 
-func (s fakeSystem) ComponentUpdated(entityId *uid.UID, key string, oldValue interface{}, newValue interface{}) error {
+func (s fakeSystem) ComponentUpdated(entityId uid.UID, key string, oldValue interface{}, newValue interface{}) error {
 	go func() {
 		s.ComponentUpdatedCalled <- componentUpdatedCall{
 			EntityId: entityId,
@@ -85,7 +85,7 @@ func (s fakeSystem) ComponentUpdated(entityId *uid.UID, key string, oldValue int
 	return nil
 }
 
-func (s fakeSystem) ComponentRemoved(entityId *uid.UID, key string, value interface{}) error {
+func (s fakeSystem) ComponentRemoved(entityId uid.UID, key string, value interface{}) error {
 	go func() {
 		s.ComponentRemovedCalled <- componentRemovedCall{
 			EntityId: entityId,
@@ -97,7 +97,7 @@ func (s fakeSystem) ComponentRemoved(entityId *uid.UID, key string, value interf
 	return nil
 }
 
-func (s fakeSystem) MatchingComponentAdded(entityId *uid.UID, value interface{}) error {
+func (s fakeSystem) MatchingComponentAdded(entityId uid.UID, value interface{}) error {
 	go func() {
 		s.ComponentAddedCalled <- componentAddedCall{
 			EntityId: entityId,
@@ -109,7 +109,7 @@ func (s fakeSystem) MatchingComponentAdded(entityId *uid.UID, value interface{})
 	return nil
 }
 
-func (s fakeSystem) MatchingComponentUpdated(entityId *uid.UID, oldValue interface{}, newValue interface{}) error {
+func (s fakeSystem) MatchingComponentUpdated(entityId uid.UID, oldValue interface{}, newValue interface{}) error {
 	go func() {
 		s.ComponentUpdatedCalled <- componentUpdatedCall{
 			EntityId: entityId,
@@ -122,7 +122,7 @@ func (s fakeSystem) MatchingComponentUpdated(entityId *uid.UID, oldValue interfa
 	return nil
 }
 
-func (s fakeSystem) MatchingComponentRemoved(entityId *uid.UID, value interface{}) error {
+func (s fakeSystem) MatchingComponentRemoved(entityId uid.UID, value interface{}) error {
 	go func() {
 		s.ComponentRemovedCalled <- componentRemovedCall{
 			EntityId: entityId,

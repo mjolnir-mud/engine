@@ -15,23 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package errors
 
 import (
-	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-// SessionStartedEvent is an event that is fired when a session has been started.
-type SessionStartedEvent struct {
-	// Id is the id of the session that was started.
-	Id uid.UID
-}
+func TestEntityStructMustHaveIdFieldError_Error(t *testing.T) {
+	err := EntityStructMustHaveIdFieldError{}
 
-func (e SessionStartedEvent) Topic() string {
-	return fmt.Sprintf("session:%s:started", e.Id)
-}
-
-func (e SessionStartedEvent) AllTopics() string {
-	return "session:*:started"
+	assert.Equal(t, "Entity struct must have an Id field", err.Error())
 }

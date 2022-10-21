@@ -23,7 +23,7 @@ import (
 )
 
 type SessionNotFoundError struct {
-	Id *uid.UID
+	Id uid.UID
 }
 
 func (s SessionNotFoundError) Error() string {

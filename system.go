@@ -31,24 +31,24 @@ type System interface {
 	Match(key string, value interface{}) bool
 
 	// ComponentAdded is called when any component is added to an entity, including those the system is interested in.
-	ComponentAdded(entityId *uid.UID, component string, value interface{}) error
+	ComponentAdded(entityId uid.UID, component string, value interface{}) error
 
 	// ComponentUpdated is called when a component is updated on an entity, including those the system is interested in.
-	ComponentUpdated(entityId *uid.UID, component string, oldValue interface{}, newValue interface{}) error
+	ComponentUpdated(entityId uid.UID, component string, oldValue interface{}, newValue interface{}) error
 
 	// ComponentRemoved is called when a component is removed from an entity, including those the system is interested
 	// in.
-	ComponentRemoved(entityId *uid.UID, component string, value interface{}) error
+	ComponentRemoved(entityId uid.UID, component string, value interface{}) error
 
 	// MatchingComponentAdded is called when a component is added to an entity, but only if the system is interested
 	// in the component.
-	MatchingComponentAdded(entityId *uid.UID, value interface{}) error
+	MatchingComponentAdded(entityId uid.UID, value interface{}) error
 
 	// MatchingComponentUpdated is called when a component is updated on an entity, but only if the system is interested
 	// in the component.
-	MatchingComponentUpdated(entityId *uid.UID, oldValue interface{}, newValue interface{}) error
+	MatchingComponentUpdated(entityId uid.UID, oldValue interface{}, newValue interface{}) error
 
 	// MatchingComponentRemoved is called when a component is removed from an entity, but only if the system is
 	// interested in the component.
-	MatchingComponentRemoved(entityId *uid.UID, value interface{}) error
+	MatchingComponentRemoved(entityId uid.UID, value interface{}) error
 }

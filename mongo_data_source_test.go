@@ -15,23 +15,47 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package events
+package engine
 
 import (
-	"fmt"
 	"github.com/mjolnir-engine/engine/uid"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-// SessionStartedEvent is an event that is fired when a session has been started.
-type SessionStartedEvent struct {
-	// Id is the id of the session that was started.
-	Id uid.UID
+type TestMongoEntity struct {
+	Id    uid.UID `bson:"_id,omitempty"`
+	Value string
 }
 
-func (e SessionStartedEvent) Topic() string {
-	return fmt.Sprintf("session:%s:started", e.Id)
+func setup() (DataSource, *Engine) {
+	engine := createEngineInstance()
+	ds := NewMongoDataSource("test", engine)
+
+	engine.RegisterDataSource(ds)
+
+	engine.Start("test")
+
+	return ds, engine
 }
 
-func (e SessionStartedEvent) AllTopics() string {
-	return "session:*:started"
+func TestMongoDataSource_Save(t *testing.T) {
+	ds, engine := setup()
+	defer engine.Stop()
+
+	entity := &TestMongoEntity{
+		Value: "test",
+	}
+
+	id, err := ds.Save(&entity)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, id)
+
+	entity = &TestMongoEntity{}
+
+	err = ds.FindOne(map[string]interface{}{"_id": id}, entity)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "test", entity.Value)
 }

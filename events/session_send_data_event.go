@@ -24,7 +24,7 @@ import (
 
 // SessionSendDataEvent is an event that is published when a session needs to send data to the client.
 type SessionSendDataEvent struct {
-	Id   *uid.UID
+	Id   uid.UID
 	Data interface{}
 }
 

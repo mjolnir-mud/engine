@@ -24,7 +24,7 @@ import (
 
 // ComponentRemovedEvent is an event that is fired when a component is removed from an entity.
 type ComponentRemovedEvent struct {
-	EntityId *uid.UID
+	EntityId uid.UID
 	Name     string
 	Value    interface{}
 }

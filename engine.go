@@ -18,6 +18,7 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/rueian/rueidis"
 	"os"
@@ -51,6 +52,26 @@ func New(config *Configuration) *Engine {
 			config.Environment = "development"
 		} else {
 			config.Environment = env
+		}
+	}
+
+	if config.Mongo == nil {
+		config.Mongo = &MongoConfiguration{
+			Host:     "localhost",
+			Port:     27017,
+			Database: fmt.Sprintf("mjolnir_%s", config.Environment),
+		}
+	} else {
+		if config.Mongo.Database == "" {
+			config.Mongo.Database = fmt.Sprintf("mjolnir_%s", config.Environment)
+		}
+
+		if config.Mongo.Host == "" {
+			config.Mongo.Host = "localhost"
+		}
+
+		if config.Mongo.Port == 0 {
+			config.Mongo.Port = 27017
 		}
 	}
 

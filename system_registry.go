@@ -27,9 +27,9 @@ type systemRegistry struct {
 	logger                       zerolog.Logger
 	systems                      map[string]System
 	engine                       *Engine
-	componentAddedSubscription   *uid.UID
-	componentRemovedSubscription *uid.UID
-	componentUpdatedSubscription *uid.UID
+	componentAddedSubscription   uid.UID
+	componentRemovedSubscription uid.UID
+	componentUpdatedSubscription uid.UID
 }
 
 func newSystemRegistry(e *Engine) *systemRegistry {
@@ -87,7 +87,7 @@ func (r *systemRegistry) onComponentAdded(e EventMessage) {
 				r.logger.
 					Error().
 					Str("system", s.Name()).
-					Str("entity", event.EntityId.String()).
+					Str("entity", string(event.EntityId)).
 					Str("entityComponentName", event.Name).
 					Err(err).
 					Msg("unable to call ComponentAdded")
@@ -101,7 +101,7 @@ func (r *systemRegistry) onComponentAdded(e EventMessage) {
 				r.logger.
 					Error().
 					Str("system", s.Name()).
-					Str("entity", event.EntityId.String()).
+					Str("entity", string(event.EntityId)).
 					Str("entityComponentName", event.Name).
 					Err(err).
 					Msg("unable to call MatchingComponentAdded")
@@ -135,7 +135,7 @@ func (r *systemRegistry) onComponentRemoved(e EventMessage) {
 				r.logger.
 					Error().
 					Str("system", s.Name()).
-					Str("entity", event.EntityId.String()).
+					Str("entity", string(event.EntityId)).
 					Str("entityComponentName", event.Name).
 					Err(err).
 					Msg("unable to call ComponentRemoved")
@@ -149,7 +149,7 @@ func (r *systemRegistry) onComponentRemoved(e EventMessage) {
 				r.logger.
 					Error().
 					Str("system", s.Name()).
-					Str("entity", event.EntityId.String()).
+					Str("entity", string(event.EntityId)).
 					Str("entityComponentName", event.Name).
 					Err(err).
 					Msg("unable to call MatchingComponentRemoved")
@@ -183,7 +183,7 @@ func (r *systemRegistry) onComponentUpdated(e EventMessage) {
 				r.logger.
 					Error().
 					Str("system", s.Name()).
-					Str("entity", event.EntityId.String()).
+					Str("entity", string(event.EntityId)).
 					Str("entityComponentName", event.Name).
 					Err(err).
 					Msg("unable to call ComponentUpdated")
@@ -197,7 +197,7 @@ func (r *systemRegistry) onComponentUpdated(e EventMessage) {
 				r.logger.
 					Error().
 					Str("system", s.Name()).
-					Str("entity", event.EntityId.String()).
+					Str("entity", string(event.EntityId)).
 					Str("entityComponentName", event.Name).
 					Err(err).
 					Msg("unable to call MatchingComponentUpdated")

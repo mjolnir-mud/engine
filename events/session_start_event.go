@@ -22,7 +22,7 @@ import "github.com/mjolnir-engine/engine/uid"
 // SessionStartEvent is an event that is fired when a session should be started.
 type SessionStartEvent struct {
 	// Id is the id of the session to start.
-	Id *uid.UID
+	Id uid.UID
 }
 
 func (e SessionStartEvent) Topic() string {

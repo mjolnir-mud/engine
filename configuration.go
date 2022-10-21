@@ -33,4 +33,7 @@ type Configuration struct {
 
 	// Environment is the environment in which Mjolnir is running, e.g. "dev", "prod", etc.
 	Environment string
+
+	// Mongo is the configuration for the MongoDB connection.
+	Mongo *MongoConfiguration
 }

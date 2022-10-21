@@ -26,7 +26,7 @@ import (
 )
 
 type fakeController struct {
-	StartCalled chan *uid.UID
+	StartCalled chan uid.UID
 }
 
 func (f fakeController) Name() string {
@@ -79,7 +79,7 @@ func TestControllerRegistry_NewSession(t *testing.T) {
 	defer engine.Stop()
 
 	fc := fakeController{
-		StartCalled: make(chan *uid.UID),
+		StartCalled: make(chan uid.UID),
 	}
 
 	engine.RegisterController(fc)

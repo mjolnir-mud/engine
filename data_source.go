@@ -36,15 +36,16 @@ type DataSource interface {
 	// a map keyed by their ids.
 	Find(map[string]interface{}) ([]interface{}, error)
 
-	// FindOne returns a single id, and entity from executing a search against a provided map.
-	FindOne(map[string]interface{}) (interface{}, error)
+	// FindOne finds a single entity from executing a search against a provided map, decoding the result into the
+	// provided entity.
+	FindOne(map[string]interface{}, interface{}) error
 
 	// Name returns the name of the data source. The name must be unique. Registering a data source with the same name
 	// will replace the existing data source of the same name.
 	Name() string
 
 	// Save saves an entity to the data source.
-	Save(interface{}) (*uid.UID, error)
+	Save(interface{}) (uid.UID, error)
 
 	// Start is called when the registry is started, and should be used to do any work to "start" the data source.
 	Start() error

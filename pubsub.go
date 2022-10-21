@@ -27,7 +27,7 @@ import (
 )
 
 type subscription struct {
-	id      *uid.UID
+	id      uid.UID
 	client  rueidis.DedicatedClient
 	topic   string
 	pattern bool
@@ -51,18 +51,18 @@ func (s *subscription) Unsubscribe() {
 }
 
 type subscriptionRegistry struct {
-	subscriptions map[*uid.UID]*subscription
+	subscriptions map[uid.UID]*subscription
 	engine        *Engine
 }
 
 func newSubscriptionRegistry(engine *Engine) *subscriptionRegistry {
 	return &subscriptionRegistry{
-		subscriptions: make(map[*uid.UID]*subscription),
+		subscriptions: make(map[uid.UID]*subscription),
 		engine:        engine,
 	}
 }
 
-func (r *subscriptionRegistry) Subscribe(topic string, pattern bool, callback func(event EventMessage)) *uid.UID {
+func (r *subscriptionRegistry) Subscribe(topic string, pattern bool, callback func(event EventMessage)) uid.UID {
 	client, cancel := r.engine.redis.Dedicate()
 
 	go func() {
@@ -93,7 +93,7 @@ func (r *subscriptionRegistry) Subscribe(topic string, pattern bool, callback fu
 	return sub.id
 }
 
-func (r *subscriptionRegistry) Unsubscribe(id *uid.UID) {
+func (r *subscriptionRegistry) Unsubscribe(id uid.UID) {
 	sub, ok := r.subscriptions[id]
 
 	if !ok {
@@ -108,7 +108,7 @@ func (r *subscriptionRegistry) add(s *subscription) {
 	r.subscriptions[s.id] = s
 }
 
-func (r *subscriptionRegistry) remove(id *uid.UID) {
+func (r *subscriptionRegistry) remove(id uid.UID) {
 	if _, ok := r.subscriptions[id]; ok {
 		delete(r.subscriptions, id)
 	}
@@ -175,7 +175,7 @@ func (e *Engine) GetPublishCommandsForEvents(events ...Event) rueidis.Commands {
 // Subscribe subscribes an event. The event must implement the `Event` interface. A callback function is to be provided
 // which will be called when the event is published, the callback will be passed an `EventMessage` which can be used to
 // unmarshall the event.
-func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) *uid.UID {
+func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) uid.UID {
 	e.logger.Debug().Str("topic", e.topicWithPrefix(event)).Msg("subscribing to topic")
 	return e.subscriptionRegistry.Subscribe(e.topicWithPrefix(event), false, callback)
 }
@@ -183,18 +183,18 @@ func (e *Engine) Subscribe(event Event, callback func(event EventMessage)) *uid.
 // PSubscribe subscribes to a pattern as returned by the `AllTopics` method on an `Event`. A callback function is to be
 // provided which will be called when the event is published, the callback will be passed an `EventMessage` which can be
 // used to unmarshall the event.
-func (e *Engine) PSubscribe(event Event, callback func(event EventMessage)) *uid.UID {
+func (e *Engine) PSubscribe(event Event, callback func(event EventMessage)) uid.UID {
 	e.logger.Debug().Str("topic", e.allTopicsWithPrefix(event)).Msg("subscribing to topic")
 	return e.subscriptionRegistry.Subscribe(e.allTopicsWithPrefix(event), true, callback)
 }
 
 // Unsubscribe unsubscribes an event. The event must implement the `Event` interface.
-func (e *Engine) Unsubscribe(id *uid.UID) {
+func (e *Engine) Unsubscribe(id uid.UID) {
 	e.subscriptionRegistry.Unsubscribe(id)
 }
 
 // PUnsubscribe unsubscribes from a pattern as returned by the `AllTopics` method on an `Event`.
-func (e *Engine) PUnsubscribe(id *uid.UID) {
+func (e *Engine) PUnsubscribe(id uid.UID) {
 	e.subscriptionRegistry.Unsubscribe(id)
 }
 

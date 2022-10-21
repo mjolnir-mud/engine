@@ -1,10 +1,13 @@
 package errors
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/mjolnir-engine/engine/uid"
+)
 
 // EntityNotFoundError is an error type that is returned when an entity with the given id does not exist.
 type EntityNotFoundError struct {
-	Id string
+	Id uid.UID
 }
 
 func (e EntityNotFoundError) Error() string {

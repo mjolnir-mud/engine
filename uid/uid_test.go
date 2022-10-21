@@ -23,23 +23,14 @@ import (
 	"testing"
 )
 
+type fakeEntity struct {
+	Id *UID `bson:"_id"`
+}
+
 func TestNew(t *testing.T) {
 	uid := New()
 
-	assert.Len(t, uid.String(), 24)
-}
-
-func TestFromString(t *testing.T) {
-	uid, err := FromString("123456789012345678901234")
-
-	assert.Nil(t, err)
-	assert.Equal(t, "123456789012345678901234", uid.String())
-}
-
-func TestFromString_Invalid(t *testing.T) {
-	_, err := FromString("12345678901234567890123")
-
-	assert.NotNil(t, err)
+	assert.Len(t, uid, 24)
 }
 
 func TestFromBSON(t *testing.T) {
@@ -48,17 +39,41 @@ func TestFromBSON(t *testing.T) {
 
 	uid := FromBSON(bson)
 
-	assert.Equal(t, "123456789012345678901234", uid.String())
+	assert.Equal(t, UID("123456789012345678901234"), uid)
 }
 
-func TestUID_BSON(t *testing.T) {
+func TestUID_ToBSON(t *testing.T) {
 	uid := New()
-	bson := uid.BSON()
+	bson := uid.ToBSON()
 
 	assert.Len(t, bson.Hex(), 24)
 }
 
-func TestUID_String(t *testing.T) {
-	uid := New()
-	assert.Len(t, uid.String(), 24)
-}
+//
+//func TestUID_String(t *testing.T) {
+//	uid := New()
+//	assert.Len(t, uid.String(), 24)
+//}
+//
+//
+//func TestUID_MarshalBSON(t *testing.T) {
+//	uid := New()
+//	b, err := uid.MarshalBSON()
+//
+//	assert.Nil(t, err)
+//	assert.Len(t, b, 24)
+//
+//	fake := &fakeEntity{
+//		Id: uid,
+//	}
+//
+//
+//	marshalled, err := bson.Marshal(fake)
+//
+//	assert.Nil(t, err)
+//
+//	unmarshalledFake := &fakeEntity{}
+//	err = bson.Unmarshal(marshalled, unmarshalledFake)
+//
+//	assert.NoError(t, err)
+//}

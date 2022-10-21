@@ -29,7 +29,7 @@ type controllerRegistry struct {
 	controllers                map[string]Controller
 	logger                     zerolog.Logger
 	engine                     *Engine
-	sessionStartedSubscription *uid.UID
+	sessionStartedSubscription uid.UID
 }
 
 func newControllerRegistry(engine *Engine) *controllerRegistry {
@@ -63,7 +63,7 @@ func (c *controllerRegistry) start() {
 			c.logger.
 				Error().
 				Err(err).
-				Str("sessionId", event.Id.String()).
+				Str("sessionId", string(event.Id)).
 				Msg("error getting session controller")
 			return
 		}

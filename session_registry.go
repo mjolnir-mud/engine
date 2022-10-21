@@ -25,7 +25,7 @@ import (
 )
 
 type sessionHandler struct {
-	id       *uid.UID
+	id       uid.UID
 	logger   zerolog.Logger
 	engine   *Engine
 	registry *sessionRegistry
@@ -74,15 +74,15 @@ func (h *sessionHandler) getController() Controller {
 
 type sessionRegistry struct {
 	logger                   zerolog.Logger
-	sessions                 map[*uid.UID]*sessionHandler
+	sessions                 map[uid.UID]*sessionHandler
 	engine                   *Engine
-	sessionStartSubscription *uid.UID
+	sessionStartSubscription uid.UID
 }
 
 func newSessionRegistry(engine *Engine) *sessionRegistry {
 	return &sessionRegistry{
 		engine:   engine,
-		sessions: make(map[*uid.UID]*sessionHandler),
+		sessions: make(map[uid.UID]*sessionHandler),
 		logger:   engine.logger.With().Str("component", "session_registry").Logger(),
 	}
 }
@@ -102,7 +102,7 @@ func (r *sessionRegistry) stop() {
 func (r *sessionRegistry) add(session *Session) {
 	handler := &sessionHandler{
 		id:     session.Id,
-		logger: r.logger.With().Str("sessionId", session.Id.String()).Logger(),
+		logger: r.logger.With().Str("sessionId", string(session.Id)).Logger(),
 		engine: r.engine,
 	}
 
@@ -110,7 +110,7 @@ func (r *sessionRegistry) add(session *Session) {
 	handler.Start()
 }
 
-func (r *sessionRegistry) remove(id *uid.UID) {
+func (r *sessionRegistry) remove(id uid.UID) {
 	handler := r.sessions[id]
 
 	if handler == nil {
@@ -130,7 +130,7 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 		return
 	}
 
-	r.logger.Debug().Str("sessionId", sessionStartEvent.Id.String()).Msg("session started")
+	r.logger.Debug().Str("sessionId", string(sessionStartEvent.Id)).Msg("session started")
 	session := &Session{
 		Id:         sessionStartEvent.Id,
 		Controller: r.engine.config.DefaultController,
@@ -148,7 +148,7 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 
 // SendToSession sends data to a session. The data can be anything that can be marshalled to JSON. This will dispatch
 // a SessionSendDataEvent. If the session does not exist, this will return an error.
-func (e *Engine) SendToSession(sessionId *uid.UID, data interface{}) error {
+func (e *Engine) SendToSession(sessionId uid.UID, data interface{}) error {
 	exists, err := e.HasEntity(sessionId)
 
 	if err != nil {
@@ -168,7 +168,7 @@ func (e *Engine) SendToSession(sessionId *uid.UID, data interface{}) error {
 }
 
 // GetSessionController gets the controller for a session. If the session does not exist, this will return an error.
-func (e *Engine) GetSessionController(id *uid.UID) (Controller, error) {
+func (e *Engine) GetSessionController(id uid.UID) (Controller, error) {
 	var name string
 	err := e.GetComponent(id, "Controller", &name)
 

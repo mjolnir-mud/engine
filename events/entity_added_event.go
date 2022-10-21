@@ -24,7 +24,7 @@ import (
 
 // EntityAddedEvent is an event that is fired when an entity is added to the engine.
 type EntityAddedEvent struct {
-	Id *uid.UID
+	Id uid.UID
 }
 
 func (e EntityAddedEvent) Topic() string {

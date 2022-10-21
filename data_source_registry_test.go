@@ -29,7 +29,7 @@ func (f fakeDataSource) Name() string {
 	return "fake"
 }
 
-func (f fakeDataSource) FindOne(map[string]interface{}) (interface{}, error) {
+func (f fakeDataSource) FindOne(map[string]interface{}, interface{}) error {
 	panic("implement me")
 }
 
@@ -37,7 +37,7 @@ func (f fakeDataSource) Find(map[string]interface{}) ([]interface{}, error) {
 	panic("implement me")
 }
 
-func (f fakeDataSource) Save(interface{}) (*uid.UID, error) {
+func (f fakeDataSource) Save(interface{}) (uid.UID, error) {
 	panic("implement me")
 }
 

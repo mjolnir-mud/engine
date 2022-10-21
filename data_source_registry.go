@@ -39,6 +39,14 @@ func (r *dataSourceRegistry) register(dataSource DataSource) {
 }
 
 func (r *dataSourceRegistry) start() {
+	for _, dataSource := range r.dataSources {
+		err := dataSource.Start()
+
+		if err != nil {
+			r.logger.Fatal().Err(err).Str("name", dataSource.Name()).Msg("error starting data source")
+			panic(err)
+		}
+	}
 }
 
 func (r *dataSourceRegistry) stop() {

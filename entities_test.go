@@ -111,7 +111,7 @@ func TestEngine_AddEntityWithId(t *testing.T) {
 
 	exists, err := e.redis.Do(
 		context.Background(),
-		e.redis.B().Exists().Key(id.String()).Build(),
+		e.redis.B().Exists().Key(string(id)).Build(),
 	).AsBool()
 
 	assert.NoError(t, err)

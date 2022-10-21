@@ -27,13 +27,10 @@ import (
 
 // A UID is a unique identifier for a mjolnir entity. UIDs are designed to be compatible with Mongo ObjectIDs so that
 // they can be used interchangeably.
-type UID struct {
-	// The UID string.
-	UID string `json:"uid"`
-}
+type UID string
 
 // New returns a new random UID.
-func New() *UID {
+func New() UID {
 	id, err := uuid.NewRandom()
 
 	if err != nil {
@@ -43,22 +40,16 @@ func New() *UID {
 	hash := sha256.New()
 	hash.Write([]byte(id.String()))
 	sha := hash.Sum(nil)
+	uid := UID(fmt.Sprintf("%x", sha[:12]))
+	var final UID
+	final = uid
 
-	final := sha[:12]
-
-	return &UID{
-		UID: fmt.Sprintf("%x", final),
-	}
+	return final
 }
 
-// String returns the string representation of the UID.
-func (u *UID) String() string {
-	return u.UID
-}
-
-// BSON returns the BSON representation of the UID.
-func (u *UID) BSON() primitive.ObjectID {
-	val, err := primitive.ObjectIDFromHex(u.UID)
+// ToBSON returns the BSON representation of the UID.
+func (u UID) ToBSON() primitive.ObjectID {
+	val, err := primitive.ObjectIDFromHex(string(u))
 
 	if err != nil {
 		panic(err)
@@ -67,27 +58,45 @@ func (u *UID) BSON() primitive.ObjectID {
 	return val
 }
 
-// FromString returns a UID from a string.
-func FromString(s string) (*UID, error) {
-	err := validateUID(s)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &UID{
-		UID: s,
-	}, nil
-}
+//func (u *UID) MarshalJSON() ([]byte, error) {
+//	return []byte(fmt.Sprintf("\"%s\"", u.uid)), nil
+//}
+//
+//func (u *UID) UnmarshalJSON(b []byte) error {
+//	uid, err := FromString(string(b))
+//
+//	if err != nil {
+//		return err
+//	}
+//
+//	u.uid = uid.uid
+//
+//	return nil
+//}
+//
+//func (u *UID) MarshalBSON() ([]byte, error) {
+//	b := u.uid
+//
+//	return []byte(b), nil
+//}
+//
+//func (u *UID) UnmarshalBSON(b []byte) error {
+//	id, err := primitive.ObjectIDFromHex(string(b))
+//
+//	if err != nil {
+//		return err
+//	}
+//
+//	u.uid = id.Hex()
+//
+//	return nil
+//}
+//
 
 // FromBSON returns a UID from a BSON ObjectID.
-func FromBSON(id primitive.ObjectID) *UID {
-	return &UID{
-		UID: id.Hex(),
-	}
-}
+func FromBSON(id primitive.ObjectID) UID {
+	var uid UID
+	uid = UID(id.Hex())
 
-func validateUID(uid string) error {
-	_, err := primitive.ObjectIDFromHex(uid)
-	return err
+	return uid
 }
