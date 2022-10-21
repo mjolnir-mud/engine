@@ -39,6 +39,12 @@ func setup() (DataSource, *Engine) {
 	return ds, engine
 }
 
+func TestMongoDataSource_Name(t *testing.T) {
+	ds, _ := setup()
+
+	assert.Equal(t, "test", ds.Name())
+}
+
 func TestMongoDataSource_Save(t *testing.T) {
 	ds, engine := setup()
 	defer engine.Stop()
