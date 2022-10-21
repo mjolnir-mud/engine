@@ -28,6 +28,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"reflect"
 )
 
 type MongoConfiguration struct {
@@ -67,28 +68,20 @@ func NewMongoDataSource(collection string, engine *Engine) DataSource {
 	}
 }
 
-func (m MongoDataSource) All() ([]interface{}, error) {
+func (m MongoDataSource) All(results interface{}) error {
 	m.logger.Info().Msg("getting all documents")
 
-	cursor, err := m.getCollection().Find(context.Background(), bson.D{})
+	err := m.Find(map[string]interface{}{}, results)
 
 	if err != nil {
 		m.logger.Error().Err(err).Msg("Failed to get all documents")
-		return nil, err
+		return err
 	}
 
-	var results []interface{}
-	err = cursor.All(context.Background(), &results)
-
-	if err != nil {
-		m.logger.Error().Err(err).Msg("Failed to get all documents")
-		return nil, err
-	}
-
-	return results, nil
+	return nil
 }
 
-func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
+func (m MongoDataSource) Count(search interface{}) (int64, error) {
 	m.logger.Debug().Interface("search", search).Msg("counting entities")
 	search = parseMongoSearch(search)
 
@@ -101,7 +94,7 @@ func (m MongoDataSource) Count(search map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (m MongoDataSource) Delete(search map[string]interface{}) error {
+func (m MongoDataSource) Delete(search interface{}) error {
 	m.logger.Debug().Msg("deleting entity")
 	search = parseMongoSearch(search)
 
@@ -110,7 +103,7 @@ func (m MongoDataSource) Delete(search map[string]interface{}) error {
 	return nil
 }
 
-func (m MongoDataSource) FindOne(search map[string]interface{}, entity interface{}) error {
+func (m MongoDataSource) FindOne(search interface{}, entity interface{}) error {
 	m.logger.Debug().Interface("search", search).Msg("searching one entity")
 	search = parseMongoSearch(search)
 
@@ -118,8 +111,16 @@ func (m MongoDataSource) FindOne(search map[string]interface{}, entity interface
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return engineErrors.EntityNotFoundError{
-				Id: search["_id"].(uid.UID),
+			if reflect.TypeOf(search).Kind() == reflect.Map {
+				return engineErrors.EntityNotFoundError{
+					Id: search.(map[string]interface{})["_id"].(uid.UID),
+				}
+			} else {
+				m := structs.Map(search)
+
+				return engineErrors.EntityNotFoundError{
+					Id: m["Id"].(uid.UID),
+				}
 			}
 		}
 		return err
@@ -128,7 +129,7 @@ func (m MongoDataSource) FindOne(search map[string]interface{}, entity interface
 	return nil
 }
 
-func (m MongoDataSource) Find(search map[string]interface{}, entities interface{}) error {
+func (m MongoDataSource) Find(search interface{}, entities interface{}) error {
 	m.logger.Debug().Msg("searching entities")
 	search = parseMongoSearch(search)
 
@@ -231,7 +232,16 @@ func (m MongoDataSource) getClient() *mongo.Client {
 	return m.client
 }
 
-func parseMongoSearch(search map[string]interface{}) map[string]interface{} {
+func parseMongoSearch(search interface{}) interface{} {
+	switch search.(type) {
+	case map[string]interface{}:
+		parseSearchMap(search.(map[string]interface{}))
+	}
+
+	return search
+}
+
+func parseSearchMap(search map[string]interface{}) map[string]interface{} {
 	if search["id"] != nil {
 		search["_id"] = search["id"]
 		delete(search, "id")

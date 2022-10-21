@@ -117,3 +117,86 @@ func TestMongoDataSource_Find(t *testing.T) {
 
 	assert.Equal(t, "test", results[0].Value)
 }
+
+func TestMongoDataSource_FindOne(t *testing.T) {
+	ds, engine := setup()
+	defer teardown(ds, engine)
+
+	entity := &TestMongoEntity{
+		Value: "test",
+	}
+
+	_, err := ds.Save(&entity)
+
+	assert.Nil(t, err)
+
+	entity = &TestMongoEntity{}
+
+	err = ds.FindOne(map[string]interface{}{"value": "test"}, entity)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "test", entity.Value)
+}
+
+func TestMongoDataSource_Delete(t *testing.T) {
+	ds, engine := setup()
+	defer teardown(ds, engine)
+
+	entity := &TestMongoEntity{
+		Value: "test",
+	}
+
+	id, err := ds.Save(&entity)
+
+	assert.Nil(t, err)
+
+	err = ds.Delete(map[string]interface{}{"_id": id})
+
+	assert.Nil(t, err)
+
+	entity = &TestMongoEntity{}
+
+	err = ds.FindOne(map[string]interface{}{"_id": id}, entity)
+
+	assert.NotNil(t, err)
+}
+
+func TestMongoDataSource_Count(t *testing.T) {
+	ds, engine := setup()
+	defer teardown(ds, engine)
+
+	entity := &TestMongoEntity{
+		Value: "test",
+	}
+
+	_, err := ds.Save(&entity)
+
+	assert.Nil(t, err)
+
+	count, err := ds.Count(map[string]interface{}{"value": "test"})
+
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), count)
+}
+
+func TestMongoDataSource_All(t *testing.T) {
+	ds, engine := setup()
+	defer teardown(ds, engine)
+
+	entity := &TestMongoEntity{
+		Value: "test",
+	}
+
+	_, err := ds.Save(&entity)
+
+	assert.Nil(t, err)
+
+	var results []TestMongoEntity
+
+	err = ds.All(&results)
+
+	assert.Nil(t, err)
+	assert.Len(t, results, 1)
+
+	assert.Equal(t, "test", results[0].Value)
+}

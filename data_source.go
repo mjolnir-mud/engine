@@ -23,22 +23,22 @@ import "github.com/mjolnir-engine/engine/uid"
 // entities that may not be actively loaded into memory.
 type DataSource interface {
 	// All returns all entities within the data source.
-	All() ([]interface{}, error)
+	All(interface{}) error
 
 	// Count returns the number of entities within the data source based on the provided filter. The filter is a map,
 	// the data source is responsible for translating that map into a filter to be used against its search.
-	Count(map[string]interface{}) (int64, error)
+	Count(interface{}) (int64, error)
 
 	// Delete deletes entities from the data source based on the provided filter.
-	Delete(map[string]interface{}) error
+	Delete(interface{}) error
 
 	// Find returns a list of entities from executing a search against a provided map. It returns a list of entities as
 	// a map keyed by their ids.
-	Find(map[string]interface{}, interface{}) error
+	Find(interface{}, interface{}) error
 
 	// FindOne finds a single entity from executing a search against a provided map, decoding the result into the
 	// provided entity.
-	FindOne(map[string]interface{}, interface{}) error
+	FindOne(interface{}, interface{}) error
 
 	// Name returns the name of the data source. The name must be unique. Registering a data source with the same name
 	// will replace the existing data source of the same name.
