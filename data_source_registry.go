@@ -17,7 +17,11 @@
 
 package engine
 
-import "github.com/rs/zerolog"
+import (
+	"github.com/mjolnir-engine/engine/errors"
+	"github.com/mjolnir-engine/engine/uid"
+	"github.com/rs/zerolog"
+)
 
 type dataSourceRegistry struct {
 	dataSources map[string]DataSource
@@ -50,9 +54,100 @@ func (r *dataSourceRegistry) start() {
 }
 
 func (r *dataSourceRegistry) stop() {
+	for _, dataSource := range r.dataSources {
+		err := dataSource.Stop()
+
+		if err != nil {
+			r.logger.Fatal().Err(err).Str("name", dataSource.Name()).Msg("error stopping data source")
+			panic(err)
+		}
+	}
 }
 
-// RegisterDataSource registers a data source with the engine.
-func (r *Engine) RegisterDataSource(dataSource DataSource) {
-	r.dataSourceRegistry.register(dataSource)
+// RegisterDataSource registers a data source with the engine. If the data source is already registered, it is replaced.
+func (e *Engine) RegisterDataSource(dataSource DataSource) {
+	e.dataSourceRegistry.register(dataSource)
+}
+
+// AllInDataSource finds all records in a data source. If the data source does not exist, an error is returned.
+func (e *Engine) AllInDataSource(dataSourceName string, entities interface{}) error {
+	dataSource, ok := e.dataSourceRegistry.dataSources[dataSourceName]
+
+	if !ok {
+		return errors.DataSourceNotFoundError{
+			Name: dataSourceName,
+		}
+	}
+
+	return dataSource.All(entities)
+}
+
+// DeleteFromDataSource deletes a record in a data source. If the data source does not exist, an error is returned. If the
+// record does not exist, an error is returned.
+func (e *Engine) DeleteFromDataSource(dataSourceName string, entity interface{}) error {
+	dataSource, ok := e.dataSourceRegistry.dataSources[dataSourceName]
+
+	if !ok {
+		return errors.DataSourceNotFoundError{
+			Name: dataSourceName,
+		}
+	}
+
+	return dataSource.Delete(entity)
+}
+
+// FindInDataSource finds a record in a data source. If the data source does not exist, an error is returned. If the
+// record does not exist, an error is returned.
+func (e *Engine) FindInDataSource(dataSourceName string, search interface{}, entity interface{}) error {
+	dataSource, ok := e.dataSourceRegistry.dataSources[dataSourceName]
+
+	if !ok {
+		return errors.DataSourceNotFoundError{
+			Name: dataSourceName,
+		}
+	}
+
+	return dataSource.Find(search, entity)
+}
+
+// FindOneInDataSource finds a single record in a data source. If the data source does not exist, an error is returned.
+// If the record does not exist, an error is returned.
+func (e *Engine) FindOneInDataSource(dataSourceName string, search interface{}, entity interface{}) error {
+	dataSource, ok := e.dataSourceRegistry.dataSources[dataSourceName]
+
+	if !ok {
+		return errors.DataSourceNotFoundError{
+			Name: dataSourceName,
+		}
+	}
+
+	return dataSource.FindOne(search, entity)
+}
+
+// CountInDataSource counts the number of records in a data source. If the data source does not exist, an error is
+// returned.
+func (e *Engine) CountInDataSource(dataSourceName string, search interface{}) (int64, error) {
+	dataSource, ok := e.dataSourceRegistry.dataSources[dataSourceName]
+
+	if !ok {
+		return 0, errors.DataSourceNotFoundError{
+			Name: dataSourceName,
+		}
+	}
+
+	return dataSource.Count(search)
+}
+
+// SaveInDataSource saves a record in a data source. If the data source does not exist, an error is returned. If the
+// record does not exist, an error is returned.
+func (e *Engine) SaveInDataSource(dataSourceName string, entity interface{}) (uid.UID, error) {
+	dataSource, ok := e.dataSourceRegistry.dataSources[dataSourceName]
+
+	if !ok {
+		return uid.New(), errors.DataSourceNotFoundError{
+			Name: dataSourceName,
+		}
+	}
+
+	return dataSource.Save(entity)
 }
