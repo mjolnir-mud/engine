@@ -31,5 +31,5 @@ func TestSessionNotFoundError_Error(t *testing.T) {
 		Id: id,
 	}
 
-	assert.Equal(t, fmt.Sprintf("session not found: %s", id.String()), err.Error())
+	assert.Equal(t, fmt.Sprintf("session not found: %s", id), err.Error())
 }

@@ -54,11 +54,11 @@ func (f fakeDataSource) All(interface{}) error {
 }
 
 func (f fakeDataSource) Start() error {
-	panic("implement me")
+	return nil
 }
 
 func (f fakeDataSource) Stop() error {
-	panic("implement me")
+	return nil
 }
 
 func TestEngine_RegisterDataSource(t *testing.T) {

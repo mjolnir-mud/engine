@@ -105,9 +105,9 @@ func (m MongoDataSource) Delete(search interface{}) error {
 
 func (m MongoDataSource) FindOne(search interface{}, entity interface{}) error {
 	m.logger.Debug().Interface("search", search).Msg("searching one entity")
-	search = parseMongoSearch(search)
+	parsedSearch := parseMongoSearch(search)
 
-	err := m.getCollection().FindOne(context.Background(), search).Decode(entity)
+	err := m.getCollection().FindOne(context.Background(), parsedSearch).Decode(entity)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -233,32 +233,44 @@ func (m MongoDataSource) getClient() *mongo.Client {
 }
 
 func parseMongoSearch(search interface{}) interface{} {
+	var final interface{}
+
 	switch search.(type) {
 	case map[string]interface{}:
-		parseSearchMap(search.(map[string]interface{}))
+		final = make(map[string]interface{})
+
+		for k, v := range search.(map[string]interface{}) {
+			final.(map[string]interface{})[k] = v
+		}
+
+		final = parseSearchMap(final.(map[string]interface{}))
+	default:
+		final = search
 	}
 
-	return search
+	return final
 }
 
 func parseSearchMap(search map[string]interface{}) map[string]interface{} {
-	if search["id"] != nil {
-		search["_id"] = search["id"]
-		delete(search, "id")
+	final := search
+
+	if final["id"] != nil {
+		final["_id"] = final["id"]
+		delete(final, "id")
 	}
 
-	switch search["_id"].(type) {
+	switch final["_id"].(type) {
 	case uid.UID:
-		search["_id"] = search["_id"].(uid.UID).ToBSON()
+		final["_id"] = final["_id"].(uid.UID).ToBSON()
 	case string:
-		id, err := primitive.ObjectIDFromHex(search["_id"].(string))
+		id, err := primitive.ObjectIDFromHex(final["_id"].(string))
 
 		if err == nil {
 			panic(err)
 		}
 
-		search["_id"] = id
+		final["_id"] = id
 	}
 
-	return search
+	return final
 }
