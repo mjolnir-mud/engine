@@ -23,6 +23,10 @@ type Plugin interface {
 	// name, an error will be returned.
 	Name() string
 
+	// Init is called when the plugin is initialized. This is the first method called on the plugin when it is
+	// registered. The plugin should perform any initialization tasks here.
+	Init(e *Engine) error
+
 	// Start is called when the plugin is started. This is where the plugin should initialize itself and start any
 	// of its own components. This method is called after the rest of the Mjolnir engine has been started. It will be
 	// passed the `Engine` instance that it is running in as a parameter.

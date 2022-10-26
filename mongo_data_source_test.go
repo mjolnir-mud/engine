@@ -46,7 +46,7 @@ func setup() (DataSource, *Engine) {
 func teardown(ds DataSource, engine *Engine) {
 	c, err := mongo.NewClient(options.
 		Client().
-		ApplyURI(fmt.Sprintf("mongodb://%s:%d", engine.config.Mongo.Host, engine.config.Mongo.Port)),
+		ApplyURI(fmt.Sprintf("mongodb://%s:%d", engine.Config.Mongo.Host, engine.Config.Mongo.Port)),
 	)
 
 	if err != nil {
@@ -59,7 +59,7 @@ func teardown(ds DataSource, engine *Engine) {
 		panic(err)
 	}
 
-	err = c.Database(engine.config.Mongo.Database).Drop(context.Background())
+	err = c.Database(engine.Config.Mongo.Database).Drop(context.Background())
 
 	if err != nil {
 		panic(err)

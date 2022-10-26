@@ -31,17 +31,17 @@ type RedisConfiguration struct {
 func newRedisClient(engine *Engine) (rueidis.Client, error) {
 	logger := engine.logger.With().
 		Str("component", "redis").
-		Str("host", engine.config.Redis.Host).
-		Int("port", engine.config.Redis.Port).
-		Int("db", engine.config.Redis.DB).
+		Str("host", engine.Config.Redis.Host).
+		Int("port", engine.Config.Redis.Port).
+		Int("db", engine.Config.Redis.DB).
 		Logger()
 
 	logger.Info().Msg("starting redis client")
 	c, err := rueidis.NewClient(rueidis.ClientOption{
 		InitAddress: []string{
-			fmt.Sprintf("%s:%d", engine.config.Redis.Host, engine.config.Redis.Port),
+			fmt.Sprintf("%s:%d", engine.Config.Redis.Host, engine.Config.Redis.Port),
 		},
-		SelectDB: engine.config.Redis.DB,
+		SelectDB: engine.Config.Redis.DB,
 	})
 
 	if err != nil {

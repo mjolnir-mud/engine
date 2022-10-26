@@ -59,3 +59,7 @@ func newLogger(config *Configuration) zerolog.Logger {
 
 	return zerolog.New(logConfiguration.Writer).With().Timestamp().Logger().Level(logConfiguration.Level)
 }
+
+func (e *Engine) Logger() zerolog.Logger {
+	return e.logger
+}

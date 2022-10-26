@@ -23,12 +23,19 @@ import (
 )
 
 type fakePlugin struct {
+	InitCalled  chan *Engine
 	StartCalled chan *Engine
 	StopCalled  chan *Engine
 }
 
 func (f fakePlugin) Name() string {
 	return "fake"
+}
+
+func (f fakePlugin) Init(e *Engine) error {
+	go func() { f.InitCalled <- e }()
+
+	return nil
 }
 
 func (f fakePlugin) Start(e *Engine) error {
@@ -41,6 +48,19 @@ func (f fakePlugin) Stop(e *Engine) error {
 	go func() { f.StopCalled <- e }()
 
 	return nil
+}
+
+func TestEngine_RegisterPlugin(t *testing.T) {
+	engine := createEngineInstance()
+	fp := fakePlugin{
+		InitCalled: make(chan *Engine, 1),
+	}
+
+	engine.RegisterPlugin(fp)
+
+	e := <-fp.InitCalled
+
+	assert.Equal(t, engine, e)
 }
 
 func TestEngine_StartsPlugins(t *testing.T) {

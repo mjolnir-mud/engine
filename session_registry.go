@@ -133,7 +133,7 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 	r.logger.Debug().Str("sessionId", string(sessionStartEvent.Id)).Msg("session started")
 	session := &Session{
 		Id:         sessionStartEvent.Id,
-		Controller: r.engine.config.DefaultController,
+		Controller: r.engine.Config.DefaultController,
 	}
 
 	err := r.engine.AddEntityWithId(sessionStartEvent.Id, session)

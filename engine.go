@@ -34,7 +34,7 @@ type Engine struct {
 	subscriptionRegistry *subscriptionRegistry
 	dataSourceRegistry   *dataSourceRegistry
 	pluginRegistry       *pluginRegistry
-	config               *Configuration
+	Config               *Configuration
 	services             []string
 	service              string
 
@@ -77,7 +77,7 @@ func New(config *Configuration) *Engine {
 
 	e := &Engine{
 		instanceId: config.InstanceId,
-		config:     config,
+		Config:     config,
 		logger:     newLogger(config),
 	}
 
@@ -93,7 +93,7 @@ func New(config *Configuration) *Engine {
 
 // GetEnv returns the current environment.
 func (e *Engine) GetEnv() string {
-	return e.config.Environment
+	return e.Config.Environment
 }
 
 // GetService returns the current service.

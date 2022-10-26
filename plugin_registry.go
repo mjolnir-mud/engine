@@ -70,6 +70,14 @@ func (r *pluginRegistry) register(plugin Plugin) {
 	}
 
 	r.logger.Debug().Str("name", plugin.Name()).Msg("registering plugin")
+
+	err := plugin.Init(r.engine)
+
+	if err != nil {
+		r.logger.Error().Str("name", plugin.Name()).Err(err).Msg("failed to initialize plugin")
+		panic(err)
+	}
+
 	r.plugins = append(r.plugins, &pluginRecord{
 		plugin: plugin,
 		failed: false,

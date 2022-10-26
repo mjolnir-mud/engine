@@ -52,7 +52,7 @@ func NewMongoDataSource(collection string, engine *Engine) DataSource {
 
 	c, err := mongo.NewClient(options.
 		Client().
-		ApplyURI(fmt.Sprintf("mongodb://%s:%d", engine.config.Mongo.Host, engine.config.Mongo.Port)),
+		ApplyURI(fmt.Sprintf("mongodb://%s:%d", engine.Config.Mongo.Host, engine.Config.Mongo.Port)),
 	)
 
 	if err != nil {
@@ -221,7 +221,7 @@ func (m MongoDataSource) Stop() error {
 }
 
 func (m MongoDataSource) getCollection() *mongo.Collection {
-	return m.getClient().Database(m.engine.config.Mongo.Database).Collection(m.collection)
+	return m.getClient().Database(m.engine.Config.Mongo.Database).Collection(m.collection)
 }
 
 func (m MongoDataSource) setClient(client *mongo.Client) {
