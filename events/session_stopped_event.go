@@ -23,15 +23,15 @@ import (
 )
 
 // SessionStartedEvent is an event that is fired when a session has been started.
-type SessionStartedEvent struct {
+type SessionStoppedEvent struct {
 	// Id is the id of the session that was started.
 	Id uid.UID
 }
 
-func (e SessionStartedEvent) Topic() string {
-	return fmt.Sprintf("session:%s:started", e.Id)
+func (e SessionStoppedEvent) Topic() string {
+	return fmt.Sprintf("session:%s:stopped", e.Id)
 }
 
-func (e SessionStoppedEvent) AllTopics() string {
-	return "session:*:started"
+func (e SessionStartedEvent) AllTopics() string {
+	return "session:*:stopped"
 }
