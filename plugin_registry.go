@@ -95,6 +95,6 @@ func (r *pluginRegistry) hasPlugin(name string) bool {
 }
 
 // RegisterPlugin registers a plugin with the engine.
-func (r *Engine) RegisterPlugin(plugin Plugin) {
-	r.pluginRegistry.register(plugin)
+func (e *Engine) RegisterPlugin(plugin Plugin) {
+	e.pluginRegistry.register(plugin)
 }
