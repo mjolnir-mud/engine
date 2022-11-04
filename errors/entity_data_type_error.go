@@ -18,12 +18,13 @@
 package errors
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
+	"fmt"
 )
 
-func TestEntityInvalidError_Error(t *testing.T) {
-	err := EntityInvalidError{}
+type EntityDataTypedError struct {
+	Expected string
+}
 
-	assert.Equal(t, "the provided struct is missing an Id field", err.Error())
+func (e EntityDataTypedError) Error() string {
+	return fmt.Sprintf("invalid entity data type: expected %s", e.Expected)
 }

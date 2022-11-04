@@ -162,17 +162,16 @@ func TestSystemRegistry_ComponentAdded(t *testing.T) {
 
 	engine.RegisterSystem(fs)
 
-	id, err := engine.AddEntity(fakeEntity{
+	fe := &fakeEntity{
 		Value: "test",
-	})
+	}
 
-	assert.Nil(t, err)
-	err = engine.AddComponent(id, fs.Component(), "test")
+	err := engine.AddEntity(fe)
 
 	assert.Nil(t, err)
 
 	v := <-fs.ComponentAddedCalled
 
-	assert.Equal(t, id, v.EntityId)
+	assert.Equal(t, fe.Id, v.EntityId)
 
 }

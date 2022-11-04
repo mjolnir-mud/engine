@@ -15,15 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package errors
+package events
 
-import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
+import "github.com/mjolnir-engine/engine/uid"
 
-func TestEntityInvalidError_Error(t *testing.T) {
-	err := EntityInvalidError{}
+type SessionStopEvent struct {
+	Id uid.UID
+}
 
-	assert.Equal(t, "the provided struct is missing an Id field", err.Error())
+func (e SessionStopEvent) Topic() string {
+	return "session:stop"
+}
+
+func (e SessionStopEvent) AllTopics() string {
+	return "session:stop"
 }

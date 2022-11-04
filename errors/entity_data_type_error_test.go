@@ -22,8 +22,8 @@ import (
 	"testing"
 )
 
-func TestEntityInvalidError_Error(t *testing.T) {
-	err := EntityInvalidError{}
+func TestInvalidEntityError_Error(t *testing.T) {
+	err := EntityDataTypedError{Id: "123", Value: "abc"}
 
-	assert.Equal(t, "the provided struct is missing an Id field", err.Error())
+	assert.Equal(t, "entity with id 123 is invalid expected a struct, but got string", err.Error())
 }

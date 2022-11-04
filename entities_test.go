@@ -18,7 +18,6 @@
 package engine
 
 import (
-	"context"
 	engineEvents "github.com/mjolnir-engine/engine/events"
 	"github.com/mjolnir-engine/engine/uid"
 	"github.com/stretchr/testify/assert"
@@ -26,45 +25,14 @@ import (
 )
 
 type fakeEntity struct {
+	Id    uid.UID
 	Value string
 }
 
-func TestEngine_AddComponent(t *testing.T) {
-	e := createEngineInstance()
-	e.Start("test")
-	defer e.Stop()
-
-	id := uid.New()
-
-	err := e.AddEntityWithId(id, fakeEntity{
-		Value: "test",
-	})
-
-	assert.Nil(t, err)
-
-	receivedMsg := make(chan EventMessage)
-
-	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value2"}, func(event EventMessage) {
-		receivedMsg <- event
-	})
-
-	err = e.AddComponent(id, "Value2", "test2")
-
-	assert.Nil(t, err)
-
-	msg := <-receivedMsg
-	ca := engineEvents.ComponentAddedEvent{}
-
-	err = msg.Unmarshal(&ca)
-
-	assert.Nil(t, err)
-	assert.Equal(t, id, ca.EntityId)
-	assert.Equal(t, "Value2", ca.Name)
-
-	exists, err := e.HasComponent(id, "Value2")
-
-	assert.Nil(t, err)
-	assert.True(t, exists)
+type updatedFakeEntity struct {
+	Id         uid.UID
+	Value      string
+	OtherValue string
 }
 
 func TestEngine_AddEntity(t *testing.T) {
@@ -72,56 +40,75 @@ func TestEngine_AddEntity(t *testing.T) {
 	e.Start("test")
 	defer e.Stop()
 
-	id, err := e.AddEntity(fakeEntity{
+	fe := &fakeEntity{
+		Id:    uid.New(),
 		Value: "test",
-	})
+	}
+
+	err := e.AddEntity(fe)
 
 	assert.Nil(t, err)
-	assert.NotNil(t, id)
 }
 
-func TestEngine_AddEntityWithId(t *testing.T) {
+func TestEngine_AddEntity_WithoutId(t *testing.T) {
 	e := createEngineInstance()
 	e.Start("test")
 	defer e.Stop()
 
-	id := uid.New()
-
-	entityAdded := make(chan EventMessage, 0)
-	componentAdded := make(chan EventMessage, 0)
-
-	e.Subscribe(engineEvents.EntityAddedEvent{
-		Id: id,
-	}, func(event EventMessage) {
-		go func() { entityAdded <- event }()
-	})
-
-	e.Subscribe(engineEvents.ComponentAddedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
-		go func() { componentAdded <- event }()
-	})
-
-	err := e.AddEntityWithId(id, fakeEntity{
+	fe := &fakeEntity{
 		Value: "test",
-	})
+	}
+
+	err := e.AddEntity(fe)
+
+	assert.Nil(t, err)
+	assert.NotEqual(t, uid.UID(""), fe.Id)
+
+	exists, err := e.HasEntity(fe.Id)
+
+	assert.Nil(t, err)
+	assert.True(t, exists)
+}
+
+func TestEngine_AddEntity_AlreadyExists(t *testing.T) {
+	e := createEngineInstance()
+	e.Start("test")
+	defer e.Stop()
+
+	fe := &fakeEntity{
+		Value: "test",
+	}
+
+	err := e.AddEntity(fe)
 
 	assert.Nil(t, err)
 
-	assert.NotNil(t, <-entityAdded)
-	assert.NotNil(t, <-componentAdded)
-
-	exists, err := e.redis.Do(
-		context.Background(),
-		e.redis.B().Exists().Key(string(id)).Build(),
-	).AsBool()
-
-	assert.NoError(t, err)
-	assert.True(t, exists)
-
-	err = e.AddEntityWithId(id, fakeEntity{
+	err = e.AddEntity(&fakeEntity{
+		Id:    fe.Id,
 		Value: "test",
 	})
 
-	assert.Error(t, err, "entity with id 123 already exists")
+	assert.NotNil(t, err)
+}
+
+func TestEngine_AddEntity_NotStruct(t *testing.T) {
+	e := createEngineInstance()
+	e.Start("test")
+	defer e.Stop()
+
+	err := e.AddEntity("test")
+
+	assert.NotNil(t, err)
+}
+
+func TestEngine_AddEntity_Nil(t *testing.T) {
+	e := createEngineInstance()
+	e.Start("test")
+	defer e.Stop()
+
+	err := e.AddEntity(nil)
+
+	assert.NotNil(t, err)
 }
 
 func TestEngine_HasComponent(t *testing.T) {
@@ -129,18 +116,20 @@ func TestEngine_HasComponent(t *testing.T) {
 	e.Start("test")
 	defer e.Stop()
 
-	id, err := e.AddEntity(fakeEntity{
+	fe := &fakeEntity{
 		Value: "test",
-	})
+	}
+
+	err := e.AddEntity(fe)
 
 	assert.Nil(t, err)
 
-	exists, err := e.HasComponent(id, "Value")
+	exists, err := e.HasComponent(fe.Id, "Value")
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
 
-	exists, err = e.HasComponent(id, "Value2")
+	exists, err = e.HasComponent(fe.Id, "Value2")
 
 	assert.Nil(t, err)
 	assert.False(t, exists)
@@ -157,15 +146,17 @@ func TestEngine_HasEntity(t *testing.T) {
 		go func() { added <- event }()
 	})
 
-	id, err := e.AddEntity(fakeEntity{
+	fe := &fakeEntity{
 		Value: "test",
-	})
+	}
+
+	err := e.AddEntity(fe)
 
 	assert.Nil(t, err)
 
 	<-added
 
-	exists, err := e.HasEntity(id)
+	exists, err := e.HasEntity(fe.Id)
 
 	assert.Nil(t, err)
 	assert.True(t, exists)
@@ -176,24 +167,28 @@ func TestEngine_HasEntity(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestEngine_UpdateComponent(t *testing.T) {
+func TestEngine_UpdateEntity(t *testing.T) {
 	e := createEngineInstance()
 	e.Start("test")
 	defer e.Stop()
 
-	id, err := e.AddEntity(fakeEntity{
+	fe := &fakeEntity{
 		Value: "test",
-	})
+	}
+
+	err := e.AddEntity(fe)
 
 	assert.Nil(t, err)
 
 	receivedMsg := make(chan EventMessage)
 
-	e.Subscribe(engineEvents.ComponentUpdatedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
+	e.Subscribe(engineEvents.ComponentUpdatedEvent{EntityId: fe.Id, Name: "Value"}, func(event EventMessage) {
 		go func() { receivedMsg <- event }()
 	})
 
-	err = e.UpdateComponent(id, "Value", "test2")
+	fe.Value = "test2"
+
+	err = e.UpdateEntity(fe)
 
 	assert.Nil(t, err)
 
@@ -203,15 +198,10 @@ func TestEngine_UpdateComponent(t *testing.T) {
 	err = msg.Unmarshal(&ca)
 
 	assert.Nil(t, err)
-	assert.Equal(t, id, ca.EntityId)
+	assert.Equal(t, fe.Id, ca.EntityId)
 	assert.Equal(t, "Value", ca.Name)
 	assert.Equal(t, "test2", ca.Value)
 	assert.Equal(t, "test", ca.PreviousValue)
-
-	exists, err := e.HasComponent(id, "Value")
-
-	assert.Nil(t, err)
-	assert.True(t, exists)
 }
 
 func TestEngine_GetComponent(t *testing.T) {
@@ -219,53 +209,18 @@ func TestEngine_GetComponent(t *testing.T) {
 	e.Start("test")
 	defer e.Stop()
 
-	id, err := e.AddEntity(&fakeEntity{
+	fe := &fakeEntity{
 		Value: "test",
-	})
+	}
+
+	err := e.AddEntity(fe)
 
 	assert.Nil(t, err)
 
 	var component string
 
-	err = e.GetComponent(id, "Value", &component)
+	err = e.GetComponent(fe.Id, "Value", &component)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "test", component)
-}
-
-func TestEngine_RemoveComponent(t *testing.T) {
-	e := createEngineInstance()
-	e.Start("test")
-	defer e.Stop()
-
-	id, err := e.AddEntity(&fakeEntity{
-		Value: "test",
-	})
-
-	assert.Nil(t, err)
-
-	receivedMsg := make(chan EventMessage)
-
-	e.Subscribe(engineEvents.ComponentRemovedEvent{EntityId: id, Name: "Value"}, func(event EventMessage) {
-		receivedMsg <- event
-	})
-
-	err = e.RemoveComponent(id, "Value", "")
-
-	assert.Nil(t, err)
-
-	msg := <-receivedMsg
-	ca := engineEvents.ComponentRemovedEvent{}
-
-	err = msg.Unmarshal(&ca)
-
-	assert.Nil(t, err)
-	assert.Equal(t, id, ca.EntityId)
-	assert.Equal(t, "Value", ca.Name)
-	assert.Equal(t, "test", ca.Value)
-
-	exists, err := e.HasComponent(id, "Value")
-
-	assert.Nil(t, err)
-	assert.False(t, exists)
 }

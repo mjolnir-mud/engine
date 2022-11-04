@@ -46,7 +46,13 @@ func (h *sessionHandler) Start() {
 // Stop stops the session handler.
 func (h *sessionHandler) Stop() {
 	h.logger.Info().Msg("stopping session registry")
-	h.registry.remove(h.id)
+	err := h.engine.Publish(engineEvents.SessionStoppedEvent{
+		Id: h.id,
+	})
+
+	if err != nil {
+		h.logger.Err(err).Msg("failed to publish session stopped event")
+	}
 }
 
 func (h *sessionHandler) getController() Controller {
@@ -77,6 +83,7 @@ type sessionRegistry struct {
 	sessions                 map[uid.UID]*sessionHandler
 	engine                   *Engine
 	sessionStartSubscription uid.UID
+	sessionStopSubscription  uid.UID
 }
 
 func newSessionRegistry(engine *Engine) *sessionRegistry {
@@ -90,13 +97,15 @@ func newSessionRegistry(engine *Engine) *sessionRegistry {
 func (r *sessionRegistry) start() {
 	r.logger.Info().Msg("starting session registry")
 
-	r.engine.Subscribe(engineEvents.SessionStartEvent{}, r.handleSessionStartEvent)
+	r.sessionStartSubscription = r.engine.Subscribe(engineEvents.SessionStartEvent{}, r.handleSessionStartEvent)
+	r.sessionStopSubscription = r.engine.Subscribe(engineEvents.SessionStopEvent{}, r.handleSessionStopEvent)
 }
 
 func (r *sessionRegistry) stop() {
 	r.logger.Info().Msg("stopping session registry")
 
 	r.engine.Unsubscribe(r.sessionStartSubscription)
+	r.engine.Unsubscribe(r.sessionStopSubscription)
 }
 
 func (r *sessionRegistry) add(session *Session) {
@@ -120,6 +129,12 @@ func (r *sessionRegistry) remove(id uid.UID) {
 	handler.Stop()
 
 	delete(r.sessions, id)
+
+	err := r.engine.RemoveEntity(id)
+
+	if err != nil {
+		r.logger.Error().Err(err).Msg("failed to remove session from entity registry")
+	}
 }
 
 func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
@@ -136,7 +151,7 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 		Controller: r.engine.Config.DefaultController,
 	}
 
-	err := r.engine.AddEntityWithId(sessionStartEvent.Id, session)
+	err := r.engine.AddEntity(session)
 
 	if err != nil {
 		r.logger.Error().Err(err).Msg("failed to add session to entity registry")
@@ -144,6 +159,18 @@ func (r *sessionRegistry) handleSessionStartEvent(event EventMessage) {
 	}
 
 	r.add(session)
+}
+
+func (r *sessionRegistry) handleSessionStopEvent(event EventMessage) {
+	sessionStopEvent := &engineEvents.SessionStopEvent{}
+
+	if err := event.Unmarshal(sessionStopEvent); err != nil {
+		r.logger.Error().Err(err).Msg("failed to unmarshal session stop event")
+		return
+	}
+
+	r.logger.Debug().Str("sessionId", string(sessionStopEvent.Id)).Msg("session stopped")
+	r.remove(sessionStopEvent.Id)
 }
 
 // SendToSession sends data to a session. The data can be anything that can be marshalled to JSON. This will dispatch

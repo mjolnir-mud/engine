@@ -1,10 +1,13 @@
 package errors
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/mjolnir-engine/engine/uid"
+)
 
 // EntityExistsError is an error type that is returned when an entity with the given id already exists.
 type EntityExistsError struct {
-	Id string
+	Id uid.UID
 }
 
 func (e EntityExistsError) Error() string {

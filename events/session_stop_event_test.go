@@ -15,15 +15,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package errors
+package events
 
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestEntityInvalidError_Error(t *testing.T) {
-	err := EntityInvalidError{}
+func TestSessionStopEvent_Topic(t *testing.T) {
+	e := SessionStopEvent{}
 
-	assert.Equal(t, "the provided struct is missing an Id field", err.Error())
+	assert.Equal(t, "session:stop", e.Topic())
+}
+
+func TestSessionStopEvent_AllTopics(t *testing.T) {
+	e := SessionStopEvent{}
+
+	assert.Equal(t, "session:stop", e.AllTopics())
 }

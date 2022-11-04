@@ -24,7 +24,7 @@ import (
 
 // Setup sets up the engine for testing. It accepts a callback function where the engine instance is passed as a
 // parameter. The callback function should be to execute any code that should be run before the engine is started.
-func Setup(cb func(e *engine.Engine)) *engine.Engine {
+func Setup(cb func(e *engine.Engine), service string) *engine.Engine {
 	puid, _ := uuid.NewRandom()
 	prefix := puid.String()
 
@@ -42,7 +42,7 @@ func Setup(cb func(e *engine.Engine)) *engine.Engine {
 	e.RegisterService("test")
 	cb(e)
 
-	e.Start("test")
+	e.Start(service)
 
 	return e
 }

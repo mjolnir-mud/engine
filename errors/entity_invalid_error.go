@@ -17,18 +17,8 @@
 
 package errors
 
-import (
-	"fmt"
-	"reflect"
-)
-
-type EntityInvalidError struct {
-	Id    string
-	Value interface{}
-}
+type EntityInvalidError struct{}
 
 func (e EntityInvalidError) Error() string {
-	return fmt.Sprintf(
-		"entity with id %s is invalid expected a struct, but got %v", e.Id, reflect.TypeOf(e.Value).Kind(),
-	)
+	return "the provided struct is missing an Id field"
 }
