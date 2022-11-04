@@ -23,7 +23,7 @@ import (
 )
 
 func TestInvalidEntityError_Error(t *testing.T) {
-	err := EntityDataTypedError{Id: "123", Value: "abc"}
+	err := EntityDataTypedError{Expected: "struct"}
 
-	assert.Equal(t, "entity with id 123 is invalid expected a struct, but got string", err.Error())
+	assert.Equal(t, "invalid entity data type: expected struct", err.Error())
 }

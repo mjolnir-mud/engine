@@ -315,7 +315,10 @@ func (e *Engine) RemoveEntity(id uid.UID) error {
 }
 
 // UpdateEntity updates a component on an entity. This will trigger the `events.ComponentUpdatedEvent` event to be
-// published. If the entity does not exist, an error will be returned. If the component does not exist, an error will be
+// published for every component that has changed, if that component already exists on the entity. It will trigger the
+// `events.ComponentAddedEvent` event for every component that did not exist on the entity. It will trigger the
+// `events.ComponentRemovedEvent` for any components that no longer exist on the entity. It will trigger the
+// `events.EntityUpdatedEvent` event if any component has changed. If the entity does not exist, an error will be
 // returned.
 func (e *Engine) UpdateEntity(entity interface{}) error {
 	err := typeCheckStructPointer(entity)
