@@ -32,6 +32,6 @@ func (e SessionStoppedEvent) Topic() string {
 	return fmt.Sprintf("session:%s:stopped", e.Id)
 }
 
-func (e SessionStartedEvent) AllTopics() string {
+func (e SessionStoppedEvent) AllTopics() string {
 	return "session:*:stopped"
 }
