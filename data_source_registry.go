@@ -58,8 +58,7 @@ func (r *dataSourceRegistry) stop() {
 		err := dataSource.Stop()
 
 		if err != nil {
-			r.logger.Fatal().Err(err).Str("name", dataSource.Name()).Msg("error stopping data source")
-			panic(err)
+			r.logger.Warn().Err(err).Str("name", dataSource.Name()).Msg("error stopping data source")
 		}
 	}
 }
