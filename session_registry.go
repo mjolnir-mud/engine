@@ -25,10 +25,11 @@ import (
 )
 
 type sessionHandler struct {
-	id       uid.UID
-	logger   zerolog.Logger
-	engine   *Engine
-	registry *sessionRegistry
+	id                                   uid.UID
+	logger                               zerolog.Logger
+	engine                               *Engine
+	registry                             *sessionRegistry
+	handleSessionReceiveDataSubscription uid.UID
 }
 
 // Start starts the session handler.
@@ -41,6 +42,11 @@ func (h *sessionHandler) Start() {
 	if err != nil {
 		h.registry.remove(h.id)
 	}
+
+	h.handleSessionReceiveDataSubscription = h.engine.Subscribe(engineEvents.SessionReceiveDataEvent{
+		Id: h.id,
+	}, h.handleSessionReceiveData)
+
 }
 
 // Stop stops the session handler.
@@ -76,6 +82,31 @@ func (h *sessionHandler) getController() Controller {
 	}
 
 	return controller
+}
+
+func (h *sessionHandler) handleSessionReceiveData(event EventMessage) {
+	sessionReceiveDataEvent := &engineEvents.SessionReceiveDataEvent{}
+
+	if err := event.Unmarshal(sessionReceiveDataEvent); err != nil {
+		h.logger.Error().Err(err).Msg("failed to unmarshal session receive data event")
+		return
+	}
+
+	h.logger.Debug().Str("sessionId", string(sessionReceiveDataEvent.Id)).Msg("session received data")
+	controller := h.getController()
+
+	if controller == nil {
+		return
+	}
+
+	err := controller.HandleInput(
+		&ControllerContext{SessionId: sessionReceiveDataEvent.Id},
+		sessionReceiveDataEvent.Data.(string),
+	)
+
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to handle input")
+	}
 }
 
 type sessionRegistry struct {

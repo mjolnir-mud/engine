@@ -83,3 +83,51 @@ func TestSessionRegistryStopsSession(t *testing.T) {
 
 	assert.Equal(t, 0, len(engine.sessionRegistry.sessions))
 }
+
+func TestSessionHandler_CanReceiveData(t *testing.T) {
+	engine := createEngineInstance()
+	engine.Start("test")
+	defer engine.Stop()
+
+	sessId := uid.New()
+
+	ready := make(chan bool)
+
+	engine.Subscribe(engineEvents.SessionStartedEvent{Id: sessId}, func(_ EventMessage) {
+		ready <- true
+	})
+
+	engine.Subscribe(engineEvents.SessionStoppedEvent{Id: sessId}, func(_ EventMessage) {
+		ready <- true
+	})
+
+	engine.Subscribe(engineEvents.SessionSendDataEvent{Id: sessId}, func(msg EventMessage) {
+		ready <- true
+	})
+
+	err := engine.Publish(engineEvents.SessionStartEvent{
+		Id: sessId,
+	})
+
+	assert.Nil(t, err)
+
+	<-ready
+
+	err = engine.Publish(engineEvents.SessionSendDataEvent{
+		Id: sessId,
+	})
+
+	assert.Nil(t, err)
+
+	<-ready
+
+	err = engine.Publish(engineEvents.SessionStopEvent{
+		Id: sessId,
+	})
+
+	assert.Nil(t, err)
+
+	<-ready
+
+	assert.Equal(t, 0, len(engine.sessionRegistry.sessions))
+}
