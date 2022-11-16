@@ -24,7 +24,7 @@ import (
 
 type SessionReceiveDataEvent struct {
 	Id   uid.UID
-	Data interface{}
+	Data []byte
 }
 
 func (s SessionReceiveDataEvent) Topic() string {

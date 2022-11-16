@@ -22,6 +22,7 @@ import "github.com/mjolnir-engine/engine/uid"
 // ControllerContext is a context that is passed to a controller.
 type ControllerContext struct {
 	SessionId uid.UID
+	Engine    *Engine
 }
 
 func newControllerContext(sessionId uid.UID) *ControllerContext {

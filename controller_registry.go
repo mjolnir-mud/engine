@@ -70,6 +70,7 @@ func (c *controllerRegistry) start() {
 
 		context := &ControllerContext{
 			SessionId: event.Id,
+			Engine:    c.engine,
 		}
 
 		err = controller.Start(context)

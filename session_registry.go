@@ -25,11 +25,11 @@ import (
 )
 
 type sessionHandler struct {
-	id                                   uid.UID
-	logger                               zerolog.Logger
-	engine                               *Engine
-	registry                             *sessionRegistry
-	handleSessionReceiveDataSubscription uid.UID
+	id                                uid.UID
+	logger                            zerolog.Logger
+	engine                            *Engine
+	registry                          *sessionRegistry
+	handleSessionSendDataSubscription uid.UID
 }
 
 // Start starts the session handler.
@@ -43,9 +43,9 @@ func (h *sessionHandler) Start() {
 		h.registry.remove(h.id)
 	}
 
-	h.handleSessionReceiveDataSubscription = h.engine.Subscribe(engineEvents.SessionReceiveDataEvent{
+	h.handleSessionSendDataSubscription = h.engine.Subscribe(engineEvents.SessionSendDataEvent{
 		Id: h.id,
-	}, h.handleSessionReceiveData)
+	}, h.handleSessionSendData)
 
 }
 
@@ -84,24 +84,25 @@ func (h *sessionHandler) getController() Controller {
 	return controller
 }
 
-func (h *sessionHandler) handleSessionReceiveData(event EventMessage) {
-	sessionReceiveDataEvent := &engineEvents.SessionReceiveDataEvent{}
+func (h *sessionHandler) handleSessionSendData(event EventMessage) {
+	sessionSendDataEvent := &engineEvents.SessionSendDataEvent{}
 
-	if err := event.Unmarshal(sessionReceiveDataEvent); err != nil {
-		h.logger.Error().Err(err).Msg("failed to unmarshal session receive data event")
+	if err := event.Unmarshal(sessionSendDataEvent); err != nil {
+		h.logger.Error().Err(err).Msg("failed to unmarshal session send data event")
 		return
 	}
 
-	h.logger.Debug().Str("sessionId", string(sessionReceiveDataEvent.Id)).Msg("session received data")
+	h.logger.Debug().Str("sessionId", string(sessionSendDataEvent.Id)).Msg("session sent data")
 	controller := h.getController()
 
 	if controller == nil {
+		h.logger.Warn().Msg("failed to get controller")
 		return
 	}
 
 	err := controller.HandleInput(
-		&ControllerContext{SessionId: sessionReceiveDataEvent.Id},
-		sessionReceiveDataEvent.Data.(string),
+		&ControllerContext{SessionId: sessionSendDataEvent.Id, Engine: h.engine},
+		string(sessionSendDataEvent.Data),
 	)
 
 	if err != nil {
@@ -206,7 +207,7 @@ func (r *sessionRegistry) handleSessionStopEvent(event EventMessage) {
 
 // SendToSession sends data to a session. The data can be anything that can be marshalled to JSON. This will dispatch
 // a SessionSendDataEvent. If the session does not exist, this will return an error.
-func (e *Engine) SendToSession(sessionId uid.UID, data interface{}) error {
+func (e *Engine) SendToSession(sessionId uid.UID, data []byte) error {
 	exists, err := e.HasEntity(sessionId)
 
 	if err != nil {

@@ -138,6 +138,11 @@ func (e *Engine) Publish(events ...Event) error {
 	logger := e.logger.With().Str("component", "publisher").Logger()
 
 	logger.Debug().Int("events", len(events)).Msg("publishing events")
+
+	for _, event := range events {
+		logger.Debug().Str("event", event.Topic()).Msg("publishing event")
+	}
+
 	commands := e.GetPublishCommandsForEvents(events...)
 
 	results := e.redis.DoMulti(
