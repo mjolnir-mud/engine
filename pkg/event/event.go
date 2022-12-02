@@ -15,11 +15,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
-
-import (
-	"encoding/json"
-)
+package event
 
 type Event interface {
 	// Topic returns the topic the event should be published to. It accepts the same arguments as the Payload method,
@@ -29,14 +25,4 @@ type Event interface {
 	// AllTopics topics should return a pattern string that can be used to pattern subscribe to the topic. For example if the
 	// `Topic()` is `entity:12345:added` then the pattern should be `entity:*:added`.
 	AllTopics() string
-}
-
-// EventPayload is the payload of an event. Call `Unmarshal` on it to unmarshal the payload into a struct.
-type EventPayload struct {
-	Payload []byte
-}
-
-// Unmarshal unmarshals the payload into the given data_source.
-func (ep *EventPayload) Unmarshal(i interface{}) error {
-	return json.Unmarshal(ep.Payload, i)
 }
