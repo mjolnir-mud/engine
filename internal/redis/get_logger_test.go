@@ -15,34 +15,20 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package testing
+package redis
 
 import (
-	"github.com/google/uuid"
-	"github.com/mjolnir-engine/engine"
+	"testing"
+
+	internalTesting "github.com/mjolnir-engine/engine/internal/testing"
+	"github.com/stretchr/testify/assert"
 )
 
-// Setup sets up the engine for testing. It accepts a callback function where the engine instance is passed as a
-// parameter. The callback function should be to execute any code that should be run before the engine is started.
-func Setup(cb func(e *engine.Engine), service string) *engine.Engine {
-	puid, _ := uuid.NewRandom()
-	prefix := puid.String()
+func TestGetLogger(t *testing.T) {
+	ctx := internalTesting.Setup(t)
+	defer internalTesting.Teardown(t, ctx)
 
-	e := engine.New(&engine.Configuration{
-		Redis: &engine.RedisConfiguration{
-			Host: "localhost",
-			Port: 6379,
-			DB:   1,
-		},
-		InstanceId:        prefix,
-		DefaultController: "test",
-		Environment:       "test",
-	})
+	ctx = WithRedis(ctx)
 
-	e.RegisterService("test")
-	cb(e)
-
-	e.Start(service)
-
-	return e
+	assert.NotNil(t, GetLogger(ctx))
 }
