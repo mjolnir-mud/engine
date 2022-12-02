@@ -15,44 +15,16 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
+package redis
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
+	"context"
+
+	"github.com/mjolnir-engine/engine/internal/redis"
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-type FakeEvent struct {
-	Value string
-}
-
-func (e FakeEvent) Topic() string {
-	return "engine:fake:event"
-}
-
-func (e FakeEvent) AllTopics() string {
-	return "engine:*:event"
-}
-
-func TestEngine_PubSub(t *testing.T) {
-	engine := createEngineInstance()
-	engine.Start("test")
-	defer engine.Stop()
-
-	ch := make(chan string)
-
-	engine.Subscribe(FakeEvent{}, func(event EventMessage) {
-		fakeEvent := &FakeEvent{}
-		err := event.Unmarshal(fakeEvent)
-
-		if err != nil {
-			panic(err)
-		}
-
-		ch <- fakeEvent.Value
-	})
-	err := engine.Publish(FakeEvent{Value: "test"})
-	assert.Nil(t, err)
-
-	assert.Equal(t, "test", <-ch)
+// Unsubscribe unsubscribes from a topic and returns the updated engine context
+func Unsubscribe(ctx context.Context, id uid.UID) context.Context {
+	return redis.RemoveSubscription(ctx, id)
 }

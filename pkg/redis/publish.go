@@ -15,38 +15,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
+package redis
 
 import (
-	"fmt"
-	"github.com/rueian/rueidis"
+	"context"
+
+	"github.com/mjolnir-engine/engine/pkg/event"
 )
 
-type RedisConfiguration struct {
-	Host string
-	Port int
-	DB   int
-}
+// Publish publishes an event to the given topic.
+func Publish(ctx context.Context, e event.Event) {
+	c := GetClient(ctx)
 
-func newRedisClient(engine *Engine) (rueidis.Client, error) {
-	logger := engine.logger.With().
-		Str("component", "redis").
-		Str("host", engine.Config.Redis.Host).
-		Int("port", engine.Config.Redis.Port).
-		Int("db", engine.Config.Redis.DB).
-		Logger()
-
-	logger.Info().Msg("starting redis client")
-	c, err := rueidis.NewClient(rueidis.ClientOption{
-		InitAddress: []string{
-			fmt.Sprintf("%s:%d", engine.Config.Redis.Host, engine.Config.Redis.Port),
-		},
-		SelectDB: engine.Config.Redis.DB,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return c, nil
+	c.DoMulti(ctx, getPublishCommands(ctx, []event.Event{e})...)
 }
