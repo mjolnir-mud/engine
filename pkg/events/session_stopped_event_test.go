@@ -15,25 +15,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
+package events
 
-// Configuration represents the Mjolnir configuration
-type Configuration struct {
-	// DefaultController is the default controller to use when a session is created.
-	DefaultController string
+import (
+	"testing"
 
-	// InstanceId is the prefix for all entity keys in Redis.
-	InstanceId string
+	"github.com/stretchr/testify/assert"
+)
 
-	// Log is the configuration for the logger.
-	Log *LogConfiguration
+func TestSessionStoppedEvent_Topic(t *testing.T) {
+	event := SessionStoppedEvent{
+		Id: "123",
+	}
 
-	// Redis is the configuration for the Redis connection.
-	Redis *RedisConfiguration
+	assert.Equal(t, "session:123:stopped", event.Topic())
+}
 
-	// Environment is the environment in which Mjolnir is running, e.g. "dev", "prod", etc.
-	Environment string
+func TestSessionStoppedEvent_AllTopics(t *testing.T) {
+	event := SessionStoppedEvent{
+		Id: "123",
+	}
 
-	// Mongo is the configuration for the MongoDB connection.
-	Mongo *MongoConfiguration
+	assert.Equal(t, "session:*:stopped", event.AllTopics())
 }
