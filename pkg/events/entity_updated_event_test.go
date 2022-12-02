@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mjolnir-engine/engine/uid"
+	"github.com/mjolnir-engine/engine/pkg/uid"
 	"github.com/stretchr/testify/assert"
 )
 

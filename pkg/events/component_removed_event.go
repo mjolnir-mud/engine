@@ -19,18 +19,21 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-// EntityAddedEvent is an event that is fired when an entity is added to the engine.
-type EntityAddedEvent struct {
-	Id uid.UID
+// ComponentRemovedEvent is an event that is fired when a component is removed from an entity.
+type ComponentRemovedEvent struct {
+	EntityId uid.UID
+	Name     string
+	Value    interface{}
 }
 
-func (e EntityAddedEvent) Topic() string {
-	return fmt.Sprintf("entity:%s:added", e.Id)
+func (e ComponentRemovedEvent) Topic() string {
+	return fmt.Sprintf("entity:%s:component:%s:removed", e.EntityId, e.Name)
 }
 
-func (e EntityAddedEvent) AllTopics() string {
-	return "entity:*:added"
+func (e ComponentRemovedEvent) AllTopics() string {
+	return "entity:*:component:*:removed"
 }

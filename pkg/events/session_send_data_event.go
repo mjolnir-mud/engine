@@ -19,23 +19,20 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
-	"github.com/stretchr/testify/assert"
-	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-func TestSessionSendData_Topic(t *testing.T) {
-	event := SessionSendDataEvent{
-		Id: uid.New(),
-	}
-
-	assert.Equal(t, fmt.Sprintf("session:%s:send-data", event.Id), event.Topic())
+// SessionSendDataEvent is an event that is published when a session needs to send data to the client.
+type SessionSendDataEvent struct {
+	Id   uid.UID
+	Data []byte
 }
 
-func TestSessionSendData_AllTopics(t *testing.T) {
-	event := SessionSendDataEvent{
-		Id: uid.New(),
-	}
+func (s SessionSendDataEvent) Topic() string {
+	return fmt.Sprintf("session:%s:send-data", s.Id)
+}
 
-	assert.Equal(t, "session:*:send-data", event.AllTopics())
+func (s SessionSendDataEvent) AllTopics() string {
+	return "session:*:send-data"
 }

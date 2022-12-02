@@ -19,24 +19,20 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
-	"github.com/stretchr/testify/assert"
-	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-func TestComponentRemovedEvent_Topic(t *testing.T) {
-	id := uid.New()
-	e := ComponentRemovedEvent{
-		EntityId: id,
-		Name:     "test",
-		Value:    "test",
-	}
-
-	assert.Equal(t, fmt.Sprintf("entity:%s:component:%s:removed", id, "test"), e.Topic())
+// SessionAddedEvent is an event that is fired when a session has been started.
+type SessionAddedEvent struct {
+	// Id is the id of the session that was started.
+	Id uid.UID
 }
 
-func TestComponentRemovedEvent_AllTopics(t *testing.T) {
-	e := ComponentRemovedEvent{}
+func (e SessionAddedEvent) Topic() string {
+	return fmt.Sprintf("session:%s:started", e.Id)
+}
 
-	assert.Equal(t, "entity:*:component:*:removed", e.AllTopics())
+func (e SessionAddedEvent) AllTopics() string {
+	return "session:*:started"
 }

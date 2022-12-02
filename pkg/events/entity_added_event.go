@@ -17,18 +17,21 @@
 
 package events
 
-import "github.com/mjolnir-engine/engine/uid"
+import (
+	"fmt"
 
-// SessionStartEvent is an event that is fired when a session should be started.
-type SessionStartEvent struct {
-	// Id is the id of the session to start.
+	"github.com/mjolnir-engine/engine/pkg/uid"
+)
+
+// EntityAddedEvent is an event that is fired when an entity is added to the engine.
+type EntityAddedEvent struct {
 	Id uid.UID
 }
 
-func (e SessionStartEvent) Topic() string {
-	return "session:start"
+func (e EntityAddedEvent) Topic() string {
+	return fmt.Sprintf("entity:%s:added", e.Id)
 }
 
-func (e SessionStartEvent) AllTopics() string {
-	return "session:start"
+func (e EntityAddedEvent) AllTopics() string {
+	return "entity:*:added"
 }

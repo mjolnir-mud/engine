@@ -17,16 +17,26 @@
 
 package events
 
-import "github.com/mjolnir-engine/engine/uid"
+import (
+	"fmt"
+	"testing"
 
-type SessionStopEvent struct {
-	Id uid.UID
+	"github.com/mjolnir-engine/engine/pkg/uid"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestSessionReceiveDataEvent_Topic(t *testing.T) {
+	event := SessionReceiveDataEvent{
+		Id: uid.New(),
+	}
+
+	assert.Equal(t, fmt.Sprintf("session:%s:receive-data", event.Id), event.Topic())
 }
 
-func (e SessionStopEvent) Topic() string {
-	return "session:stop"
-}
+func TestSessionReceiveDataEvent_AllTopics(t *testing.T) {
+	event := SessionReceiveDataEvent{
+		Id: uid.New(),
+	}
 
-func (e SessionStopEvent) AllTopics() string {
-	return "session:stop"
+	assert.Equal(t, "session:*:receive-data", event.AllTopics())
 }

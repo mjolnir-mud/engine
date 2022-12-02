@@ -3,7 +3,7 @@ package events
 import (
 	"fmt"
 
-	"github.com/mjolnir-engine/engine/uid"
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
 type EntityUpdatedEvent struct {

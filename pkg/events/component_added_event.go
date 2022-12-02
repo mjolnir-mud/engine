@@ -19,19 +19,21 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-// SessionStartedEvent is an event that is fired when a session has been started.
-type SessionStoppedEvent struct {
-	// Id is the id of the session that was started.
-	Id uid.UID
+// ComponentAddedEvent is an event that is fired when a component is added to an entity.
+type ComponentAddedEvent struct {
+	EntityId uid.UID
+	Name     string
+	Value    interface{}
 }
 
-func (e SessionStoppedEvent) Topic() string {
-	return fmt.Sprintf("session:%s:stopped", e.Id)
+func (e ComponentAddedEvent) Topic() string {
+	return fmt.Sprintf("entity:%s:component:%s:added", e.EntityId, e.Name)
 }
 
-func (e SessionStoppedEvent) AllTopics() string {
-	return "session:*:stopped"
+func (e ComponentAddedEvent) AllTopics() string {
+	return "entity:*:component:*:added"
 }

@@ -18,18 +18,25 @@
 package events
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestSessionStartEvent_Topic(t *testing.T) {
-	event := SessionStartEvent{}
+func TestSessionStartedEvent_Topic(t *testing.T) {
+	event := SessionAddedEvent{
+		Id: uid.New(),
+	}
 
-	assert.Equal(t, "session:start", event.Topic())
+	assert.Equal(t, fmt.Sprintf("session:%s:started", event.Id), event.Topic())
 }
 
-func TestSessionStartEvent_AllTopics(t *testing.T) {
-	event := SessionStartEvent{}
+func TestSessionStartedEvent_AllTopics(t *testing.T) {
+	event := SessionAddedEvent{
+		Id: uid.New(),
+	}
 
-	assert.Equal(t, "session:start", event.AllTopics())
+	assert.Equal(t, "session:*:started", event.AllTopics())
 }

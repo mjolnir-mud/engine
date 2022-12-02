@@ -19,24 +19,22 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
-	"github.com/stretchr/testify/assert"
-	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-func TestComponentAddedEvent_Topic(t *testing.T) {
-	id := uid.New()
-
-	event := ComponentAddedEvent{
-		EntityId: id,
-		Name:     "test",
-	}
-
-	assert.Equal(t, fmt.Sprintf("entity:%s:component:%s:added", id, event.Name), event.Topic())
+// ComponentUpdatedEvent is an event that is fired when a component is updated on an entity.
+type ComponentUpdatedEvent struct {
+	EntityId      uid.UID
+	Name          string
+	Value         interface{}
+	PreviousValue interface{}
 }
 
-func TestComponentAddedEvent_AllTopics(t *testing.T) {
-	event := ComponentAddedEvent{}
+func (e ComponentUpdatedEvent) Topic() string {
+	return fmt.Sprintf("entity:%s:component:%s:updated", e.EntityId, e.Name)
+}
 
-	assert.Equal(t, "entity:*:component:*:added", event.AllTopics())
+func (e ComponentUpdatedEvent) AllTopics() string {
+	return "entity:*:component:*:updated"
 }

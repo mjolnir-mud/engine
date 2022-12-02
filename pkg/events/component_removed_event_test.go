@@ -19,26 +19,25 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestComponentUpdatedEvent_Topic(t *testing.T) {
+func TestComponentRemovedEvent_Topic(t *testing.T) {
 	id := uid.New()
-
-	e := ComponentUpdatedEvent{
-		EntityId:      id,
-		Name:          "test",
-		Value:         "test",
-		PreviousValue: "test",
+	e := ComponentRemovedEvent{
+		EntityId: id,
+		Name:     "test",
+		Value:    "test",
 	}
 
-	assert.Equal(t, fmt.Sprintf("entity:%s:component:test:updated", id), e.Topic())
+	assert.Equal(t, fmt.Sprintf("entity:%s:component:%s:removed", id, "test"), e.Topic())
 }
 
-func TestComponentUpdatedEvent_AllTopics(t *testing.T) {
-	e := ComponentUpdatedEvent{}
+func TestComponentRemovedEvent_AllTopics(t *testing.T) {
+	e := ComponentRemovedEvent{}
 
-	assert.Equal(t, "entity:*:component:*:updated", e.AllTopics())
+	assert.Equal(t, "entity:*:component:*:removed", e.AllTopics())
 }

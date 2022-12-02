@@ -19,20 +19,24 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
+	"github.com/stretchr/testify/assert"
 )
 
-// ComponentAddedEvent is an event that is fired when a component is added to an entity.
-type ComponentAddedEvent struct {
-	EntityId uid.UID
-	Name     string
-	Value    interface{}
+func TestSessionSendData_Topic(t *testing.T) {
+	event := SessionSendDataEvent{
+		Id: uid.New(),
+	}
+
+	assert.Equal(t, fmt.Sprintf("session:%s:send-data", event.Id), event.Topic())
 }
 
-func (e ComponentAddedEvent) Topic() string {
-	return fmt.Sprintf("entity:%s:component:%s:added", e.EntityId, e.Name)
-}
+func TestSessionSendData_AllTopics(t *testing.T) {
+	event := SessionSendDataEvent{
+		Id: uid.New(),
+	}
 
-func (e ComponentAddedEvent) AllTopics() string {
-	return "entity:*:component:*:added"
+	assert.Equal(t, "session:*:send-data", event.AllTopics())
 }

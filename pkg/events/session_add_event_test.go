@@ -18,21 +18,19 @@
 package events
 
 import (
-	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// ComponentRemovedEvent is an event that is fired when a component is removed from an entity.
-type ComponentRemovedEvent struct {
-	EntityId uid.UID
-	Name     string
-	Value    interface{}
+func TestSessionStartEvent_Topic(t *testing.T) {
+	event := SessionAddEvent{}
+
+	assert.Equal(t, "session:start", event.Topic())
 }
 
-func (e ComponentRemovedEvent) Topic() string {
-	return fmt.Sprintf("entity:%s:component:%s:removed", e.EntityId, e.Name)
-}
+func TestSessionStartEvent_AllTopics(t *testing.T) {
+	event := SessionAddEvent{}
 
-func (e ComponentRemovedEvent) AllTopics() string {
-	return "entity:*:component:*:removed"
+	assert.Equal(t, "session:start", event.AllTopics())
 }

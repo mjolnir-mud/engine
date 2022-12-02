@@ -19,19 +19,20 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-// SessionSendDataEvent is an event that is published when a session needs to send data to the client.
-type SessionSendDataEvent struct {
-	Id   uid.UID
-	Data []byte
+// SessionAddedEvent is an event that is fired when a session has been started.
+type SessionStoppedEvent struct {
+	// Id is the id of the session that was started.
+	Id uid.UID
 }
 
-func (s SessionSendDataEvent) Topic() string {
-	return fmt.Sprintf("session:%s:send-data", s.Id)
+func (e SessionStoppedEvent) Topic() string {
+	return fmt.Sprintf("session:%s:stopped", e.Id)
 }
 
-func (s SessionSendDataEvent) AllTopics() string {
-	return "session:*:send-data"
+func (e SessionStoppedEvent) AllTopics() string {
+	return "session:*:stopped"
 }

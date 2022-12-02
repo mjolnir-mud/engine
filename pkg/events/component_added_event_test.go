@@ -19,21 +19,25 @@ package events
 
 import (
 	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestEntityAddedEvent_Topic(t *testing.T) {
-	event := EntityAddedEvent{
-		Id: uid.New(),
+func TestComponentAddedEvent_Topic(t *testing.T) {
+	id := uid.New()
+
+	event := ComponentAddedEvent{
+		EntityId: id,
+		Name:     "test",
 	}
 
-	assert.Equal(t, fmt.Sprintf("entity:%s:added", event.Id), event.Topic())
+	assert.Equal(t, fmt.Sprintf("entity:%s:component:%s:added", id, event.Name), event.Topic())
 }
 
-func TestEntityAddedEvent_AllTopics(t *testing.T) {
-	event := EntityAddedEvent{}
+func TestComponentAddedEvent_AllTopics(t *testing.T) {
+	event := ComponentAddedEvent{}
 
-	assert.Equal(t, "entity:*:added", event.AllTopics())
+	assert.Equal(t, "entity:*:component:*:added", event.AllTopics())
 }

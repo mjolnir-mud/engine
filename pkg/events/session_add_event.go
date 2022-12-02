@@ -18,20 +18,19 @@
 package events
 
 import (
-	"fmt"
-	"github.com/mjolnir-engine/engine/uid"
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
-// SessionStartedEvent is an event that is fired when a session has been started.
-type SessionStartedEvent struct {
-	// Id is the id of the session that was started.
+// SessionAddEvent is an event that is fired when a session should be started.
+type SessionAddEvent struct {
+	// Id is the id of the session to start.
 	Id uid.UID
 }
 
-func (e SessionStartedEvent) Topic() string {
-	return fmt.Sprintf("session:%s:started", e.Id)
+func (e SessionAddEvent) Topic() string {
+	return "session:start"
 }
 
-func (e SessionStartedEvent) AllTopics() string {
-	return "session:*:started"
+func (e SessionAddEvent) AllTopics() string {
+	return "session:start"
 }
