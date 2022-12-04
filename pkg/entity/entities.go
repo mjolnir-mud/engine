@@ -17,10 +17,18 @@
 
 package entity
 
+import (
+	"context"
+
+	"github.com/mjolnir-engine/engine/pkg/redis"
+	"github.com/mjolnir-engine/engine/pkg/uid"
+	"github.com/rueian/rueidis"
+)
+
 // Record is the record that is stored in Redis for an entity. It is stored as JSON using ReJSON.
 type Record struct {
 	// Id is the unique identifier for the entity.
-	Id string
+	Id uid.UID
 
 	// Version is the version of the entity. This is incremented every time a component is added, removed or updated.
 	Version int64
@@ -76,38 +84,6 @@ type Record struct {
 //	return nil
 //}
 
-//// GetEntity populates an entity with data from the engine. It requires a struct to be passed that has at least an `Id`
-//// field. If the entity does not exist, an error will be returned. If the struct does not have an `Id` field, an error
-//// will be returned.
-//func GetEntity(ctx context.Context, entity interface{}) error {
-//	logger := engine.GetLogger(ctx).With().Str("component", "entities").Logger()
-//
-//	logger.Debug().Msg("getting entity")
-//	logger.Trace().Msg("getting entity id")
-//
-//	id := mustGetEntityId(entity)
-//
-//	logger = logger.With().Str("entityId", string(id)).Logger()
-//	logger.Trace().Msg("checking if entity exists")
-//
-//	exists := HasEntity(ctx, entity)
-//
-//	if !exists {
-//		logger.Error().Msg("entity does not exist")
-//		return errors.EntityNotFoundError{
-//			Id: id,
-//		}
-//	}
-//
-//	logger.Trace().Msg("building redis command")
-//	redis.UnmarshallResult(redis.MustExecuteRedisCommands(ctx, rueidis.Commands{
-//		engine.getRedisClient(ctx).B().JsonGet().Key(string(id)).Paths(".Entity").Build(),
-//	})[0], entity)
-//
-//	logger.Trace().Msg("decoding redis result")
-//
-//	return nil
-//}
 //
 
 //
@@ -163,7 +139,7 @@ type Record struct {
 //	logger := engine.GetLogger(ctx).With().Str("component", "entities").Str("entityId", string(entityId)).Logger()
 //	logger.Debug().Msg("removing entity")
 //
-//	err := GetEntity(ctx, entity)
+//	err := Get(ctx, entity)
 //
 //	if err != nil {
 //		return err
@@ -176,92 +152,6 @@ type Record struct {
 //
 //		buildEntityRemovedEvents(entityId, getComponentMap(entity)),
 //	)
-//
-//	return nil
-//}
-//
-//// UpdateEntity updates a component on an entity. This will trigger the `events.ComponentUpdatedEvent` event to be
-//// published for every component that has changed, if that component already exists on the entity. It will trigger the
-//// `events.ComponentAddedEvent` event for every component that did not exist on the entity. It will trigger the
-//// `events.ComponentRemovedEvent` for any components that no longer exist on the entity. It will trigger the
-//// `events.EntityUpdatedEvent` event if any component has changed. If the entity does not exist, an error will be
-//// returned.
-//func UpdateEntity(ctx context.Context, entity interface{}) error {
-//	err := typeCheckStructPointer(entity)
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	m := getComponentMap(entity)
-//
-//	var id uid.UID
-//	id, ok := m["Id"].(uid.UID)
-//
-//	if !ok {
-//		return errors.EntityNotFoundError{
-//			Id: m["Id"].(uid.UID),
-//		}
-//	}
-//
-//	logger := engine.GetLogger(ctx).With().
-//		Str("component", "entities").
-//		Str("entityId", string(id)).
-//		Logger()
-//
-//	logger.Debug().Msg("updating component")
-//
-//	logger.Trace().Msg("checking if entity exists")
-//
-//	entityRecord := getEntityRecord(ctx, id)
-//
-//	oldEntityMap := entityRecord.Entity.(map[string]interface{})
-//	newEntityMap := getComponentMap(entity)
-//
-//	if err != nil {
-//		return err
-//	}
-//
-//	logger.Trace().Msg("comparing old and new entity")
-//
-//	if reflect.DeepEqual(oldEntityMap, newEntityMap) {
-//		logger.Trace().Msg("entity has not changed")
-//		return nil
-//	}
-//
-//	entityRecord.Version++
-//	entityRecord.Entity = entity
-//
-//	// set the updated entity
-//	commands := rueidis.Commands{
-//		e.redis.B().JsonSet().Key(string(id)).Path(".").Value(rueidis.JSON(entityRecord)).Build(),
-//	}
-//
-//	logger.Trace().Msg("building publish commands for events")
-//
-//	commands = append(commands, e.GetPublishCommandsForEvents(
-//		buildComponentUpdatedEvents(newEntityMap, oldEntityMap)...,
-//	)...)
-//
-//	logger.Trace().Msg("executing redis commands")
-//
-//	results := e.redis.DoMulti(
-//		context.Background(),
-//		commands...,
-//	)
-//
-//	cue := errors.UpdateComponentErrors{}
-//
-//	logger.Trace().Msg("checking redis results")
-//	for _, result := range results {
-//		if result.Error() != nil {
-//			cue.Add(result.Error())
-//		}
-//	}
-//
-//	if cue.HasErrors() {
-//		return cue
-//	}
 //
 //	return nil
 //}
@@ -298,63 +188,21 @@ type Record struct {
 //	}
 //}
 //
-//func buildComponentUpdatedEvents(entity map[string]interface{}, oldEntity map[string]interface{}) []event.Event {
-//	id, ok := entity["Id"].(uid.UID)
-//
-//	if !ok {
-//		panic("unable to get entity id")
-//	}
-//
-//	events := make([]event.Event, 0)
-//
-//	for name, value := range entity {
-//		if oldEntity[name] == nil {
-//			events = append(events, events2.ComponentAddedEvent{
-//				EntityId: id,
-//				Name:     name,
-//				Value:    value,
-//			})
-//		}
-//
-//		if !reflect.DeepEqual(value, oldEntity[name]) {
-//			events = append(events, events2.ComponentUpdatedEvent{
-//				EntityId:      id,
-//				Name:          name,
-//				Value:         value,
-//				PreviousValue: oldEntity[name],
-//			})
-//		}
-//	}
-//
-//	for name, value := range oldEntity {
-//		if entity[name] == nil {
-//			events = append(events, events2.ComponentRemovedEvent{
-//				EntityId: id,
-//				Name:     name,
-//				Value:    value,
-//			})
-//		}
-//	}
-//
-//	return events
-//}
-//
 
 //
-//
-//func componentPath(componentName string) string {
-//	return fmt.Sprintf(".Entity.%s", componentName)
-//}
-//
-//func getEntityRecord(ctx context.Context, id uid.UID) Record {
-//	var record Record
-//
-//	redis.UnmarshallResult(
-//		redis.MustExecuteRedisCommands(ctx, rueidis.Commands{
-//			engine.getRedisClient(ctx).B().JsonGet().Key(string(id)).Build(),
-//		})[0],
-//		&record,
-//	)
-//
-//	return record
-//}
+
+//	func componentPath(componentName string) string {
+//		return fmt.Sprintf(".Entity.%s", componentName)
+//	}
+func getEntityRecord(ctx context.Context, id uid.UID) Record {
+	var record Record
+
+	redis.UnmarshallResult(
+		redis.MustExecuteCommands(ctx, rueidis.Commands{
+			redis.GetClient(ctx).B().JsonGet().Key(string(id)).Build(),
+		})[0],
+		&record,
+	)
+
+	return record
+}

@@ -77,7 +77,7 @@ func Add(ctx context.Context, entity interface{}) error {
 	client := redis.GetClient(ctx)
 
 	record := Record{
-		Id:      string(id),
+		Id:      uid.UID(id),
 		Version: 1,
 		Entity:  entity,
 	}
@@ -109,4 +109,18 @@ func buildEntityAndComponentAddedEvents(entityId uid.UID, components map[string]
 		buildEntityAddedEvent(entityId),
 	}
 	return append(events, buildComponentAddedEvents(entityId, components)...)
+}
+
+func buildComponentAddedEvents(entityId uid.UID, components map[string]interface{}) []event.Event {
+	e := make([]event.Event, 0)
+
+	for name, value := range components {
+		e = append(e, events.ComponentAddedEvent{
+			EntityId: entityId,
+			Name:     name,
+			Value:    value,
+		})
+	}
+
+	return e
 }

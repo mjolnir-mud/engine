@@ -27,82 +27,54 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEngine_Add(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	ctx := setup(t)
 	defer teardown(t, ctx)
 
-	t.Run("it adds the entity and publishes the correct events", func(t *testing.T) {
-
-		fe := &fakeEntity{
-			Id:    uid.New(),
-			Value: "test",
-		}
-
-		receivedEntityAdded := make(chan *events.EntityAddedEvent, 1)
-
-		ctx, saddId := redis.PSubscribe(ctx, events.EntityAddedEvent{}, func(e event.Message) {
-			ev := &events.EntityAddedEvent{}
-
-			err := e.Unmarshal(ev)
-
-			assert.NoError(t, err)
-
-			go func() { receivedEntityAdded <- ev }()
-		})
-		defer redis.Unsubscribe(ctx, saddId)
-
-		receivedCompnentAdded := make(chan *events.ComponentAddedEvent, 1)
-
-		ctx, caddId := redis.PSubscribe(ctx, events.ComponentAddedEvent{}, func(e event.Message) {
-			ev := &events.ComponentAddedEvent{}
-
-			err := e.Unmarshal(ev)
-
-			assert.NoError(t, err)
-
-			go func() { receivedCompnentAdded <- ev }()
-		})
-		defer redis.Unsubscribe(ctx, caddId)
-
-		err := Add(ctx, fe)
-
-		assert.Nil(t, err)
-		assert.Equal(t, &events.EntityAddedEvent{
-			Id: fe.Id,
-		}, <-receivedEntityAdded)
-
-		componentEvents := make([]*events.ComponentAddedEvent, 0)
-		for i := 0; i < 2; i++ {
-			componentEvents = append(componentEvents, <-receivedCompnentAdded)
-		}
-
-		assert.Contains(t, componentEvents, &events.ComponentAddedEvent{
-			EntityId: fe.Id,
-			Name:     "Value",
-			Value:    "test",
-		})
-
-		assert.Contains(t, componentEvents, &events.ComponentAddedEvent{
-			EntityId: fe.Id,
-			Name:     "Id",
-			Value:    string(fe.Id),
-		})
-	})
-
-	t.Run("it returns an error if the entity does not already exist", func(t *testing.T) {
-
+	t.Run("entity exists", func(t *testing.T) {
 		fe := &fakeEntity{
 			Id:    uid.New(),
 			Value: "test",
 		}
 
 		err := Add(ctx, fe)
-
 		assert.NoError(t, err)
 
-		err = Add(ctx, fe)
+		updated := make(chan *events.ComponentUpdatedEvent, 1)
 
-		assert.NotNil(t, err)
+		ctx, uid := redis.Subscribe(ctx, events.ComponentUpdatedEvent{
+			EntityId: fe.Id,
+			Name:     "Value",
+		}, func(e event.Message) {
+			ev := &events.ComponentUpdatedEvent{}
 
+			err := e.Unmarshal(ev)
+			assert.NoError(t, err)
+
+			go func() { updated <- ev }()
+		})
+		defer redis.Unsubscribe(ctx, uid)
+
+		fe.Value = "updatedTest"
+
+		err = Update(ctx, fe)
+
+		u := <-updated
+
+		assert.Equal(t, "updatedTest", u.Value)
+		assert.Equal(t, fe.Id, u.EntityId)
+		assert.Equal(t, "Value", u.Name)
+		assert.Equal(t, "test", u.PreviousValue)
+	})
+
+	t.Run("entity does not exist", func(t *testing.T) {
+		fe := &fakeEntity{
+			Id:    uid.New(),
+			Value: "test",
+		}
+
+		err := Update(ctx, fe)
+
+		assert.Error(t, err)
 	})
 }

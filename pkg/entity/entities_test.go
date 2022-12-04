@@ -188,7 +188,7 @@ func teardown(t *testing.T, ctx context.Context) {
 //
 //	fe.Value = "test2"
 //
-//	err = e.UpdateEntity(fe)
+//	err = e.Update(fe)
 //
 //	assert.Nil(t, err)
 //

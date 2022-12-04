@@ -18,21 +18,43 @@
 package entity
 
 import (
-	"github.com/mjolnir-engine/engine/pkg/event"
-	"github.com/mjolnir-engine/engine/pkg/events"
-	"github.com/mjolnir-engine/engine/pkg/uid"
+	"context"
+
+	"github.com/mjolnir-engine/engine/pkg/errors"
+	"github.com/mjolnir-engine/engine/pkg/logger"
+	"github.com/mjolnir-engine/engine/pkg/redis"
+	"github.com/rueian/rueidis"
 )
 
-func buildComponentAddedEvents(entityId uid.UID, components map[string]interface{}) []event.Event {
-	e := make([]event.Event, 0)
+// Get populates an entity with data from the engine. It requires a struct to be passed that has at least an `Id`
+// field. If the entity does not exist, an error will be returned. If the struct does not have an `Id` field, an error
+// will be returned.
+func Get(ctx context.Context, entity interface{}) error {
+	l := logger.Get(ctx).With().Str("component", "entities").Logger()
 
-	for name, value := range components {
-		e = append(e, events.ComponentAddedEvent{
-			EntityId: entityId,
-			Name:     name,
-			Value:    value,
-		})
+	l.Debug().Msg("getting entity")
+	l.Trace().Msg("getting entity id")
+
+	id := mustGetEntityId(entity)
+
+	l = l.With().Str("entityId", string(id)).Logger()
+	l.Trace().Msg("checking if entity exists")
+
+	exists := HasEntity(ctx, entity)
+
+	if !exists {
+		l.Error().Msg("entity does not exist")
+		return errors.EntityNotFoundError{
+			Id: id,
+		}
 	}
 
-	return e
+	l.Trace().Msg("building redis command")
+	redis.UnmarshallResult(redis.MustExecuteCommands(ctx, rueidis.Commands{
+		redis.GetClient(ctx).B().JsonGet().Key(string(id)).Paths(".Entity").Build(),
+	})[0], entity)
+
+	l.Trace().Msg("decoding redis result")
+
+	return nil
 }
