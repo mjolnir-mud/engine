@@ -20,7 +20,6 @@ package entity
 import (
 	"testing"
 
-	"github.com/mjolnir-engine/engine/pkg/event"
 	"github.com/mjolnir-engine/engine/pkg/events"
 	"github.com/mjolnir-engine/engine/pkg/redis"
 	"github.com/mjolnir-engine/engine/pkg/uid"
@@ -40,7 +39,7 @@ func TestEngine_Add(t *testing.T) {
 
 		receivedEntityAdded := make(chan *events.EntityAddedEvent, 1)
 
-		ctx, saddId := redis.PSubscribe(ctx, events.EntityAddedEvent{}, func(e event.Message) {
+		ctx, saddId := redis.PSubscribe(ctx, events.EntityAddedEvent{}, func(e events.Message) {
 			ev := &events.EntityAddedEvent{}
 
 			err := e.Unmarshal(ev)
@@ -53,7 +52,7 @@ func TestEngine_Add(t *testing.T) {
 
 		receivedCompnentAdded := make(chan *events.ComponentAddedEvent, 1)
 
-		ctx, caddId := redis.PSubscribe(ctx, events.ComponentAddedEvent{}, func(e event.Message) {
+		ctx, caddId := redis.PSubscribe(ctx, events.ComponentAddedEvent{}, func(e events.Message) {
 			ev := &events.ComponentAddedEvent{}
 
 			err := e.Unmarshal(ev)

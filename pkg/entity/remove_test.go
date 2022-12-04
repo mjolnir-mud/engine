@@ -26,55 +26,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdate(t *testing.T) {
+func TestRemoveEntity(t *testing.T) {
 	ctx := setup(t)
 	defer teardown(t, ctx)
 
-	t.Run("entity exists", func(t *testing.T) {
-		fe := &fakeEntity{
-			Id:    uid.New(),
-			Value: "test",
-		}
+	fe := &fakeEntity{
+		Id:    uid.New(),
+		Value: "test",
+	}
 
-		err := Add(ctx, fe)
-		assert.NoError(t, err)
+	err := Add(ctx, fe)
+	assert.NoError(t, err)
 
-		updated := make(chan *events.ComponentUpdatedEvent, 1)
+	removed := make(chan *events.EntityRemovedEvent, 1)
 
-		var id uid.UID
-		ctx, id = redis.Subscribe(ctx, events.ComponentUpdatedEvent{
-			EntityId: fe.Id,
-			Name:     "Value",
-		}, func(e events.Message) {
-			ev := &events.ComponentUpdatedEvent{}
+	var suid uid.UID
+	ctx, suid = redis.Subscribe(
+		ctx,
+		events.EntityRemovedEvent{
+			Id: fe.Id,
+		},
+		func(e events.Message) {
+			ev := &events.EntityRemovedEvent{}
 
 			err := e.Unmarshal(ev)
+
 			assert.NoError(t, err)
 
-			go func() { updated <- ev }()
-		})
-		defer redis.Unsubscribe(ctx, id)
+			go func() { removed <- ev }()
+		},
+	)
 
-		fe.Value = "updatedTest"
+	defer redis.Unsubscribe(ctx, suid)
 
-		err = Update(ctx, fe)
+	err = Remove(ctx, fe)
+	ev := <-removed
 
-		u := <-updated
-
-		assert.Equal(t, "updatedTest", u.Value)
-		assert.Equal(t, fe.Id, u.EntityId)
-		assert.Equal(t, "Value", u.Name)
-		assert.Equal(t, "test", u.PreviousValue)
-	})
-
-	t.Run("entity does not exist", func(t *testing.T) {
-		fe := &fakeEntity{
-			Id:    uid.New(),
-			Value: "test",
-		}
-
-		err := Update(ctx, fe)
-
-		assert.Error(t, err)
-	})
+	assert.NoError(t, err)
+	assert.Equal(t, fe.Id, ev.Id)
 }

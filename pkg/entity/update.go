@@ -22,7 +22,6 @@ import (
 	"reflect"
 
 	"github.com/mjolnir-engine/engine/pkg/errors"
-	"github.com/mjolnir-engine/engine/pkg/event"
 	"github.com/mjolnir-engine/engine/pkg/events"
 	"github.com/mjolnir-engine/engine/pkg/logger"
 	"github.com/mjolnir-engine/engine/pkg/redis"
@@ -106,14 +105,14 @@ func Update(ctx context.Context, entity interface{}) error {
 	return nil
 }
 
-func buildComponentUpdatedEvents(entity map[string]interface{}, oldEntity map[string]interface{}) []event.Event {
+func buildComponentUpdatedEvents(entity map[string]interface{}, oldEntity map[string]interface{}) []events.Event {
 	id, ok := entity["Id"].(uid.UID)
 
 	if !ok {
 		panic("unable to get entity id")
 	}
 
-	e := make([]event.Event, 0)
+	e := make([]events.Event, 0)
 
 	for name, value := range entity {
 		if name == "Id" {

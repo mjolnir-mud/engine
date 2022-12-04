@@ -22,7 +22,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/mjolnir-engine/engine/pkg/errors"
-	"github.com/mjolnir-engine/engine/pkg/event"
 	"github.com/mjolnir-engine/engine/pkg/events"
 	"github.com/mjolnir-engine/engine/pkg/logger"
 	"github.com/mjolnir-engine/engine/pkg/redis"
@@ -98,21 +97,21 @@ func Add(ctx context.Context, entity interface{}) error {
 	return nil
 }
 
-func buildEntityAddedEvent(entityId uid.UID) event.Event {
+func buildEntityAddedEvent(entityId uid.UID) events.Event {
 	return events.EntityAddedEvent{
 		Id: entityId,
 	}
 }
 
-func buildEntityAndComponentAddedEvents(entityId uid.UID, components map[string]interface{}) []event.Event {
-	events := []event.Event{
+func buildEntityAndComponentAddedEvents(entityId uid.UID, components map[string]interface{}) []events.Event {
+	evs := []events.Event{
 		buildEntityAddedEvent(entityId),
 	}
-	return append(events, buildComponentAddedEvents(entityId, components)...)
+	return append(evs, buildComponentAddedEvents(entityId, components)...)
 }
 
-func buildComponentAddedEvents(entityId uid.UID, components map[string]interface{}) []event.Event {
-	e := make([]event.Event, 0)
+func buildComponentAddedEvents(entityId uid.UID, components map[string]interface{}) []events.Event {
+	e := make([]events.Event, 0)
 
 	for name, value := range components {
 		e = append(e, events.ComponentAddedEvent{
