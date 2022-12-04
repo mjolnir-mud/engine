@@ -42,7 +42,8 @@ func TestUpdate(t *testing.T) {
 
 		updated := make(chan *events.ComponentUpdatedEvent, 1)
 
-		ctx, uid := redis.Subscribe(ctx, events.ComponentUpdatedEvent{
+		var id uid.UID
+		ctx, id = redis.Subscribe(ctx, events.ComponentUpdatedEvent{
 			EntityId: fe.Id,
 			Name:     "Value",
 		}, func(e event.Message) {
@@ -53,7 +54,7 @@ func TestUpdate(t *testing.T) {
 
 			go func() { updated <- ev }()
 		})
-		defer redis.Unsubscribe(ctx, uid)
+		defer redis.Unsubscribe(ctx, id)
 
 		fe.Value = "updatedTest"
 
