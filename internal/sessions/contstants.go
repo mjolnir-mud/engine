@@ -17,7 +17,5 @@
 
 package sessions
 
-const StopSubscriptionUidKey = "stopSessionSubscriptionUid"
-const ReceiveDataSubscriptionUidKey = "receiveDataSessionSubscriptionUid"
 const ContextsKey = "sessionsContexts"
 const StopFuncKey = "stopFunc"
