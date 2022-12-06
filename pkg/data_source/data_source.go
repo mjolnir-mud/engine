@@ -15,41 +15,35 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
+package data_source
 
-import "github.com/mjolnir-engine/engine/uid"
+import (
+	"context"
+
+	"github.com/mjolnir-engine/engine/pkg/uid"
+)
 
 // DataSource is an interface that represents a persistent data store. Data sources are used to store and retrieve
 // entities that may not be actively loaded into memory.
 type DataSource interface {
 	// All returns all entities within the data source.
-	All(interface{}) error
+	All(ctx context.Context, response interface{}) error
 
 	// Count returns the number of entities within the data source based on the provided filter. The filter is a map,
 	// the data source is responsible for translating that map into a filter to be used against its search.
-	Count(interface{}) (int64, error)
+	Count(ctx context.Context, query interface{}) (int64, error)
 
 	// Delete deletes entities from the data source based on the provided filter.
-	Delete(interface{}) error
+	Delete(ctx context.Context, query interface{}) error
 
 	// Find returns a list of entities from executing a search against a provided map. It returns a list of entities as
 	// a map keyed by their ids.
-	Find(interface{}, interface{}) error
-
-	// FindOne finds a single entity from executing a search against a provided map, decoding the result into the
-	// provided entity.
-	FindOne(interface{}, interface{}) error
+	Find(ctx context.Context, query interface{}, result interface{}) error
 
 	// Name returns the name of the data source. The name must be unique. Registering a data source with the same name
 	// will replace the existing data source of the same name.
 	Name() string
 
 	// Save saves an entity to the data source.
-	Save(interface{}) (uid.UID, error)
-
-	// Start is called when the registry is started, and should be used to do any work to "start" the data source.
-	Start() error
-
-	// Stop is called when the registry is stopped, and should be used to do any work to "stop" the data source.
-	Stop() error
+	Save(ctx context.Context, entity interface{}) (uid.UID, error)
 }
