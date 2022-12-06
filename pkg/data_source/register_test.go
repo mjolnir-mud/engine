@@ -15,12 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine
+package data_source
 
 import (
-	"github.com/mjolnir-engine/engine/uid"
-	"github.com/stretchr/testify/assert"
+	"context"
 	"testing"
+
+	"github.com/mjolnir-engine/engine/internal/data_sources"
+	internalTesting "github.com/mjolnir-engine/engine/internal/testing"
+	"github.com/mjolnir-engine/engine/pkg/uid"
 )
 
 type fakeDataSource struct{}
@@ -29,45 +32,31 @@ func (f fakeDataSource) Name() string {
 	return "fake"
 }
 
-func (f fakeDataSource) FindOne(interface{}, interface{}) error {
-	panic("implement me")
-}
-
-func (f fakeDataSource) Find(interface{}, interface{}) error {
-	panic("implement me")
-}
-
-func (f fakeDataSource) Save(interface{}) (uid.UID, error) {
-	panic("implement me")
-}
-
-func (f fakeDataSource) Count(interface{}) (int64, error) {
-	panic("implement me")
-}
-
-func (f fakeDataSource) Delete(interface{}) error {
-	panic("implement me")
-}
-
-func (f fakeDataSource) All(interface{}) error {
-	panic("implement me")
-}
-
-func (f fakeDataSource) Start() error {
+func (f fakeDataSource) All(ctx context.Context, response interface{}) error {
 	return nil
 }
 
-func (f fakeDataSource) Stop() error {
+func (f fakeDataSource) Count(ctx context.Context, query interface{}) (int64, error) {
+	return 0, nil
+}
+
+func (f fakeDataSource) Delete(ctx context.Context, query interface{}) error {
 	return nil
 }
 
-func TestEngine_RegisterDataSource(t *testing.T) {
-	e := createEngineInstance()
+func (f fakeDataSource) Find(ctx context.Context, query interface{}, response interface{}) error {
+	return nil
+}
 
-	e.RegisterDataSource(fakeDataSource{})
+func (f fakeDataSource) Save(ctx context.Context, entity interface{}) (uid.UID, error) {
+	return uid.New(), nil
+}
 
-	e.Start("test")
-	defer e.Stop()
+func TestRegister(t *testing.T) {
+	ctx := internalTesting.Setup(t)
+	defer internalTesting.Teardown(t, ctx)
 
-	assert.Len(t, e.dataSourceRegistry.dataSources, 1)
+	ctx = data_sources.WithDataSourcesContext(ctx)
+
+	ctx = Register(ctx, &fakeDataSource{})
 }
