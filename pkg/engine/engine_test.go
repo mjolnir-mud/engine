@@ -23,9 +23,9 @@ func TestNewEngine(t *testing.T) {
 		t.Errorf("Expected logger to be initialized, but it's nil")
 	}
 
-	// Verify that the pluginManager is not nil
-	if engine.pluginManager == nil {
-		t.Errorf("Expected pluginManager to be initialized, but it's nil")
+	// Verify that the plugins is not nil
+	if engine.plugins == nil {
+		t.Errorf("Expected plugins to be initialized, but it's nil")
 	}
 
 	// test panic if log level is invalid
@@ -38,4 +38,24 @@ func TestNewEngine(t *testing.T) {
 	New(&Config{
 		LogLevel: "invalid",
 	})
+}
+
+func TestEngine_NewContext(t *testing.T) {
+	// Create a new engine instance
+	engine := New(&Config{
+		LogLevel: "debug",
+	})
+
+	// Create a new context
+	ctx := engine.NewContext()
+
+	// Verify that the context is not nil
+	if ctx == nil {
+		t.Errorf("Expected context to be initialized, but it's nil")
+	}
+
+	// Verify that the context contains the engineInstanceId
+	if ctx.Value("engineInstanceId") == nil {
+		t.Errorf("Expected context to contain engineInstanceId, but it doesn't")
+	}
 }
